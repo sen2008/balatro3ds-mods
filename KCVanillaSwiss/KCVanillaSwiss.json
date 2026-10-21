@@ -1,0 +1,1 @@
+{"author":["krackocloud","3DS port for Lucas"],"dependencies":["Steamodded (>=1.0.0)"],"description":"Port of Swiss Cheese from the PC mod KCVanilla by krackocloud. X1 Mult for each gap of 1 rank between the ranks in the played poker hand.","id":"KCVanillaSwiss","main_file":"KCVanillaSwiss.lua","name":"KCVanilla: Swiss Cheese (3DS Port)","prefix":"kcvswiss","version":"1.0.0"}
