@@ -1,4 +1,6 @@
-# Balatro3DS Mods: KCVanilla Ports
+# Balatro3DS Mods
+
+Ports of PC Balatro mods to [Balatro3DS](https://github.com/idkhan/Balatro3DS) (the 3DS remake on Universal-Updater).
 
 Ports of Jokers from [KCVanilla](https://github.com/kcgidw/kcvanilla) (PC Balatro mod by **krackocloud**) to [Balatro3DS](https://github.com/idkhan/Balatro3DS), the Balatro remake for Nintendo 3DS available on Universal-Updater.
 
@@ -33,6 +35,21 @@ Download: `balatro3ds-kcvanilla-pack-v1.0.0.zip`.
 | Joker Energy | Uncommon / $6 | Scored Wild cards give a random one of +10 Mult, +100 Chips, X2 Mult, $5 |
 | Power Grid | Uncommon / $6 | Scored Mult cards give X Mult, growing +0.1 per Mult card scored this round |
 
+
+### PokermonPack — 35 Gen 1 Pokémon Jokers
+
+From **Pokermon** by InertSteak (the #2 most popular Balatro mod). Bulbasaur, Charmander and Squirtle (with their +hand size / +discard / +hand passives), Pikachu, Magikarp, the Caterpie, Weedle and Pidgey lines, Rattata/Raticate, Diglett/Dugtrio, Shellder/Cloyster, Goldeen/Seaking, Mr. Mime, Pinsir, Rapidash, Articuno, and more. Zip: `balatro3ds-pokermon-pack-v1.0.0.zip`.
+
+Pokermon is **GPLv3**, so this port is published under GPLv3 with the original code credited below.
+
+Port notes:
+
+- **No evolution, no Energy, no items**: Balatro3DS has none of those systems, so each Pokémon ships with its base effect at base (un-energized) values, and the "Evolves…" tooltip lines are removed. The custom `poke_safari` rarity maps to Rare.
+- Bulbasaur's designated rank is re-rolled at blind select, as in the original. Charmander/Squirtle scaling reads the port's live `G.discards` / `G.hands` counters.
+- Retrigger Pokémon (Rattata line, Shellder line, Goldeen line, Mr. Mime) use the port's `context.repetition`; "first N scoring cards" is resolved through `context.port.played_cards`, since the repetition context has no `scoring_hand`.
+- Tentacruel's "10s can't be debuffed" and Snorlax/Eevee-style effects bound to Pokermon's item/evolution systems did not port. Eevee and Snorlax are not in the pack for that reason.
+- Articuno adds Foil and a random seal to the first scoring card, but only if it has neither yet (the original converts unconditionally). Art is cropped from Pokermon's own Natdex sheet, with the legendary "soul" layer composited in.
+
 ## Port notes
 
 - Descriptions are KCVanilla's en-us text verbatim. One mismatch inherited on purpose: Handy Joker's text says "first discard of round", but the PC code triggers on *every* single enhanced-card discard. These ports follow the code.
@@ -49,10 +66,11 @@ Also found while porting: Balatro3DS does not fill `context.full_hand` for disca
 
 ## Validation
 
-Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the pack 13/13 (loading, registration, and per-Joker scoring behaviour), with the game's own mod suite (38 tests) still green and a negative control confirming the tests can fail. Hardware testing is the remaining step.
+Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13, the Pokermon pack 18/18 (loading, registration, tooltips, scoring, retriggers, scaling, Articuno's card conversion), with the game's own mod suite (38 tests) still green and negative controls confirming the tests can fail. Hardware testing is the remaining step.
 
 ## Credits
 
 - **krackocloud** — KCVanilla, its Joker designs, text and art. KCVanilla ships no license; this is an unofficial fan port made for personal use, published with credit. If you are krackocloud and want anything changed or removed, open an issue and it will be handled immediately.
+- **InertSteak and the Pokermon contributors** — Pokermon, its Joker designs, text and art (GPLv3).
 - **idkhan / Gazpacho** — Balatro3DS and its mod API.
 - **LocalThunk** — Balatro.

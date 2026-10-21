@@ -1,0 +1,11 @@
+{
+  "id": "PokermonPack",
+  "name": "Pokermon (3DS port)",
+  "display_name": "Pokermon Pack",
+  "author": ["Bender (port)", "InertSteak (Pokermon)"],
+  "description": "35 Gen 1 Pokemon Jokers ported from Pokermon by InertSteak (GPLv3). Evolution and Energy do not exist on 3DS, so each Pokemon ships with its base effect at base values.",
+  "prefix": "pokep",
+  "main_file": "pokermonpack.lua",
+  "version": "1.0.0",
+  "priority": 10
+}
