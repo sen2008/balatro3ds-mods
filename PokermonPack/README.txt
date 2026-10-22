@@ -1,16 +1,17 @@
-Pokermon Pack (3DS Port) v1.1.0
+Pokermon Pack (3DS Port) v1.2.0
 Fifty Gen 1 Pokemon Jokers from Pokermon (PC, by InertSteak) ported
-to Balatro3DS, now with evolution.
+to Balatro3DS, with evolution and the evolution stones.
 
-REQUIRES THE BALATRO3DS FORK (v1.1.0) FOR EVOLUTION
+REQUIRES THE BALATRO3DS FORK FOR EVOLUTION AND THE STONES
 Evolution replaces a Joker through the fork's Tier 1 mod API
-(SMODS.add_card / SMODS.destroy_joker):
+(SMODS.add_card / SMODS.destroy_joker), and the stones register
+through its SMODS.ConsumableType API:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack still loads and all
-fifty Jokers work, but nothing ever evolves (the Tier 1 calls do not
-exist there, and the pack treats that as "no evolution", exactly as
-in v1.0.0). The evolved forms below are still ordinary shop Jokers
-on both builds.
+fifty Jokers work, but nothing ever evolves and no stones appear
+(those calls do not exist there, and the pack treats that as "no
+evolution", exactly as in v1.0.0). The evolved forms below are still
+ordinary shop Jokers on both builds.
 The test file (test_pokepack.lua) stays in the mod folder; the game
 ignores it.
 
@@ -56,14 +57,20 @@ met; every stage is also a standalone shop Joker):
 - Goldeen -> Seaking (5 rounds).
 - Magikarp -> Gyarados (8 rounds).
 
-Blocked (the chain never evolves; the evolved form is still in the
-pack as a standalone Joker). All five are item evolutions on PC, and
-Pokermon's evolution stones do not exist in the port:
-- Pikachu -> Raichu: needs a Thunder Stone (c_poke_thunderstone).
-- Clefairy -> Clefable: needs a Moon Stone.
-- Jigglypuff -> Wigglytuff: needs a Moon Stone.
-- Growlithe -> Arcanine: needs a Fire Stone.
-- Shellder -> Cloyster: needs a Water Stone.
+Item evolutions (v1.2.0, fork build only). The stones are Item
+consumables, registered under the pack's own "poke_item" type at
+PC's shop_rate 4 and PC's $4 cost, so they roll in the shop as
+their own kind:
+- Pikachu -> Raichu: use a Thunder Stone.
+- Clefairy -> Clefable: use a Moon Stone.
+- Jigglypuff -> Wigglytuff: use a Moon Stone.
+- Growlithe -> Arcanine: use a Fire Stone.
+- Shellder -> Cloyster: use a Water Stone.
+Using a stone evolves the leftmost held Joker it applies to, on
+the spot (see port notes). The Leaf Stone is not included: its
+Gen 1 targets (Gloom, Weepinbell, Exeggcute) are not in the pack.
+Magneton does not take the Thunder Stone here: its PC evolution
+is Magnezone, which is not in the pack.
 
 INCLUDED JOKERS
 Starters and their lines:
@@ -99,8 +106,8 @@ Others:
   random Tarot card if the scoring hand also contains an Ace
   (must have room).
 - Growlithe (Common, $5): +8 Mult if the hand contains a Flush.
-- Arcanine (Rare, $8) [NEW, stone-blocked chain]: X1.5 Mult on a
-  Flush; the first unenhanced scoring card becomes a Mult card.
+- Arcanine (Rare, $8) [NEW]: X1.5 Mult on a Flush; the first
+  unenhanced scoring card becomes a Mult card.
 - Sandshrew (Common, $4): +25 Chips per Glass card in the full deck.
 - Sandslash (Rare, $6) [NEW]: +40 Chips per Glass card in the full
   deck; each discarded Enhanced card has a 1 in 3 chance to become
@@ -108,19 +115,19 @@ Others:
 - Diglett (Common, $5): +60 Chips on Three of a Kind, +4 Mult if a
   2, 3 or 4 scores. Dugtrio (Uncommon, $6): +120 Chips and X1.5 Mult.
 - Clefairy (Common, $4): played Clubs give +3 Mult.
-- Clefable (Rare, $10) [NEW, stone-blocked chain]: played Clubs give
-  +1 Mult per Club scored so far this round (resets each round).
+- Clefable (Rare, $10) [NEW]: played Clubs give +1 Mult per Club
+  scored so far this round (resets each round).
 - Jigglypuff (Common, $4): played Spades give +2 Mult and +10 Chips.
-- Wigglytuff (Rare, $10) [NEW, stone-blocked chain]: played Spades
-  give +2 Mult and +30 Chips plus the card's own Chips.
+- Wigglytuff (Rare, $10) [NEW]: played Spades give +2 Mult and
+  +30 Chips plus the card's own Chips.
 - Tentacool (Common, $4): played 10s give +7 Mult.
   Tentacruel (Uncommon, $6): played 10s give +10 Mult.
 - Magnemite (Uncommon, $7): played Steel cards give X1.5 Mult.
 - Magneton (Rare, $8) [NEW]: played Steel cards give X1.5 Mult,
   plus X0.2 per adjacent Magnemite/Magneton (see port notes).
-- Shellder (Uncommon, $5) / Cloyster (Rare, $8, stone-blocked
-  chain): with exactly 5 scoring cards, each has a 1 in 3 (Shellder)
-  or 1 in 2 (Cloyster) chance to retrigger once more.
+- Shellder (Uncommon, $5) / Cloyster (Rare, $8): with exactly 5
+  scoring cards, each has a 1 in 3 (Shellder) or 1 in 2 (Cloyster)
+  chance to retrigger once more.
 - Krabby (Common, $4): played face cards give +20 Chips.
 - Kingler (Uncommon, $7) [NEW]: played face cards give +20 Chips;
   scoring face cards without an enhancement become Bonus cards.
@@ -131,8 +138,8 @@ Others:
   card held in hand.
 - Pikachu (Common, $6): +10 Mult at $25+; earn $2 at blind select
   when poorer than that.
-- Raichu (Rare, $8) [NEW, stone-blocked chain]: +4 Mult per $10
-  held; earn interest when a Blind is selected.
+- Raichu (Rare, $8) [NEW]: +4 Mult per $10 held; earn interest
+  when a Blind is selected.
 - Magikarp (Common, $2): +1 Chip. It tries its best.
 - Gyarados (Rare, $10) [NEW]: X2.5 Mult.
 - Rapidash (Rare, $8): gains Chips as hands are played; gains more,
@@ -140,15 +147,37 @@ Others:
 - Articuno (Legendary, $20): the first scoring card gains Foil and a
   random seal if it has neither yet.
 
+EVOLUTION STONES (Item consumables, $4, fork build only)
+- Fire Stone: evolves a held Growlithe into Arcanine.
+- Water Stone: evolves a held Shellder into Cloyster.
+- Thunder Stone: evolves a held Pikachu into Raichu.
+- Moon Stone: evolves a held Clefairy into Clefable, or a held
+  Jigglypuff into Wigglytuff.
+A stone can be used only while a Joker it evolves is held (and not
+debuffed); using it evolves the leftmost such Joker immediately,
+with the same edition/scaling carry-over as the other chains.
+
 Validated headlessly against the Balatro3DS fork source (loader +
 per-Joker tests incl. five evolution chains end to end, edition
-preservation, and blocked-chain checks, 25/25; the fork's own mod
-suite stays 43/43) on 2026-10-22. Not yet tested on real hardware.
+preservation, and stone registration, targeting and evolution
+checks, 31/31; the fork's own mod suite stays 54/54) on
+2026-10-22. Not yet tested on real hardware.
 
 Port notes:
 - Energy is stripped everywhere; each Pokemon keeps its base effect
   at its base (un-energized) values. The custom "poke_safari" rarity
   maps to Rare.
+- Stones: on PC a stone can also be aimed at a highlighted Joker
+  and carries a secondary playing-card effect (Fire: Mult cards,
+  Water: Bonus cards, Thunder: Gold copies, Moon: upgrade a poker
+  hand), and the evolution itself lands at the end of the round.
+  The 3DS port has no Joker highlighting for consumables and does
+  not port the secondary effects, so a stone here is an
+  evolution-only card: usable exactly when a Joker it evolves is
+  held, evolving the leftmost one on the spot. The fork also gives
+  a custom consumable type no booster pack or collection tab, so
+  the stones arrive through the shop roll only (on PC they also
+  appear in Item packs).
 - Magneton's PC effect counts adjacent Metal-type Jokers. Pokemon
   types do not exist in the port, and the only Metal line in this
   roster is Magnemite/Magneton, so adjacency counts those two.

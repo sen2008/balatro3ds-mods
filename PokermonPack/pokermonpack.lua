@@ -13,11 +13,15 @@
 --   * Rounds-held (level) and counter (scaling) evolutions are checked
 --     on the port's end_of_round context, where PC raises its own
 --     evolution context after end_round().
---   * Stone evolutions cannot fire: the Moon, Fire, Water and Thunder
---     Stones are Pokermon items and do not exist in the port, so
---     Clefairy, Jigglypuff, Growlithe, Pikachu and Shellder never
---     evolve. Their evolved forms (Clefable, Wigglytuff, Arcanine,
---     Raichu) are still in the pack as standalone Jokers, like every
+--   * Stone evolutions (v1.2.0) use the fork's SMODS.ConsumableType:
+--     the Moon, Fire, Water and Thunder Stones are registered under
+--     the pack's own "poke_item" type (as on PC) at the bottom of
+--     this file, and using one evolves the leftmost held Clefairy,
+--     Jigglypuff, Growlithe, Pikachu or Shellder through the same
+--     poke_evolve call. On the stock game the type API does not
+--     exist, no stones register, and those five never evolve; their
+--     evolved forms (Clefable, Wigglytuff, Arcanine, Raichu) are
+--     still in the pack as standalone Jokers either way, like every
 --     other stage; Cloyster was already here.
 --   * Energy is stripped everywhere; each Pokemon keeps its base
 --     effect at its base (un-energized) values.
@@ -857,8 +861,7 @@ SMODS.Joker {
 }
 
 -- Arcanine: X1.5 Mult on a Flush, and the first unenhanced scoring
--- card becomes a Mult card before it scores. (Fire Stone evolution;
--- standalone here.)
+-- card becomes a Mult card before it scores. (Fire Stone evolution.)
 SMODS.Joker {
     key = "arcanine",
     sprite = "arcanine.png",
@@ -1131,7 +1134,7 @@ SMODS.Joker {
 
 -- Clefable: played Clubs give Mult equal to +1 per Club scored so far
 -- this round; the count builds as hands are played and resets at the
--- end of the round. (Moon Stone evolution; standalone here.)
+-- end of the round. (Moon Stone evolution.)
 SMODS.Joker {
     key = "clefable",
     sprite = "clefable.png",
@@ -1212,8 +1215,7 @@ SMODS.Joker {
 }
 
 -- Wigglytuff: played Spades give +2 Mult and Chips equal to 30 plus
--- the card's own Chips when scored. (Moon Stone evolution;
--- standalone here.)
+-- the card's own Chips when scored. (Moon Stone evolution.)
 SMODS.Joker {
     key = "wigglytuff",
     sprite = "wigglytuff.png",
@@ -1669,7 +1671,7 @@ SMODS.Joker {
 }
 
 -- Raichu: +4 Mult for each $10 you have, and earn interest when a
--- Blind is selected. (Thunder Stone evolution; standalone here.)
+-- Blind is selected. (Thunder Stone evolution.)
 SMODS.Joker {
     key = "raichu",
     sprite = "raichu.png",
@@ -1792,3 +1794,126 @@ SMODS.Joker {
         end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- Evolution stones (fork SMODS.ConsumableType; pack v1.2.0)
+--------------------------------------------------------------------------------
+-- PC Pokermon registers its items under its own consumable type
+-- ("consumable types/type1.lua": key "poke_item", name "Item",
+-- shop_rate 4) and the stones are consumables of that set
+-- ("consumables/03_mart_items.lua": cost 4, evo_item = true). The fork's
+-- SMODS.ConsumableType is the same registration with the same rate
+-- units (Tarot and Planet weigh 4), so the stones below are registered
+-- exactly as on PC and roll in the shop as their own kind. The fork
+-- gives a custom kind no booster pack or collection tab of its own;
+-- on PC the stones also reach the player through Item packs.
+--
+-- Which stones: exactly the ones that evolve Jokers in this pack
+-- (PC "item_req" on the base forms): Fire (Growlithe), Water
+-- (Shellder), Thunder (Pikachu) and Moon (Clefairy, Jigglypuff). The
+-- Leaf Stone is not ported: its Gen 1 targets (Gloom, Weepinbell,
+-- Exeggcute) are not in the pack. Magneton is NOT a Thunder Stone
+-- target here: on PC it evolves into Magnezone, which is not in the
+-- pack, so the stone refuses it.
+--
+-- Targeting: on PC a stone is usable when a Joker it evolves is
+-- highlighted (or its playing-card effect applies); using it marks the
+-- highlighted, else the leftmost, eligible Joker, and the evolution
+-- lands at the round's evolution step. The fork has no Joker
+-- highlighting for consumables, and the stones' secondary playing-card
+-- effects (Fire: Mult cards, Water: Bonus cards, Thunder: Gold copies,
+-- Moon: poker-hand upgrade) are not ported, so a stone here is usable
+-- exactly when a held Joker it evolves is present, and using it evolves
+-- the leftmost such Joker on the spot through poke_evolve (the same
+-- call the level/scaling chains use, so the edition and any kept
+-- scaling carry the same way). A debuffed Joker is never chosen, as
+-- on PC.
+--
+-- On the stock game SMODS.ConsumableType does not exist: this whole
+-- block is skipped, no stones register, and the pack behaves exactly
+-- as in v1.1.0.
+
+if SMODS.ConsumableType then
+    SMODS.ConsumableType {
+        key = "poke_item",
+        loc_txt = { name = "Item" },
+        shop_rate = 4,
+    }
+
+    -- Base Joker id -> the stone that evolves it, and -> its evolved
+    -- form (PC item_req / the chains documented at the top of this file).
+    local STONE_OF = {
+        j_pokep_growlithe = "firestone",
+        j_pokep_shellder = "waterstone",
+        j_pokep_pikachu = "thunderstone",
+        j_pokep_clefairy = "moonstone",
+        j_pokep_jigglypuff = "moonstone",
+    }
+    local STONE_EVOLUTION = {
+        j_pokep_growlithe = "j_pokep_arcanine",
+        j_pokep_shellder = "j_pokep_cloyster",
+        j_pokep_pikachu = "j_pokep_raichu",
+        j_pokep_clefairy = "j_pokep_clefable",
+        j_pokep_jigglypuff = "j_pokep_wigglytuff",
+    }
+
+    -- The leftmost held Joker this stone evolves, or nil. Debuffed
+    -- Jokers are skipped, as on PC.
+    local function stone_target(stone_key)
+        local jokers = G and G.jokers
+        if type(jokers) ~= "table" then return nil end
+        for _, j in ipairs(jokers) do
+            if j and j.def and STONE_OF[j.def.id] == stone_key
+                and j.debuff ~= true and j.debuffed ~= true then
+                return j
+            end
+        end
+        return nil
+    end
+
+    local function evolution_stone(key, name, text)
+        SMODS.Consumable {
+            set = "poke_item",
+            key = key,
+            sprite = key .. ".png",
+            negative_sprite = key .. "_negative.png",
+            loc_txt = { name = name, text = text },
+            cost = 4,
+            can_use = function(self, card)
+                return stone_target(key) ~= nil
+            end,
+            use = function(self, card)
+                local target = stone_target(key)
+                if target then
+                    poke_evolve(target, STONE_EVOLUTION[target.def.id])
+                end
+            end,
+        }
+    end
+
+    evolution_stone("firestone", "Fire Stone", {
+        "{C:attention}Evolution Card{}",
+        "Evolves a held {C:attention}Growlithe{}",
+        "into {C:attention}Arcanine{}",
+        "{C:inactive}(Leftmost eligible Joker){}",
+    })
+    evolution_stone("waterstone", "Water Stone", {
+        "{C:attention}Evolution Card{}",
+        "Evolves a held {C:attention}Shellder{}",
+        "into {C:attention}Cloyster{}",
+        "{C:inactive}(Leftmost eligible Joker){}",
+    })
+    evolution_stone("thunderstone", "Thunder Stone", {
+        "{C:attention}Evolution Card{}",
+        "Evolves a held {C:attention}Pikachu{}",
+        "into {C:attention}Raichu{}",
+        "{C:inactive}(Leftmost eligible Joker){}",
+    })
+    evolution_stone("moonstone", "Moon Stone", {
+        "{C:attention}Evolution Card{}",
+        "Evolves a held {C:attention}Clefairy{} into",
+        "{C:attention}Clefable{}, or a held {C:attention}Jigglypuff{}",
+        "into {C:attention}Wigglytuff{}",
+        "{C:inactive}(Leftmost eligible Joker){}",
+    })
+end
