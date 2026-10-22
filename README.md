@@ -69,17 +69,26 @@ From **Neato Jokers** by neatoqueen. All fifteen Jokers in the PC mod are ported
 
 **The last nine need the [Balatro3DS fork](https://github.com/sen2008/balatro3ds-fork) build.** They create and destroy cards and use retrigger returns through the fork's Tier 1 mod API (`SMODS.add_card` / `SMODS.destroy_joker` / `SMODS.destroy_card`), which the stock game does not have. On the stock Universal-Updater build the pack loads and the original six work, but those nine have no effects, and Ice Cream Sandwich floors at X1 instead of being eaten (it is destroyed as on PC only with the fork).
 
-### PokermonPack — 35 Gen 1 Pokémon Jokers
+### PokermonPack — 50 Gen 1 Pokémon Jokers, with evolution (v1.1.0)
 
-From **Pokermon** by InertSteak (the #2 most popular Balatro mod). Bulbasaur, Charmander and Squirtle (with their +hand size / +discard / +hand passives), Pikachu, Magikarp, the Caterpie, Weedle and Pidgey lines, Rattata/Raticate, Diglett/Dugtrio, Shellder/Cloyster, Goldeen/Seaking, Mr. Mime, Pinsir, Rapidash, Articuno, and more. Zip: `balatro3ds-pokermon-pack-v1.0.0.zip`.
+From **Pokermon** by InertSteak (the #2 most popular Balatro mod). Bulbasaur, Charmander and Squirtle (with their +hand size / +discard / +hand passives), Pikachu, Magikarp, the Caterpie, Weedle and Pidgey lines, Rattata/Raticate, Diglett/Dugtrio, Shellder/Cloyster, Goldeen/Seaking, Mr. Mime, Pinsir, Rapidash, Articuno, and more. Zip: `balatro3ds-pokermon-pack-v1.1.0.zip` (v1.0.0's zip is kept alongside).
 
 Pokermon is **GPLv3**, so this port is published under GPLv3 with the original code credited below.
 
+**Evolution (new in v1.1.0)** is implemented at pack level with the fork's Tier 1 mod API. On PC, Pokermon raises an evolution step after each round; the port checks the same counters on the round-end context. Where PC transforms the card in place and keeps its slot, the port destroys the old Joker and creates the evolved form (`SMODS.destroy_joker` + `SMODS.add_card`), so the evolved form takes the last Joker slot; the edition and any grown values PC would keep (a scaling total whose per-step gain is still on the card) carry over, stickers do not. **Evolution needs the [fork](https://github.com/sen2008/balatro3ds-fork) build** — on the stock game the Tier 1 calls do not exist and nothing evolves, exactly as in v1.0.0; every stage is still a standalone shop Joker either way.
+
+Per-chain status:
+
+- **Ported:** Bulbasaur → Ivysaur → Venusaur (after earning $16 in held-card payouts per stage), Charmander → Charmeleon → Charizard (at +16, then +36 grown Mult; the Mult carries), Squirtle → Wartortle → Blastoise (at +40, then +120 grown Chips; the Chips carry), Caterpie → Metapod (2 rounds) → Butterfree (3), Weedle → Kakuna (2) → Beedrill (3), Pidgey → Pidgeotto (4) → Pidgeot (4), Rattata → Raticate (5), Ekans → Arbok (4), Sandshrew → Sandslash (4), Diglett → Dugtrio (4), Tentacool → Tentacruel (5), Krabby → Kingler (4), Magnemite → Magneton (4), Goldeen → Seaking (5), Magikarp → Gyarados (8).
+- **Blocked — item evolutions:** Pikachu → Raichu (Thunder Stone), Clefairy → Clefable (Moon Stone), Jigglypuff → Wigglytuff (Moon Stone), Growlithe → Arcanine (Fire Stone), Shellder → Cloyster (Water Stone). The stones are Pokermon consumable items and do not exist in the port, so these chains never evolve; Raichu, Clefable, Wigglytuff and Arcanine are still in the pack as standalone Jokers (Cloyster already was).
+- The fifteen new forms' art is sliced from Pokermon's own Natdex atlas; the original 35 keep their pack art.
+
 Port notes:
 
-- **No evolution, no Energy, no items**: Balatro3DS has none of those systems, so each Pokémon ships with its base effect at base (un-energized) values, and the "Evolves…" tooltip lines are removed. The custom `poke_safari` rarity maps to Rare.
+- **No Energy, no items**: Balatro3DS has neither system, so each Pokémon ships with its base effect at base (un-energized) values. The custom `poke_safari` rarity maps to Rare.
 - Bulbasaur's designated rank is re-rolled at blind select, as in the original. Charmander/Squirtle scaling reads the port's live `G.discards` / `G.hands` counters.
 - Retrigger Pokémon (Rattata line, Shellder line, Goldeen line, Mr. Mime) use the port's `context.repetition`; "first N scoring cards" is resolved through `context.port.played_cards`, since the repetition context has no `scoring_hand`.
+- Magneton counts adjacent Metal Jokers as PC does, but Pokémon types do not exist in the port and the only Metal line in this roster is Magnemite/Magneton, so adjacency counts those two. Arbok creates its Tarot during scoring instead of before it.
 - Tentacruel's "10s can't be debuffed" and Snorlax/Eevee-style effects bound to Pokermon's item/evolution systems did not port. Eevee and Snorlax are not in the pack for that reason.
 - Articuno adds Foil and a random seal to the first scoring card, but only if it has neither yet (the original converts unconditionally). Art is cropped from Pokermon's own Natdex sheet, with the legendary "soul" layer composited in.
 
@@ -113,7 +122,7 @@ Also found while porting: Balatro3DS does not fill `context.full_hand` for disca
 
 ## Validation
 
-Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 (loading, registration, tooltips, scoring, retriggers, scaling, Articuno's card conversion), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), with the game's own mod suite still green (38 tests on the stock tree, 43/43 on the fork) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
+Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 at v1.0.0 and 25/25 in its v1.1.0 suite (registration and tooltips for all fifty, evolution chains end to end for the Caterpie, Charmander, Squirtle, Bulbasaur and Magikarp lines, edition preservation, blocked stone chains correctly never evolving, plus regression checks on the original eighteen), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), with the game's own mod suite still green (38 tests on the stock tree, 43/43 on the fork) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
 
 ## Credits
 

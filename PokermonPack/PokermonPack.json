@@ -1,11 +1,1 @@
-{
-  "id": "PokermonPack",
-  "name": "Pokermon (3DS port)",
-  "display_name": "Pokermon Pack",
-  "author": ["Bender (port)", "InertSteak (Pokermon)"],
-  "description": "35 Gen 1 Pokemon Jokers ported from Pokermon by InertSteak (GPLv3). Evolution and Energy do not exist on 3DS, so each Pokemon ships with its base effect at base values.",
-  "prefix": "pokep",
-  "main_file": "pokermonpack.lua",
-  "version": "1.0.0",
-  "priority": 10
-}
+{"author":["Bender (port)","InertSteak (Pokermon)"],"description":"50 Gen 1 Pokemon Jokers ported from Pokermon by InertSteak (GPLv3), now with evolution. Level and scaling evolutions use the Balatro3DS fork's Tier 1 mod API (SMODS.add_card / SMODS.destroy_joker) and need the fork build (github.com/sen2008/balatro3ds-fork); on the stock game the pack loads and plays as before, but nothing evolves. Energy does not exist on 3DS, so each Pokemon keeps its base effect at base values, and the stone evolutions (Moon, Fire, Water, Thunder) cannot fire because the stones are not in the port.","display_name":"Pokermon Pack","id":"PokermonPack","main_file":"pokermonpack.lua","name":"Pokermon (3DS port)","prefix":"pokep","priority":10,"version":"1.1.0"}

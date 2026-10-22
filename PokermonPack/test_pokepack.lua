@@ -21,12 +21,15 @@ local function wipe_mods()
 end
 
 local NAMES = {
-    "bulbasaur", "charmander", "squirtle", "caterpie", "metapod", "butterfree",
+    "bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon", "charizard",
+    "squirtle", "wartortle", "blastoise", "caterpie", "metapod", "butterfree",
     "weedle", "kakuna", "beedrill", "pidgey", "pidgeotto", "pidgeot",
-    "rattata", "raticate", "ekans", "sandshrew", "diglett", "dugtrio",
-    "clefairy", "jigglypuff", "growlithe", "tentacool", "tentacruel",
-    "magnemite", "shellder", "cloyster", "krabby", "goldeen", "seaking",
-    "mrmime", "pinsir", "pikachu", "magikarp", "rapidash", "articuno",
+    "rattata", "raticate", "ekans", "arbok", "sandshrew", "sandslash",
+    "diglett", "dugtrio", "clefairy", "clefable", "jigglypuff", "wigglytuff",
+    "growlithe", "arcanine", "tentacool", "tentacruel",
+    "magnemite", "magneton", "shellder", "cloyster", "krabby", "kingler",
+    "goldeen", "seaking", "mrmime", "pinsir", "pikachu", "raichu",
+    "magikarp", "gyarados", "rapidash", "articuno",
 }
 
 local function install_pack()
@@ -40,7 +43,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/PokermonPack.json", [[{
         "id": "PokermonPack", "name": "Pokermon (3DS port)", "prefix": "pokep",
-        "main_file": "pokermonpack.lua", "version": "1.0.0",
+        "main_file": "pokermonpack.lua", "version": "1.1.0",
         "author": ["InertSteak", "3DS port"]
     }]])
     love.filesystem.write(base .. "/pokermonpack.lua", main)
@@ -101,11 +104,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 35 Pokemon", function()
+suite.test("pack loads and registers all 50 Pokemon", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PokermonPack
     T.assert_eq(mod.status, "loaded")
-    T.assert_eq(#mod.registered.jokers, 35)
+    T.assert_eq(#mod.registered.jokers, 50)
     local expect = {
         j_pokep_bulbasaur = { "Bulbasaur", 2, 5 }, j_pokep_charmander = { "Charmander", 2, 5 },
         j_pokep_squirtle = { "Squirtle", 2, 6 }, j_pokep_caterpie = { "Caterpie", 1, 2 },
@@ -115,6 +118,14 @@ suite.test("pack loads and registers all 35 Pokemon", function()
         j_pokep_articuno = { "Articuno", 4, 20 }, j_pokep_mrmime = { "Mr. Mime", 3, 8 },
         j_pokep_pikachu = { "Pikachu", 1, 6 }, j_pokep_magikarp = { "Magikarp", 1, 2 },
         j_pokep_cloyster = { "Cloyster", 3, 8 }, j_pokep_rapidash = { "Rapidash", 3, 8 },
+        j_pokep_ivysaur = { "Ivysaur", 3, 9 }, j_pokep_venusaur = { "Venusaur", 3, 10 },
+        j_pokep_charmeleon = { "Charmeleon", 3, 8 }, j_pokep_charizard = { "Charizard", 3, 10 },
+        j_pokep_wartortle = { "Wartortle", 3, 8 }, j_pokep_blastoise = { "Blastoise", 3, 10 },
+        j_pokep_arbok = { "Arbok", 2, 7 }, j_pokep_raichu = { "Raichu", 3, 8 },
+        j_pokep_sandslash = { "Sandslash", 3, 6 }, j_pokep_clefable = { "Clefable", 3, 10 },
+        j_pokep_wigglytuff = { "Wigglytuff", 3, 10 }, j_pokep_arcanine = { "Arcanine", 3, 8 },
+        j_pokep_magneton = { "Magneton", 3, 8 }, j_pokep_kingler = { "Kingler", 2, 7 },
+        j_pokep_gyarados = { "Gyarados", 3, 10 },
     }
     for id, e in pairs(expect) do
         local def = JOKER_DEFS[id]
@@ -128,8 +139,13 @@ suite.test("pack loads and registers all 35 Pokemon", function()
     T.assert_eq(JOKER_DEFS.j_pokep_cloyster.eternal_compat, false)
     -- passives ride the native modifier fields
     T.assert_eq(JOKER_DEFS.j_pokep_bulbasaur.config.h_size, 1)
+    T.assert_eq(JOKER_DEFS.j_pokep_ivysaur.config.h_size, 1)
+    T.assert_eq(JOKER_DEFS.j_pokep_venusaur.config.h_size, 1)
     T.assert_eq(JOKER_DEFS.j_pokep_charmander.config.d_size, 1)
+    T.assert_eq(JOKER_DEFS.j_pokep_charizard.config.d_size, 1)
     T.assert_eq(JOKER_DEFS.j_pokep_squirtle.config.hands, 1)
+    T.assert_eq(JOKER_DEFS.j_pokep_wartortle.config.hands, 1)
+    T.assert_eq(JOKER_DEFS.j_pokep_blastoise.config.hands, 1)
     wipe_mods()
 end)
 
@@ -436,6 +452,182 @@ suite.test("sandshrew counts glass cards in the full deck", function()
     game.deck.cards[2].enhancement = "glass"
     ctx = scored(shrew, { full_hand = hand, played_cards = hand, cards = hand })
     T.assert_eq(ctx.chips, 60, "10 base + 2 Glass x 25")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Evolution (fork Tier 1: destroy + create at the round-end step)
+--------------------------------------------------------------------------------
+
+local function round_end(joker)
+    local ctx = { event = "on_round_end", event_name = "on_round_end", game_over = false }
+    if joker:matches_trigger("on_round_end", ctx) then joker:apply_effect(ctx) end
+    return ctx
+end
+
+local function only_joker(game)
+    T.assert_eq(#game.jokers, 1, "exactly one Joker after evolution")
+    return game.jokers[1]
+end
+
+suite.test("caterpie evolves to metapod, then butterfree", function()
+    local game = install_pack()
+    game.jokers = {}
+    local cat = add(game, "j_pokep_caterpie")
+    round_end(cat)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_caterpie", "1 of 2 rounds: still Caterpie")
+    T.assert_eq(cat.ability.extra.rounds, 1, "counter ticked down")
+    round_end(cat)
+    local meta = only_joker(game)
+    T.assert_eq(meta.def.id, "j_pokep_metapod", "2 rounds: Metapod")
+    T.assert_eq(meta.ability.extra.mult, 6, "Metapod's own +6 Mult")
+    round_end(meta)
+    round_end(meta)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_metapod", "2 of 3 rounds: still Metapod")
+    round_end(meta)
+    local bf = only_joker(game)
+    T.assert_eq(bf.def.id, "j_pokep_butterfree", "3 more rounds: Butterfree")
+    local ctx = scored(bf)
+    T.assert_eq(ctx.mult, 14, "2 base + 12 Butterfree")
+    wipe_mods()
+end)
+
+suite.test("evolution preserves the edition", function()
+    local game = install_pack()
+    game.jokers = {}
+    T.assert_true(game:add_joker_by_def("j_pokep_caterpie", { edition = "foil" }))
+    local cat = game.jokers[#game.jokers]
+    T.assert_eq(cat.edition, "foil")
+    round_end(cat)
+    round_end(cat)
+    local meta = only_joker(game)
+    T.assert_eq(meta.def.id, "j_pokep_metapod")
+    T.assert_eq(meta.edition, "foil", "foil carries through evolution")
+    wipe_mods()
+end)
+
+suite.test("charmander evolves on grown Mult and keeps it", function()
+    local game = install_pack()
+    game.jokers = {}
+    local charm = add(game, "j_pokep_charmander")
+    charm.ability.extra.mult = 15
+    round_end(charm)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_charmander", "+15 Mult: not yet")
+    charm.ability.extra.mult = 16
+    round_end(charm)
+    local meleon = only_joker(game)
+    T.assert_eq(meleon.def.id, "j_pokep_charmeleon", "+16 Mult: Charmeleon")
+    T.assert_eq(meleon.ability.extra.mult, 16, "grown Mult carries over")
+    meleon.ability.extra.mult = 36
+    round_end(meleon)
+    local zard = only_joker(game)
+    T.assert_eq(zard.def.id, "j_pokep_charizard", "+36 Mult: Charizard")
+    T.assert_eq(zard.ability.extra.mult, 36, "Charizard starts from the carried Mult")
+    game.discards = 0
+    local ctx = scored(zard)
+    T.assert_eq(ctx.mult, 57, "(2 base + 36) x 1.5 Fire Blast at 0 discards")
+    game.discards = 2
+    ctx = scored(zard)
+    T.assert_eq(ctx.mult, 38, "discards left: flat +36, no X1.5")
+    wipe_mods()
+end)
+
+suite.test("squirtle evolves on grown Chips and keeps them", function()
+    local game = install_pack()
+    game.jokers = {}
+    local squir = add(game, "j_pokep_squirtle")
+    squir.ability.extra.chips = 39
+    round_end(squir)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_squirtle", "+39 Chips: not yet")
+    squir.ability.extra.chips = 55
+    round_end(squir)
+    local wart = only_joker(game)
+    T.assert_eq(wart.def.id, "j_pokep_wartortle", "past +40: Wartortle")
+    T.assert_eq(wart.ability.extra.chips, 55, "grown Chips carry (55 > Wartortle's 40)")
+    wart.ability.extra.chips = 120
+    round_end(wart)
+    local blast = only_joker(game)
+    T.assert_eq(blast.def.id, "j_pokep_blastoise", "+120: Blastoise")
+    game.hands = 2
+    local ctx = scored(blast)
+    T.assert_eq(ctx.chips, 180, "10 base + 120 + 25 x 2 hands left")
+    wipe_mods()
+end)
+
+suite.test("bulbasaur evolves after earning $16 as Bulbasaur", function()
+    local game = install_pack()
+    game.jokers = {}
+    local bulb = add(game, "j_pokep_bulbasaur")
+    bulb.ability.extra.earned = 15
+    round_end(bulb)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_bulbasaur", "$15 earned: not yet")
+    bulb.ability.extra.earned = 16
+    round_end(bulb)
+    local ivy = only_joker(game)
+    T.assert_eq(ivy.def.id, "j_pokep_ivysaur", "$16 earned: Ivysaur")
+    T.assert_eq(ivy.ability.extra.earned, 0, "the evolved form earns its own $16")
+    ivy.ability.extra.target_rank = 9
+    ivy.ability.extra.earned = 16
+    round_end(ivy)
+    T.assert_eq(only_joker(game).def.id, "j_pokep_venusaur", "Ivysaur's $16: Venusaur")
+    wipe_mods()
+end)
+
+suite.test("stone chains and unmet conditions never evolve", function()
+    local game = install_pack()
+    game.jokers = {}
+    local pika = add(game, "j_pokep_pikachu")
+    for _ = 1, 10 do round_end(pika) end
+    T.assert_eq(only_joker(game).def.id, "j_pokep_pikachu",
+        "no Thunder Stone in the port: Pikachu never evolves")
+    game.jokers = {}
+    local shell = add(game, "j_pokep_shellder")
+    for _ = 1, 10 do round_end(shell) end
+    T.assert_eq(only_joker(game).def.id, "j_pokep_shellder",
+        "no Water Stone in the port: Shellder never evolves")
+    game.jokers = {}
+    local karp = add(game, "j_pokep_magikarp")
+    for _ = 1, 7 do round_end(karp) end
+    T.assert_eq(only_joker(game).def.id, "j_pokep_magikarp", "7 of 8 rounds: still Magikarp")
+    round_end(karp)
+    local gyar = only_joker(game)
+    T.assert_eq(gyar.def.id, "j_pokep_gyarados", "8 rounds: Gyarados")
+    local ctx = scored(gyar)
+    T.assert_eq(ctx.mult, 5, "2 base x 2.5 Gyarados")
+    wipe_mods()
+end)
+
+suite.test("evolved forms work standalone: raichu, gyarados line, kingler, arcanine", function()
+    local game = install_pack()
+    game.jokers = {}
+    local rai = add(game, "j_pokep_raichu")
+    game.money = 25
+    local bctx = { event = "on_blind_selected", event_name = "on_blind_selected" }
+    if rai:matches_trigger("on_blind_selected", bctx) then rai:apply_effect(bctx) end
+    T.assert_eq(game.money, 30, "$25 + $5 interest at blind select")
+    local ctx = scored(rai)
+    T.assert_eq(ctx.mult, 14, "2 base + 4 x floor(30/10) Raichu")
+    game.jokers = {}
+    local king = add(game, "j_pokep_kingler")
+    local face = card(12, "Spades")
+    local plain = card(7)
+    before(king, { played_cards = { face, plain }, full_hand = { face, plain },
+        cards = { face, plain } })
+    T.assert_eq(face.card_data.enhancement, "bonus", "scoring face card becomes Bonus")
+    T.assert_true(plain.card_data.enhancement == nil, "non-face card untouched")
+    local pctx = play_card(king, face, { face })
+    T.assert_eq(pctx.chips, 20, "Kingler pays 20 Chips on a face card")
+    game.jokers = {}
+    local arc = add(game, "j_pokep_arcanine")
+    local a1, a2 = card(3), card(4)
+    local flush = { a1, a2, card(6), card(8), card(10) }
+    before(arc, { played_cards = flush, full_hand = flush, cards = flush,
+        contains_hand_types = { Flush = true } })
+    T.assert_eq(a1.card_data.enhancement, "mult", "first scoring card becomes Mult")
+    T.assert_true(a2.card_data.enhancement == nil, "only the first card converts")
+    ctx = scored(arc, { full_hand = flush, played_cards = flush, cards = flush,
+        contains_hand_types = { Flush = true } })
+    T.assert_near(ctx.mult, 3, 0.001, "2 base x 1.5 Arcanine on a Flush")
     wipe_mods()
 end)
 
