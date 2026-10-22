@@ -92,6 +92,77 @@ Port notes:
 - Tentacruel's "10s can't be debuffed" and Snorlax/Eevee-style effects bound to Pokermon's item/evolution systems did not port. Eevee and Snorlax are not in the pack for that reason.
 - Articuno adds Foil and a random seal to the first scoring card, but only if it has neither yet (the original converts unconditionally). Art is cropped from Pokermon's own Natdex sheet, with the legendary "soul" layer composited in.
 
+### BuncoPack — 51 Jokers, the exotic suits and the Spectrum hands (v1.1.0)
+
+Download: `balatro3ds-bunco-pack-v1.1.0.zip`.
+
+From **Bunco** by Firch — the biggest single pack here, and the first to port a PC mod's custom suits and poker hands. Bunco adds two **exotic suits** (Fleurons, Halberds), four **Spectrum-family hands** (Spectrum, Straight Spectrum, Spectrum House, Spectrum Five) plus Registration Plate's **Deal**, and a per-run exotic system: score any Spectrum-family hand once and exotic-suit cards start appearing in Standard packs and the shop, and the exotic Jokers enter the pools. Also included: the four Spectrum Planets (Quaoar, Haumea, Sedna, Makemake) and the exotic Tarots (The Sky, The Abyss).
+
+**Everything new in v1.1.0 needs the [Balatro3DS fork](https://github.com/sen2008/balatro3ds-fork) build** — Tier 1 (create/destroy cards, retrigger returns), Tier 2 (`SMODS.Suit`, `SMODS.PokerHand`), and one small fork addition made for this pack: a suit's `in_pool` now also gates the random playing-card fronts the game deals into Standard packs and shop cards, which is the route exotic cards take on PC. On the stock Universal-Updater build the original nineteen Jokers still work (without their exotic branches); the new content has no effects.
+
+| Joker | Rarity / Cost | Effect |
+|---|---|---|
+| Cassette | Uncommon / $5 | Side A: light-suit cards give +45 Chips when scored; side B: dark-suit cards give +6 Mult; flips on discard |
+| Mosaic Joker | Uncommon / $4 | Played Stone Cards give +6 Mult when scored |
+| Voxel Joker | Uncommon / $5 | X3 Mult, −X0.1 per enhanced card in the full deck |
+| Crop Circles | Common / $4 | Scored cards give Mult by natural suit and rank (Fleurons pay most, then Clubs) |
+| Prehistoric Joker | Uncommon / $5 | +16 Mult when a scored card repeats an earlier scored card this round |
+| Shepherd Joker | Common / $5 | Gains +12 Chips per Pair played this round |
+| Jumper | Common / $5 | Gains +8 Chips per Flush played this round |
+| Dogs Playing Poker | Uncommon / $5 | X2.5 Mult if every scoring rank is 5 or below |
+| Headshot | Uncommon / $8 | X3 Mult if exactly one face card scores |
+| Nil Bill | Uncommon / $4 | Earn $2 per card destroyed |
+| Slothful Joker | Uncommon / $5 | Wild Cards give +9 Mult when scored |
+| Hierarchy of Needs | Common / $5 | +2 Mult per rank of a complete suit sequence in the deck |
+| Protester | Common / $4 | Banks Chips equal to 8× the highest rank discarded this round |
+| Disproportionality | Common / $4 | Gives a random amount of Chips (10–210) |
+| On Broadway | Uncommon / $6 | +120 Chips and +20 Mult on a Straight with a scoring face card |
+| Rasta | Common / $5 | +12 Mult if no scoring card is enhanced |
+| Critic | Common / $6 | X2 Mult while the hand's score is under a third of the blind target |
+| Wino | Common / $5 | Hearts and Diamonds give +12 Chips when scored |
+| Tangram | Rare / $7 | Scored 7s give +7 Mult per 7 in the played hand |
+| Basement Joker | Rare / $8 | When the Boss Blind is defeated, create a random Spectral card |
+| Carnival | Rare / $10 | After defeating the Boss Blind, destroy a random Joker and go one Ante back (once per Ante) |
+| Dread | Rare / $8 | After the last hand, level it by 2 and destroy the played cards; removal reverses the levels |
+| The Joker | Rare / $10 | Each unenhanced scoring card has a 1 in 3 chance to be destroyed after play |
+| Registration Plate | Rare / $8 | Five ranks from your deck form the Deal hand, re-rolled each round |
+| Righthook | Rare / $8 | Retrigger the last scoring card once per remaining hand |
+| Linocut Joker | Uncommon / $4 | A played Pair of exactly two converts the left card's suit into the right card's |
+| Ghost Print | Uncommon / $6 | Gives the Chips and Mult of the last hand type played |
+| Loan Shark | Uncommon / $3 | Gain $50 when acquired; sell value is −$100 |
+| Fingerprints | Uncommon / $8 | Scored cards gain +50 Chips for the next round |
+| Bierdeckel | Uncommon / $4 | Cards left in hand gain +10 Chips until end of round |
+| Zero Shapiro | Uncommon / $4 | Scored Ks, Qs, Js and Stone cards: 1 in 8 chance to create a D6 Tag |
+| Doodle | Rare / $10 | Once per round, using a Tarot or Planet duplicates it |
+| Pawn | Common / $5 | Scored cards tied for the deck's lowest rank gain +1 rank |
+| Hopscotch | Common / $4 | +1 discard this round when you play a Straight |
+| X-Ray | Common / $4 | X0.2 Mult per card drawn face down |
+| Mousetrap | Uncommon / $6 | 1 in 3 chance to lose a hand instead of scoring; at 0 hands, +300 Chips instead |
+| Stylophone | Uncommon / $5 | Scored cards give +0.3 Mult per pip of rank |
+| Juggalo | Rare / $5 | On blind select, a random owned consumable gains a random edition |
+| Puzzle Board | Uncommon / $6 | Using a Tarot: 1 in 4 chance to put a random edition on a highlighted card |
+| Zealous Joker | Common / $3 | +10 Mult if the played hand contains a Spectrum (exotic) |
+| Lurid Joker | Common / $3 | +80 Chips if the played hand contains a Spectrum (exotic) |
+| Envious Joker | Common / $5 | Scored Fleurons give +6 Mult (exotic) |
+| Proud Joker | Common / $5 | Scored Halberds give +6 Mult (exotic) |
+| Wishalloy | Uncommon / $7 | 1 in 7 for scored Fleurons to earn $ equal to their scored Chips (exotic) |
+| Unobtanium | Uncommon / $7 | Scored Halberds give +30 Chips and +6 Mult (exotic) |
+| Magic Wand | Common / $5 | Gains +3 Mult per consecutive Spectrum hand, resets otherwise (exotic) |
+| Starfruit | Uncommon / $5 | Level up a Spectrum hand; 1 in 4 chance to be destroyed at end of round (exotic) |
+| Fondue | Rare / $8 | First hand's scored cards become Fleurons (exotic) |
+| Roy G. Biv | Uncommon / $8 | 1 in 7 to give every scored card Polychrome on a Spectrum hand (exotic) |
+| The Dynasty | Rare / $8 | X5 Mult if the played hand contains a Spectrum (exotic) |
+| Rigoletto | Legendary / $20 | X1 Mult + X0.2 per exotic card in the full deck (exotic) |
+
+Port notes:
+
+- **The exotic gate is derived, not stored**: PC flips a per-run `G.GAME.Exotic` flag from a Lovely hand-played patch; the port reads the game's own per-hand play counts (persisted in the run save), so a Spectrum-family hand with a count above zero means exotics are on. The same gate feeds both the exotic Jokers' `in_pool` and the fork's random-front pool.
+- **The Sky and The Abyss are not pool-gated here**: mod consumables have no `in_pool` on the port, so the two exotic Tarots can appear before exotics are on (on PC they cannot). Using one is still only a suit conversion.
+- Bunco's **temporary extra chips** (Fingerprints, Bierdeckel) are a `Card:get_chip_bonus` patch on PC; here the grants ride on `card_data.Bonus`, tracked per Joker by card uid and removed at end of round, which reproduces their lifetimes (Fingerprints through the next round, Bierdeckel for the rest of the current one).
+- **X-Ray** banks at deal-complete: the port reports a draw in one `hand_drawn` event carrying the drawn set, where PC patches each card's emplacement.
+- **Juggalo** cannot roll Bunco's custom Glitter edition (custom editions cannot be registered); its roll is Foil / Holographic / Polychrome. **Stylophone**'s sound-click ladder is cosmetic on PC and is not ported.
+- **Deal** rewrites its own hand stats inside its `evaluate` (level 1, base values set to the banked totals), the one place the port recomputes a hand's score from its stats.
+
 ## Port notes
 
 - Descriptions are KCVanilla's en-us text verbatim. One mismatch inherited on purpose: Handy Joker's text says "first discard of round", but the PC code triggers on *every* single enhanced-card discard. These ports follow the code.
@@ -118,16 +189,19 @@ The other four KCVanilla Jokers still need things Balatro3DS mods do not have, e
 
 Neato Jokers is fully ported as of NeatoPack v1.1.0 (15/15): the nine that were blocked on create/destroy/retrigger-return mechanics (Australian Shepherd, The Banana Stand, Blue Yourself, Dayman, Nightman, Dogs Playing Balatro, Frosted Prime Rib, Hatsune Joku, JokerZD) were unblocked by the same Tier 1 API. Only pieces around them did not port: Hatsune Joku's music track and config tab, and Blue Yourself's `other_ret` sub-guard (see Port notes).
 
+Bunco is 51 of 80 in BuncoPack v1.1.0. The other 29 stay blocked, each on a named system the port does not expose: Knight (its Mult reset rides Bunco's Lovely patch on Joker-area reordering; the port raises no rearrangement event), JMJB and Aristocrat (booster-pack internals: the port's booster-open context fires empty, before the pack's cards exist, and mods cannot change a pack's choice count), Fiendish and Bounty Hunter (Bunco's global `ease_dollars` wrapper — double / tax every money gain; the port applies money only through Joker returns), Sledgehammer, Dwarven and Metallurgist (they rewrite enhancement center configs — Glass XMult and break odds, Stone and Gold held effects — which are hardcoded game constants here), Doorhanger (pool filtering of *other* Jokers by rarity; a Joker's `in_pool` governs only itself), Neon (Bunco's custom Fluorescent edition plus an `enhance_card` context the port never raises), Gameplan and Conquest (Bunco's `set_debuff` hook into blind debuff evaluation), Head in the Clouds (a hand-levelled context; the port emits none), Trigger Finger (a `highlight_card` context plus forcing a play), Vandalism (the port flips played face-down cards face-up before any Joker context, so no Joker can learn which were face down), Cellphone (a Lovely redirect of scored cards back to hand plus a `press_play` context), Domino (pre-purchase shop contexts and inserting free acquisitions into the shop), Glue Gun, Taped, Rubber Band Ball and Games Collector (Bunco's linked-group card system and its `groups_drawn` context), Headache (creates Bunco's custom Arcade Tag; mod tags cannot be registered), Kite Experiment and Robot (Bunco's Copper enhancement and `rescore_cards` context; custom enhancements cannot be registered), Hardtack and Pica (their effects live in Bunco's Cracker enhancement system), Myopia and Astigmatism (global `Card:is_suit` patches), Running Joke (inserting a shop offer at shop start; offers are built game-side).
+
 Also found while porting: Balatro3DS does not fill `context.full_hand` for discard contexts (the batch is only in `context.port.discarded_nodes`). Handy Joker works around it; other discard mods should too.
 
 ## Validation
 
-Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 at v1.0.0 and 25/25 in its v1.1.0 suite (registration and tooltips for all fifty, evolution chains end to end for the Caterpie, Charmander, Squirtle, Bulbasaur and Magikarp lines, edition preservation, blocked stone chains correctly never evolving, plus regression checks on the original eighteen), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), with the game's own mod suite still green (38 tests on the stock tree, 43/43 on the fork) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
+Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 at v1.0.0 and 25/25 in its v1.1.0 suite (registration and tooltips for all fifty, evolution chains end to end for the Caterpie, Charmander, Squirtle, Bulbasaur and Magikarp lines, edition preservation, blocked stone chains correctly never evolving, plus regression checks on the original eighteen), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), the Bunco pack 17/17 at v1.0.0 and 38/38 in its v1.1.0 suite (registration and tooltips for all fifty-one Jokers and six consumables, both exotic suits, every Spectrum-family hand plus Deal evaluated through the game's own hand classifier, the exotic gate opening and shutting, and create/destroy/level/retrigger behavior for the new Jokers), with the game's own mod suite still green (38 tests on the stock tree, 49/49 on the fork, including the suit-front gate test this pack needed) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
 
 ## Credits
 
 - **krackocloud** — KCVanilla, its Joker designs, text and art. KCVanilla ships no license; this is an unofficial fan port made for personal use, published with credit. If you are krackocloud and want anything changed or removed, open an issue and it will be handled immediately.
 - **neatoqueen (Neato)** — Neato Jokers, its Joker designs, text and art. Neato Jokers ships no license; this is an unofficial fan port made for personal use, published with credit. If you are neatoqueen and want anything changed or removed, open an issue and it will be handled immediately.
 - **InertSteak and the Pokermon contributors** — Pokermon, its Joker designs, text and art (GPLv3).
+- **Firch** — Bunco, its Joker designs, text and art, including the exotic suits and Spectrum hands. Bunco ships no license; this is an unofficial fan port made for personal use, published with credit. If you are Firch and want anything changed or removed, open an issue and it will be handled immediately.
 - **idkhan / Gazpacho** — Balatro3DS and its mod API.
 - **LocalThunk** — Balatro.

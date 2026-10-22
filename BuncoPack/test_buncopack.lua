@@ -1,0 +1,816 @@
+--- Tests for the BuncoPack Balatro3DS mod (not part of the game repo).
+--- The mod's real main file is read from the BUNCO_PACK_LUA env var.
+local T = require("tests.testlib")
+local bootstrap = require("tests.bootstrap")
+
+local suite = T.suite()
+
+bootstrap.load()
+local ModLoader = require("mod_loader")
+
+local function wipe_mods()
+    local fs = love.filesystem
+    local function rm(path)
+        for _, item in ipairs(fs.getDirectoryItems(path)) do
+            local child = path .. "/" .. item
+            if fs.getInfo(child, "file") then fs.remove(child) else rm(child); fs.remove(child) end
+        end
+    end
+    if fs.getInfo(ModLoader.DIR) then rm(ModLoader.DIR) end
+    ModLoader.reset()
+end
+
+local NAMES = {
+    "cassette", "mosaic", "voxel", "crop_circles", "prehistoric", "shepherd",
+    "jumper", "dogs_playing_poker", "headshot", "nil_bill", "slothful",
+    "hierarchy_of_needs", "protester", "disproportionality", "on_broadway",
+    "rasta", "critic", "wino", "tangram",
+    -- v1.1.0
+    "basement", "linocut", "ghost_print", "loan_shark", "righthook", "carnival",
+    "fingerprints", "zero_shapiro", "bierdeckel", "registration_plate",
+    "juggalo", "hopscotch", "pawn", "stylophone", "mousetrap", "doodle",
+    "xray", "dread", "the_joker", "puzzle_board",
+    "zealous", "lurid", "envious", "proud", "wishalloy", "unobtanium",
+    "dynasty", "magic_wand", "starfruit", "fondue", "roygbiv", "rigoletto",
+    "rigoletto_soul",
+    "quaoar", "haumea", "sedna", "makemake", "sky", "abyss",
+}
+
+local NEW_JOKERS = {
+    "basement", "linocut", "ghost_print", "loan_shark", "righthook", "carnival",
+    "fingerprints", "zero_shapiro", "bierdeckel", "registration_plate",
+    "juggalo", "hopscotch", "pawn", "stylophone", "mousetrap", "doodle",
+    "xray", "dread", "the_joker", "puzzle_board",
+    "zealous", "lurid", "envious", "proud", "wishalloy", "unobtanium",
+    "dynasty", "magic_wand", "starfruit", "fondue", "roygbiv", "rigoletto",
+}
+
+local function install_pack()
+    wipe_mods()
+    local path = os.getenv("BUNCO_PACK_LUA")
+    assert(path, "BUNCO_PACK_LUA not set")
+    local fh = assert(io.open(path, "rb"))
+    local main = fh:read("*a")
+    fh:close()
+    local base = ModLoader.DIR .. "/BuncoPack"
+    love.filesystem.createDirectory(base)
+    love.filesystem.write(base .. "/BuncoPack.json", [[{
+        "id": "BuncoPack", "name": "Bunco Pack", "prefix": "buncp",
+        "main_file": "buncopack.lua", "version": "1.0.0",
+        "author": ["Firch", "3DS port"]
+    }]])
+    love.filesystem.write(base .. "/buncopack.lua", main)
+    for _, n in ipairs(NAMES) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
+    ModLoader.load_all()
+    local game = bootstrap.new_game(7710)
+    G = game
+    G.play = G.play or SMODS.PLAY
+    _G.Top = _G.Top or { addPopup = function() end }
+    return game
+end
+
+local function add(game, id)
+    game.jokers = game.jokers or {}
+    T.assert_true(game:add_joker_by_def(id), id .. " should be addable")
+    return game.jokers[#game.jokers]
+end
+
+local function card(rank, suit, enhancement)
+    local data = { rank = rank, suit = suit or "Hearts" }
+    if enhancement then data.enhancement = enhancement end
+    local c = Card(0, 0, 1, 1, data)
+    c.counts_for_play_score = true
+    return c
+end
+
+local function scored(joker, extra)
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 10, mult = 2 }
+    for k, v in pairs(extra or {}) do ctx[k] = v end
+    ctx.cards = ctx.cards or ctx.played_cards
+    if joker:matches_trigger(ctx.event_name, ctx) then joker:apply_effect(ctx) end
+    return ctx
+end
+
+local function play_card(joker, node, played)
+    local ctx = { event = "card_played", event_name = "card_played", chips = 0, mult = 1,
+        rank = node.card_data.rank, suit = node.card_data.suit, card_node = node,
+        played_cards = played, full_hand = played }
+    if joker:matches_trigger("card_played", ctx) then joker:apply_effect(ctx) end
+    return ctx
+end
+
+local function before(joker, extra)
+    local ctx = { event = "on_hand_played", event_name = "on_hand_played", chips = 0, mult = 1 }
+    for k, v in pairs(extra or {}) do ctx[k] = v end
+    ctx.cards = ctx.cards or ctx.played_cards
+    if joker:matches_trigger(ctx.event_name, ctx) then joker:apply_effect(ctx) end
+    return ctx
+end
+
+local function fire(joker, event_name, extra)
+    local ctx = { event = event_name, event_name = event_name }
+    for k, v in pairs(extra or {}) do ctx[k] = v end
+    if joker:matches_trigger(event_name, ctx) then joker:apply_effect(ctx) end
+    return ctx
+end
+
+local function fake_deck(game, list)
+    game.count_cards_in_full_deck = function(self, pred)
+        local n = 0
+        for _, c in ipairs(list) do
+            if (not pred) or pred(c) then n = n + 1 end
+        end
+        return n
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Loading + tooltips
+--------------------------------------------------------------------------------
+
+suite.test("pack loads and registers all 19 Bunco Jokers", function()
+    local game = install_pack()
+    local mod = ModLoader.by_id.BuncoPack
+    T.assert_eq(mod.status, "loaded", tostring(mod.error))
+    T.assert_eq(#mod.registered.jokers, 51)
+    local expect = {
+        j_buncp_cassette = { "Cassette", 2, 5 }, j_buncp_mosaic = { "Mosaic Joker", 2, 4 },
+        j_buncp_voxel = { "Voxel Joker", 2, 5 }, j_buncp_crop_circles = { "Crop Circles", 1, 4 },
+        j_buncp_prehistoric = { "Prehistoric Joker", 2, 5 }, j_buncp_shepherd = { "Shepherd Joker", 1, 5 },
+        j_buncp_jumper = { "Jumper", 1, 5 }, j_buncp_dogs_playing_poker = { "Dogs Playing Poker", 2, 5 },
+        j_buncp_headshot = { "Headshot", 2, 8 }, j_buncp_nil_bill = { "Nil Bill", 2, 4 },
+        j_buncp_slothful = { "Slothful Joker", 2, 5 }, j_buncp_hierarchy_of_needs = { "Hierarchy of Needs", 1, 5 },
+        j_buncp_protester = { "Protester", 1, 4 }, j_buncp_disproportionality = { "Disproportionality", 1, 4 },
+        j_buncp_on_broadway = { "On Broadway", 2, 6 }, j_buncp_rasta = { "Rasta", 1, 5 },
+        j_buncp_critic = { "Critic", 1, 6 }, j_buncp_wino = { "Wino", 1, 5 },
+        j_buncp_tangram = { "Tangram", 3, 7 },
+    }
+    for id, e in pairs(expect) do
+        local def = JOKER_DEFS[id]
+        T.assert_true(def ~= nil, id .. " registered")
+        T.assert_eq(def.name, e[1], id .. " name")
+        T.assert_eq(def.rarity, e[2], id .. " rarity")
+        T.assert_eq(def.cost, e[3], id .. " cost")
+    end
+    local function flatten(t, out)
+        out = out or {}
+        if type(t) == "string" then out[#out + 1] = t
+        elseif type(t) == "table" then
+            if type(t.text) == "string" then out[#out + 1] = t.text end
+            for _, v in pairs(t) do if type(v) == "table" then flatten(v, out) end end
+        end
+        return out
+    end
+    for _, n in ipairs(NAMES) do
+        if n ~= "rigoletto_soul" and n ~= "quaoar" and n ~= "haumea" and n ~= "sedna"
+            and n ~= "makemake" and n ~= "sky" and n ~= "abyss" then
+            game.jokers = {}
+            local j = add(game, "j_buncp_" .. n)
+            local lines = SMODS.tooltip_lines("j_buncp_" .. n, j)
+            T.assert_true(type(lines) == "table" and #lines >= 1, n .. " tooltip has lines")
+            local text = table.concat(flatten(lines), " ")
+            T.assert_true(text:find("#", 1, true) == nil, n .. " tooltip has no raw placeholder: " .. text)
+        end
+    end
+    -- v1.1.0 registrations: names, rarities, costs.
+    local expect_new = {
+        j_buncp_basement = { "Basement Joker", 3, 8 }, j_buncp_linocut = { "Linocut Joker", 2, 4 },
+        j_buncp_ghost_print = { "Ghost Print", 2, 6 }, j_buncp_loan_shark = { "Loan Shark", 2, 3 },
+        j_buncp_righthook = { "Righthook", 3, 8 }, j_buncp_carnival = { "Carnival", 3, 10 },
+        j_buncp_fingerprints = { "Fingerprints", 2, 8 }, j_buncp_zero_shapiro = { "Zero Shapiro", 2, 4 },
+        j_buncp_bierdeckel = { "Bierdeckel", 2, 4 }, j_buncp_registration_plate = { "Registration Plate", 3, 8 },
+        j_buncp_juggalo = { "Juggalo", 3, 5 }, j_buncp_hopscotch = { "Hopscotch", 1, 4 },
+        j_buncp_pawn = { "Pawn", 1, 5 }, j_buncp_stylophone = { "Stylophone", 2, 5 },
+        j_buncp_mousetrap = { "Mousetrap", 2, 6 }, j_buncp_doodle = { "Doodle", 3, 10 },
+        j_buncp_xray = { "X-Ray", 1, 4 }, j_buncp_dread = { "Dread", 3, 8 },
+        j_buncp_the_joker = { "The Joker", 3, 10 }, j_buncp_puzzle_board = { "Puzzle Board", 2, 6 },
+        j_buncp_zealous = { "Zealous Joker", 1, 3 }, j_buncp_lurid = { "Lurid Joker", 1, 3 },
+        j_buncp_envious = { "Envious Joker", 1, 5 }, j_buncp_proud = { "Proud Joker", 1, 5 },
+        j_buncp_wishalloy = { "Wishalloy", 2, 7 }, j_buncp_unobtanium = { "Unobtanium", 2, 7 },
+        j_buncp_dynasty = { "The Dynasty", 3, 8 }, j_buncp_magic_wand = { "Magic Wand", 1, 5 },
+        j_buncp_starfruit = { "Starfruit", 2, 5 }, j_buncp_fondue = { "Fondue", 3, 8 },
+        j_buncp_roygbiv = { "Roy G. Biv", 2, 8 }, j_buncp_rigoletto = { "Rigoletto", 4, 20 },
+    }
+    for id, e in pairs(expect_new) do
+        local def = JOKER_DEFS[id]
+        T.assert_true(def ~= nil, id .. " registered")
+        T.assert_eq(def.name, e[1], id .. " name")
+        T.assert_eq(def.rarity, e[2], id .. " rarity")
+        T.assert_eq(def.cost, e[3], id .. " cost")
+    end
+    for _, n in ipairs(NEW_JOKERS) do
+        game.jokers = {}
+        local j = add(game, "j_buncp_" .. n)
+        local lines = SMODS.tooltip_lines("j_buncp_" .. n, j)
+        T.assert_true(type(lines) == "table" and #lines >= 1, n .. " tooltip has lines")
+        local text = table.concat(flatten(lines), " ")
+        T.assert_true(text:find("#", 1, true) == nil, n .. " tooltip has no raw placeholder: " .. text)
+    end
+    -- Consumables: the four Spectrum Planets and the two exotic Tarots.
+    T.assert_eq(#mod.registered.consumables, 6, "six consumables registered")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Individual-card Jokers
+--------------------------------------------------------------------------------
+
+suite.test("mosaic, slothful and wino pay on their card types", function()
+    local game = install_pack()
+    local mosaic = add(game, "j_buncp_mosaic")
+    local slothful = add(game, "j_buncp_slothful")
+    local wino = add(game, "j_buncp_wino")
+    local stone, wild, heart, spade = card(9, "Clubs", "stone"), card(9, "Clubs", "wild"), card(9, "Hearts"), card(9, "Spades")
+    local played = { stone, wild, heart, spade }
+    T.assert_eq(play_card(mosaic, stone, played).mult, 7, "Mosaic +6 on Stone")
+    T.assert_eq(play_card(mosaic, heart, played).mult, 1, "Mosaic quiet on plain")
+    T.assert_eq(play_card(slothful, wild, played).mult, 10, "Slothful +9 on Wild")
+    T.assert_eq(play_card(slothful, stone, played).mult, 1, "Slothful quiet on Stone")
+    T.assert_eq(play_card(wino, heart, played).chips, 12, "Wino +12 on Hearts")
+    T.assert_eq(play_card(wino, spade, played).chips, 0, "Wino quiet on Spades")
+    wipe_mods()
+end)
+
+suite.test("crop circles pays by natural suit and rank, never on Stone", function()
+    local game = install_pack()
+    local cc = add(game, "j_buncp_crop_circles")
+    local function pay(node)
+        return play_card(cc, node, { node }).mult - 1
+    end
+    T.assert_eq(pay(card(8, "Clubs")), 5, "Clubs 8 pays 5")
+    T.assert_eq(pay(card(12, "Clubs")), 4, "Clubs Q pays 4")
+    T.assert_eq(pay(card(5, "Clubs")), 3, "Clubs 5 pays 3")
+    T.assert_eq(pay(card(8, "Hearts")), 2, "Hearts 8 pays 2")
+    T.assert_eq(pay(card(10, "Hearts")), 1, "Hearts 10 pays 1")
+    T.assert_eq(pay(card(5, "Hearts")), 0, "Hearts 5 pays 0")
+    T.assert_eq(pay(card(8, "Clubs", "stone")), 0, "Stone pays 0")
+    T.assert_eq(pay(card(5, "Clubs", "wild")), 3, "Wild counts as its base suit (Clubs)")
+    wipe_mods()
+end)
+
+suite.test("tangram multiplies by the number of 7s in the hand", function()
+    local game = install_pack()
+    local tangram = add(game, "j_buncp_tangram")
+    local a, b, c, d = card(7, "Spades"), card(7, "Hearts"), card(7, "Clubs"), card(12, "Clubs")
+    local played = { a, b, c, d }
+    T.assert_eq(play_card(tangram, a, played).mult, 22, "each 7 gives +21 (7 x 3)")
+    T.assert_eq(play_card(tangram, d, played).mult, 1, "non-7 gives nothing")
+    wipe_mods()
+end)
+
+suite.test("prehistoric pays when a card repeats an earlier scored card", function()
+    local game = install_pack()
+    local pre = add(game, "j_buncp_prehistoric")
+    local k1, k2, q = card(13, "Spades"), card(13, "Spades"), card(12, "Spades")
+    local played = { k1, k2, q }
+    T.assert_eq(play_card(pre, k1, played).mult, 1, "first King scores quietly")
+    T.assert_eq(play_card(pre, k2, played).mult, 17, "second King matches: +16")
+    T.assert_eq(play_card(pre, q, played).mult, 1, "Queen does not match")
+    fire(pre, "on_round_end", { game_over = false })
+    T.assert_eq(play_card(pre, k1, played).mult, 1, "list cleared at round end")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- joker_main Jokers
+--------------------------------------------------------------------------------
+
+suite.test("shepherd and jumper scale on Pair and Flush", function()
+    local game = install_pack()
+    local shep = add(game, "j_buncp_shepherd")
+    local jump = add(game, "j_buncp_jumper")
+    local pair_hand = { card(4), card(4, "Spades") }
+    before(shep, { played_cards = pair_hand, contains_hand_types = { Pair = true } })
+    before(shep, { played_cards = pair_hand, contains_hand_types = { Pair = true } })
+    before(shep, { played_cards = { card(2), card(5), card(7) }, contains_hand_types = {} })
+    local ctx = scored(shep, { played_cards = pair_hand })
+    T.assert_eq(ctx.chips, 22, "Shepherd at +12 after two Pairs (10 base + 12), a Pair-less hand adds nothing")
+    local flush_hand = { card(2), card(4), card(6), card(8), card(10) }
+    before(jump, { played_cards = flush_hand, contains_hand_types = { Flush = true } })
+    ctx = scored(jump, { played_cards = flush_hand })
+    T.assert_eq(ctx.chips, 18, "Jumper at +8 after one Flush")
+    wipe_mods()
+end)
+
+suite.test("dogs playing poker needs every scoring rank at 5 or below", function()
+    local game = install_pack()
+    local dogs = add(game, "j_buncp_dogs_playing_poker")
+    local low = { card(2), card(3, "Spades"), card(4, "Clubs"), card(5, "Diamonds") }
+    local ctx = scored(dogs, { played_cards = low })
+    T.assert_near(ctx.mult, 5, 0.001, "X2.5 applied (2 x 2.5)")
+    local mixed = { card(2), card(9) }
+    ctx = scored(dogs, { played_cards = mixed })
+    T.assert_eq(ctx.mult, 2, "a 9 disqualifies")
+    local with_stone = { card(2), card(14, "Clubs", "stone") }
+    ctx = scored(dogs, { played_cards = with_stone })
+    T.assert_near(ctx.mult, 5, 0.001, "Stone does not disqualify")
+    wipe_mods()
+end)
+
+suite.test("headshot needs exactly one scoring face card", function()
+    local game = install_pack()
+    local hs = add(game, "j_buncp_headshot")
+    local one = { card(12), card(4), card(6) }
+    T.assert_near(scored(hs, { played_cards = one }).mult, 6, 0.001, "one face: X3")
+    local two = { card(12), card(13), card(6) }
+    T.assert_eq(scored(hs, { played_cards = two }).mult, 2, "two faces: nothing")
+    local none = { card(4), card(6) }
+    T.assert_eq(scored(hs, { played_cards = none }).mult, 2, "no faces: nothing")
+    wipe_mods()
+end)
+
+suite.test("rasta pays only with no enhanced scoring cards", function()
+    local game = install_pack()
+    local rasta = add(game, "j_buncp_rasta")
+    local plain = { card(4), card(6) }
+    T.assert_eq(scored(rasta, { played_cards = plain }).mult, 14, "+12 Mult on a plain hand")
+    local enhanced = { card(4, "Hearts", "bonus"), card(6) }
+    T.assert_eq(scored(rasta, { played_cards = enhanced }).mult, 2, "an enhanced card blocks it")
+    wipe_mods()
+end)
+
+suite.test("on broadway pays on a Straight with a scoring face card", function()
+    local game = install_pack()
+    local ob = add(game, "j_buncp_on_broadway")
+    local straight_face = { card(10), card(11), card(12), card(13), card(14) }
+    local ctx = scored(ob, { played_cards = straight_face, contains_hand_types = { Straight = true } })
+    T.assert_eq(ctx.chips, 130, "+120 Chips")
+    T.assert_eq(ctx.mult, 22, "+20 Mult")
+    local straight_plain = { card(6), card(7), card(8), card(9), card(10) }
+    ctx = scored(ob, { played_cards = straight_plain, contains_hand_types = { Straight = true } })
+    T.assert_eq(ctx.chips, 10, "no face card: no Chips")
+    T.assert_eq(ctx.mult, 2, "no face card: no Mult")
+    local pair_face = { card(12), card(12, "Spades"), card(4) }
+    ctx = scored(ob, { played_cards = pair_face, contains_hand_types = { Pair = true } })
+    T.assert_eq(ctx.chips, 10, "a Pair with a face card is not a Straight: no Chips")
+    T.assert_eq(ctx.mult, 2, "a Pair with a face card is not a Straight: no Mult")
+    wipe_mods()
+end)
+
+suite.test("critic doubles Mult only under a third of the blind target", function()
+    local game = install_pack()
+    game.current_blind_target = 900
+    local critic = add(game, "j_buncp_critic")
+    local low = { card(4) }
+    T.assert_eq(scored(critic, { played_cards = low }).mult, 4, "score 20 < 300: X2")
+    local high_ctx = { played_cards = low, chips = 200, mult = 2 }
+    T.assert_eq(scored(critic, high_ctx).mult, 2, "score 400 >= 300: nothing")
+    wipe_mods()
+end)
+
+suite.test("disproportionality pays a bounded random chip amount", function()
+    local game = install_pack()
+    local dis = add(game, "j_buncp_disproportionality")
+    local ctx = scored(dis, { played_cards = { card(4) } })
+    T.assert_true(ctx.chips >= 10 and ctx.chips <= 210, "chips within 10..210, got " .. tostring(ctx.chips))
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- State and deck Jokers
+--------------------------------------------------------------------------------
+
+suite.test("cassette flips sides on discard and pays per side", function()
+    local game = install_pack()
+    local cas = add(game, "j_buncp_cassette")
+    local heart, spade = card(9, "Hearts"), card(9, "Spades")
+    T.assert_eq(play_card(cas, heart, { heart }).chips, 45, "side A: Hearts +45 Chips")
+    T.assert_eq(play_card(cas, spade, { spade }).chips, 0, "side A: Spades nothing")
+    fire(cas, "on_pre_discard", { discarded_nodes = { spade } })
+    T.assert_eq(play_card(cas, spade, { spade }).mult, 7, "side B: Spades +6 Mult")
+    T.assert_eq(play_card(cas, heart, { heart }).mult, 1, "side B: Hearts nothing")
+    fire(cas, "on_pre_discard", { discarded_nodes = { heart } })
+    T.assert_eq(play_card(cas, heart, { heart }).chips, 45, "back on side A")
+    wipe_mods()
+end)
+
+suite.test("voxel scales down with enhanced cards in the deck", function()
+    local game = install_pack()
+    local vox = add(game, "j_buncp_voxel")
+    local deck = {}
+    fake_deck(game, deck)
+    T.assert_near(scored(vox, { played_cards = { card(4) } }).mult, 6, 0.001, "clean deck: X3")
+    for _ = 1, 10 do deck[#deck + 1] = { rank = 5, suit = "Clubs", enhancement = "bonus" } end
+    T.assert_near(scored(vox, { played_cards = { card(4) } }).mult, 4, 0.001, "10 enhanced: X2")
+    for _ = 1, 25 do deck[#deck + 1] = { rank = 5, suit = "Clubs", enhancement = "mult" } end
+    T.assert_eq(scored(vox, { played_cards = { card(4) } }).mult, 2, "35 enhanced: floored at X1 (no effect)")
+    wipe_mods()
+end)
+
+suite.test("hierarchy of needs counts complete suit sequences", function()
+    local game = install_pack()
+    local hier = add(game, "j_buncp_hierarchy_of_needs")
+    local deck = {}
+    for _, suit in ipairs({ "Spades", "Hearts" }) do
+        for id = 2, 14 do deck[#deck + 1] = { rank = id, suit = suit } end
+    end
+    fake_deck(game, deck)
+    T.assert_eq(scored(hier, { played_cards = { card(4) } }).mult, 12, "two complete suits: +10 Mult")
+    fake_deck(game, {})
+    T.assert_eq(scored(hier, { played_cards = { card(4) } }).mult, 22, "empty deck shows the collection default +20")
+    wipe_mods()
+end)
+
+suite.test("protester banks 8x the highest discarded rank until round end", function()
+    local game = install_pack()
+    local pro = add(game, "j_buncp_protester")
+    local batch = { card(5), card(13, "Diamonds"), card(9, "Clubs") }
+    fire(pro, "on_pre_discard", { discarded_nodes = batch })
+    T.assert_eq(scored(pro, { played_cards = { card(4) } }).chips, 90, "King discarded: +80 Chips")
+    fire(pro, "on_pre_discard", { discarded_nodes = { card(3) } })
+    T.assert_eq(scored(pro, { played_cards = { card(4) } }).chips, 90, "a lower discard does not reduce it")
+    fire(pro, "on_round_end", { game_over = false })
+    T.assert_eq(scored(pro, { played_cards = { card(4) } }).chips, 10, "reset at round end")
+    local stone_batch = { card(13, "Spades", "stone") }
+    fire(pro, "on_pre_discard", { discarded_nodes = stone_batch })
+    T.assert_eq(scored(pro, { played_cards = { card(4) } }).chips, 10, "Stone discards do not count")
+    wipe_mods()
+end)
+
+suite.test("nil bill pays $2 per destroyed card", function()
+    local game = install_pack()
+    local nb = add(game, "j_buncp_nil_bill")
+    local before_money = game.money
+    fire(nb, "on_destroy", { destroyed_cards = { {}, {}, {} } })
+    T.assert_eq(game.money - before_money, 6, "3 destroyed cards pay $6")
+    fire(nb, "on_destroy", { destroyed_cards = {} })
+    T.assert_eq(game.money - before_money, 6, "an empty removal pays nothing")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.1.0: suits, hands, the exotic gate
+--------------------------------------------------------------------------------
+
+local function classify(game, nodes)
+    local h = Hand(game)
+    h.card_nodes, h.selected = {}, {}
+    for _, nd in ipairs(nodes) do
+        h.card_nodes[#h.card_nodes + 1] = nd
+        h.selected[#h.selected + 1] = nd
+    end
+    h:calculate_play()
+    return G.handlist and G.handlist[G.selectedHand]
+end
+
+local function hand_index(game, name)
+    for i, n in ipairs(game.handlist) do if n == name then return i end end
+    return nil
+end
+
+local function ensure_hand(game)
+    if not game.hand then game.hand = Hand(game) end
+    return game.hand
+end
+
+--- A card properly registered in the game's hand (data + node + uid), the
+--- way real play holds it; destroy and deck scans only see registered cards.
+local function hand_card(game, rank, suit, enhancement)
+    ensure_hand(game)
+    local data = { rank = rank, suit = suit or "Hearts" }
+    if enhancement then data.enhancement = enhancement end
+    local node = game.hand:add_card(data, true)
+    node.counts_for_play_score = true
+    return node
+end
+
+suite.test("exotic suits register and a custom-suit flush scores as Flush", function()
+    local game = install_pack()
+    T.assert_true(SMODS.Suits["Fleurons"] ~= nil, "Fleurons registered")
+    T.assert_true(SMODS.Suits["Halberds"] ~= nil, "Halberds registered")
+    T.assert_eq(SMODS.Suits["Fleurons"].card_key, "FLEURON")
+    T.assert_eq(SMODS.Suits["Halberds"].card_key, "HALBERD")
+    local nodes = { card(2, "Fleurons"), card(5, "Fleurons"), card(9, "Fleurons"),
+        card(11, "Fleurons"), card(13, "Fleurons") }
+    T.assert_eq(classify(game, nodes), "Flush", "five Fleurons flush")
+    T.assert_true(nodes[1]:is_suit("Fleurons"), "is_suit sees the custom suit")
+    wipe_mods()
+end)
+
+suite.test("spectrum family hands evaluate, with edge cases", function()
+    local game = install_pack()
+    local name = classify(game, { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(7, "Fleurons") })
+    T.assert_eq(name, "Spectrum", "five distinct suits")
+    T.assert_eq(G.selectedHandChips, 50, "Spectrum base chips")
+    T.assert_eq(G.selectedHandMult, 6, "Spectrum base mult")
+    name = classify(game, { card(5, "Hearts"), card(6, "Spades"), card(7, "Clubs"),
+        card(8, "Diamonds"), card(9, "Halberds") })
+    T.assert_eq(name, "Straight Spectrum", "straight in five suits")
+    name = classify(game, { card(9, "Hearts"), card(9, "Spades"), card(9, "Clubs"),
+        card(13, "Diamonds"), card(13, "Fleurons") })
+    T.assert_eq(name, "Spectrum House", "full house in five suits")
+    name = classify(game, { card(9, "Hearts"), card(9, "Spades"), card(9, "Clubs"),
+        card(9, "Diamonds"), card(9, "Fleurons") })
+    T.assert_eq(name, "Spectrum Five", "five of a kind in five suits")
+    name = classify(game, { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(12, "Clubs", "wild") })
+    T.assert_eq(name, "Spectrum", "a Wild fills the fifth suit")
+    name = classify(game, { card(2, "Hearts"), card(5, "Hearts"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(7, "Spades") })
+    T.assert_eq(name, "High Card", "a duplicated suit is no Spectrum")
+    name = classify(game, { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(13, "Spades", "stone") })
+    T.assert_eq(name, "High Card", "a Stone card has no suit to offer")
+    wipe_mods()
+end)
+
+suite.test("the exotic gate opens on the first Spectrum-family hand", function()
+    local game = install_pack()
+    T.assert_eq(#SMODS.extra_playing_card_fronts(game), 0, "gate shut: vanilla fronts only")
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_zealous.smods), "exotic Jokers out of pool")
+    local idx = hand_index(game, "Spectrum")
+    T.assert_true(idx ~= nil, "Spectrum is in the handlist")
+    game.hand_play_counts[idx] = 1
+    local fronts = SMODS.extra_playing_card_fronts(game)
+    T.assert_eq(#fronts, 26, "gate open: 13 ranks in each exotic suit")
+    local suits = {}
+    for _, f in ipairs(fronts) do suits[f.suit] = true end
+    T.assert_true(suits["Fleurons"] and suits["Halberds"], "both exotic suits offered")
+    T.assert_true(SMODS.in_pool(JOKER_DEFS.j_buncp_zealous.smods), "exotic Jokers in pool")
+    game.hand_play_counts[idx] = 0
+    T.assert_eq(#SMODS.extra_playing_card_fronts(game), 0, "gate shuts again")
+    wipe_mods()
+end)
+
+suite.test("registration plate's combination scores as Deal with banked totals", function()
+    local game = install_pack()
+    local plate = add(game, "j_buncp_registration_plate")
+    classify(game, { card(4, "Hearts"), card(4, "Spades") })
+    local pair_idx = hand_index(game, "Pair")
+    game.hand_play_counts[pair_idx] = 1
+    plate.ability.extra.ranks = { 2, 3, 4, 5, 6 }
+    local name = classify(game, { card(2, "Hearts"), card(3, "Spades"), card(4, "Clubs"),
+        card(5, "Diamonds"), card(6, "Hearts") })
+    T.assert_eq(name, "Deal", "the combination hand wins over the Straight")
+    local deal_idx = hand_index(game, "Deal")
+    T.assert_eq(game.hand_stats[deal_idx].base_chips, 10, "Deal banks the Pair's chips")
+    T.assert_eq(game.hand_stats[deal_idx].base_mult, 2, "Deal banks the Pair's mult")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.1.0: create / destroy / conversion Jokers
+--------------------------------------------------------------------------------
+
+suite.test("basement creates a Spectral only on a Boss round", function()
+    local game = install_pack()
+    local base = add(game, "j_buncp_basement")
+    game.current_blind_index = 1
+    fire(base, "on_round_end", { game_over = false })
+    T.assert_eq(#game.consumables, 0, "small blind: nothing")
+    game.current_blind_index = 3
+    fire(base, "on_round_end", { game_over = false })
+    T.assert_eq(#game.consumables, 1, "boss defeated: one Spectral")
+    wipe_mods()
+end)
+
+suite.test("carnival destroys a random Joker and rewinds the Ante once", function()
+    local game = install_pack()
+    local carn = add(game, "j_buncp_carnival")
+    add(game, "j_buncp_mosaic")
+    game.ante = 2
+    game.current_blind_index = 3
+    fire(carn, "on_round_end", { game_over = false })
+    T.assert_eq(#game.jokers, 1, "the other Joker was destroyed")
+    T.assert_eq(game.jokers[1], carn, "Carnival itself survives")
+    T.assert_eq(game.ante, 1, "back one Ante")
+    fire(carn, "on_round_end", { game_over = false })
+    T.assert_eq(game.ante, 1, "no second rewind on a lower Ante")
+    wipe_mods()
+end)
+
+suite.test("dread levels the last hand by 2, destroys it, and removal reverses", function()
+    local game = install_pack()
+    local dread = add(game, "j_buncp_dread")
+    local a, b = hand_card(game, 5, "Hearts"), hand_card(game, 5, "Spades")
+    local pair_idx = hand_index(game, "Pair")
+    local level_before = game.hand_stats[pair_idx].level
+    local nodes_before = #game.hand.card_nodes
+    fire(dread, "on_hand_played", { played_cards = { a, b }, hand_type = "Pair" })
+    game.hands = 0
+    fire(dread, "on_hand_after", { played_cards = { a, b }, hand_type = "Pair" })
+    T.assert_eq(game.hand_stats[pair_idx].level, level_before + 2, "Pair levelled by 2")
+    T.assert_eq(#game.hand.card_nodes, nodes_before - 2, "both played cards destroyed")
+    game:sell_owned_joker(1)
+    T.assert_eq(game.hand_stats[pair_idx].level, level_before, "selling Dread reverses the levels")
+    wipe_mods()
+end)
+
+suite.test("the joker destroys unenhanced scoring cards on a forced roll", function()
+    local game = install_pack()
+    local tj = add(game, "j_buncp_the_joker")
+    tj.ability.extra.odds = 1
+    local a, b, enh = hand_card(game, 5, "Hearts"), hand_card(game, 9, "Spades"),
+        hand_card(game, 7, "Clubs", "bonus")
+    local nodes_before = #game.hand.card_nodes
+    local played = { a, b, enh }
+    fire(tj, "on_hand_played", { played_cards = played, cards = played })
+    fire(tj, "on_hand_after", { played_cards = played, cards = played })
+    T.assert_eq(#game.hand.card_nodes, nodes_before - 2, "both plain cards destroyed")
+    local found = false
+    for _, nd in ipairs(game.hand.card_nodes) do if nd == enh then found = true end end
+    T.assert_true(found, "the enhanced card survives")
+    wipe_mods()
+end)
+
+suite.test("fondue converts the first hand's scored cards to Fleurons", function()
+    local game = install_pack()
+    local fon = add(game, "j_buncp_fondue")
+    local nodes = { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(7, "Spades") }
+    fire(fon, "on_round_begin", {})
+    fire(fon, "on_hand_after", { played_cards = nodes, cards = nodes })
+    for _, nd in ipairs(nodes) do
+        T.assert_eq(nd.card_data.suit, "Fleurons", "converted to Fleurons")
+    end
+    local later = { card(3, "Hearts") }
+    fire(fon, "on_hand_after", { played_cards = later, cards = later })
+    T.assert_eq(later[1].card_data.suit, "Hearts", "only the first hand converts")
+    wipe_mods()
+end)
+
+suite.test("linocut copies the right card's suit onto the left in a Pair", function()
+    local game = install_pack()
+    local lino = add(game, "j_buncp_linocut")
+    local left, right = card(5, "Hearts"), card(5, "Spades")
+    local pair = { left, right }
+    fire(lino, "on_hand_after", { played_cards = pair, cards = pair,
+        contains_hand_types = { Pair = true }, hand_type = "Pair" })
+    T.assert_eq(left.card_data.suit, "Spades", "left card took the right card's suit")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.1.0: money, state, and temp-chip Jokers
+--------------------------------------------------------------------------------
+
+suite.test("loan shark pays $50 on entry and sells for -$100", function()
+    local game = install_pack()
+    local before_money = game.money
+    local shark = add(game, "j_buncp_loan_shark")
+    T.assert_eq(game.money - before_money, 50, "+$50 on acquire")
+    T.assert_eq(shark.sell_cost, -100, "sell value is -$100")
+    wipe_mods()
+end)
+
+suite.test("ghost print banks the last hand and pays its totals next hand", function()
+    local game = install_pack()
+    local gp = add(game, "j_buncp_ghost_print")
+    local pair = { card(4), card(4, "Spades") }
+    local ctx = scored(gp, { played_cards = pair, hand_type = "Pair" })
+    T.assert_eq(ctx.chips, 10, "first hand: nothing banked yet")
+    T.assert_eq(gp.ability.extra.last_hand, "Pair", "Pair banked")
+    ctx = scored(gp, { played_cards = { card(9) }, hand_type = "High Card" })
+    T.assert_eq(ctx.chips, 20, "pays the Pair's 10 Chips on top of the base 10")
+    T.assert_eq(ctx.mult, 4, "pays the Pair's 2 Mult on top of the base 2")
+    wipe_mods()
+end)
+
+suite.test("fingerprints grants +50 Chips for one round, then clears", function()
+    local game = install_pack()
+    local fp = add(game, "j_buncp_fingerprints")
+    game.hands = 3
+    local a = hand_card(game, 5, "Hearts")
+    fire(fp, "on_hand_after", { played_cards = { a }, cards = { a } })
+    fire(fp, "on_round_end", { game_over = false })
+    T.assert_eq(a.card_data.Bonus, 50, "scored card carries +50 into the next round")
+    fire(fp, "on_round_end", { game_over = false })
+    T.assert_eq(a.card_data.Bonus or 0, 0, "cleared at the next round end")
+    wipe_mods()
+end)
+
+suite.test("bierdeckel marks held cards +10 until round end", function()
+    local game = install_pack()
+    local bd = add(game, "j_buncp_bierdeckel")
+    local played, held = hand_card(game, 5, "Hearts"), hand_card(game, 9, "Clubs")
+    fire(bd, "on_hand_after", { played_cards = { played }, cards = { played } })
+    T.assert_eq(held.card_data.Bonus, 10, "held card +10")
+    T.assert_eq(played.card_data.Bonus or 0, 0, "played card unmarked")
+    fire(bd, "on_round_end", { game_over = false })
+    T.assert_eq(held.card_data.Bonus or 0, 0, "cleared at round end")
+    wipe_mods()
+end)
+
+suite.test("righthook retriggers the last scoring card once per hand left", function()
+    local game = install_pack()
+    local rh = add(game, "j_buncp_righthook")
+    game.hands = 3
+    local a, b = card(5, "Hearts"), card(9, "Spades")
+    local center = JOKER_DEFS.j_buncp_righthook.smods
+    local ctx = { repetition = true, cardarea = game.play, other_card = b,
+        port = { played_cards = { a, b } } }
+    local res = SMODS.call(center.mod, center.calculate, center, rh, ctx)
+    T.assert_true(res ~= nil and res.repetitions == 3, "last card: 3 repetitions")
+    ctx.other_card = a
+    res = SMODS.call(center.mod, center.calculate, center, rh, ctx)
+    T.assert_true(res == nil, "not the last card: no retrigger")
+    wipe_mods()
+end)
+
+suite.test("cassette and crop circles pay on the exotic suits", function()
+    local game = install_pack()
+    local cas = add(game, "j_buncp_cassette")
+    local fleuron, halberd = card(9, "Fleurons"), card(9, "Halberds")
+    T.assert_eq(play_card(cas, fleuron, { fleuron }).chips, 45, "side A: Fleurons are light")
+    fire(cas, "on_pre_discard", { discarded_nodes = { fleuron } })
+    T.assert_eq(play_card(cas, halberd, { halberd }).mult, 7, "side B: Halberds are dark")
+    local cc = add(game, "j_buncp_crop_circles")
+    T.assert_eq(play_card(cc, card(8, "Fleurons"), { card(8, "Fleurons") }).mult - 1, 6,
+        "Crop Circles: Fleuron 8 pays 6")
+    wipe_mods()
+end)
+
+suite.test("spectrum jokers pay only when the hand contains a Spectrum", function()
+    local game = install_pack()
+    local zeal = add(game, "j_buncp_zealous")
+    local dyn = add(game, "j_buncp_dynasty")
+    local wand = add(game, "j_buncp_magic_wand")
+    local spec = { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(7, "Fleurons") }
+    local spec_ctx = { played_cards = spec, hand_type = "Spectrum",
+        contains_hand_types = { Spectrum = true } }
+    T.assert_eq(scored(zeal, spec_ctx).mult, 12, "Zealous +10 on Spectrum")
+    T.assert_near(scored(dyn, spec_ctx).mult, 10, 0.001, "Dynasty X5 on Spectrum")
+    before(wand, spec_ctx)
+    T.assert_eq(scored(wand, spec_ctx).mult, 5, "Magic Wand banked +3 (2 + 3)")
+    local plain = { card(2, "Hearts"), card(5, "Hearts") }
+    T.assert_eq(scored(zeal, { played_cards = plain, hand_type = "Pair" }).mult, 2,
+        "no Spectrum: Zealous quiet")
+    fire(wand, "on_hand_after", { played_cards = plain, hand_type = "Pair" })
+    T.assert_eq(wand.ability.extra.mult, 0, "a non-Spectrum hand resets the Wand")
+    wipe_mods()
+end)
+
+suite.test("starfruit levels the played hand when it contains a Spectrum", function()
+    local game = install_pack()
+    local sf = add(game, "j_buncp_starfruit")
+    local idx = hand_index(game, "Spectrum")
+    local before_level = game.hand_stats[idx].level
+    local spec = { card(2, "Hearts"), card(5, "Spades"), card(9, "Clubs"),
+        card(11, "Diamonds"), card(7, "Fleurons") }
+    before(sf, { played_cards = spec, hand_type = "Spectrum",
+        contains_hand_types = { Spectrum = true } })
+    T.assert_eq(game.hand_stats[idx].level, before_level + 1, "Spectrum levelled up")
+    wipe_mods()
+end)
+
+suite.test("doodle duplicates a used Tarot once per round", function()
+    local game = install_pack()
+    local dd = add(game, "j_buncp_doodle")
+    T.assert_true(game:add_consumable("tarot_fool"), "a Tarot to use")
+    local before_n = #game.consumables
+    fire(dd, "on_consumable_used", { consumable_id = "tarot_fool", consumable_kind = "tarot" })
+    T.assert_eq(#game.consumables, before_n + 1, "the used Tarot was duplicated")
+    T.assert_eq(dd.ability.extra.active, false, "spent for this round")
+    fire(dd, "on_round_end", { game_over = false })
+    T.assert_eq(dd.ability.extra.active, true, "re-armed at round end")
+    wipe_mods()
+end)
+
+suite.test("xray banks XMult for face-down draws; mousetrap snaps or pays", function()
+    local game = install_pack()
+    local xr = add(game, "j_buncp_xray")
+    local down, up = card(5, "Hearts"), card(9, "Spades")
+    down.face_up = false
+    up.face_up = true
+    fire(xr, "on_hand_drawn", { drawn_cards = { down, up } })
+    T.assert_near(xr.ability.extra.xmult, 1.2, 0.001, "one face-down card: X1.2 banked")
+    local mt = add(game, "j_buncp_mousetrap")
+    mt.ability.extra.odds = 1
+    game.hands = 2
+    local ctx = scored(mt, { played_cards = { card(4) } })
+    T.assert_eq(game.hands, 1, "the trap costs a hand")
+    T.assert_eq(ctx.chips, 10, "and the hand scores nothing extra")
+    game.hands = 0
+    ctx = scored(mt, { played_cards = { card(4) } })
+    T.assert_eq(ctx.chips, 310, "no hands left: +300 Chips instead")
+    wipe_mods()
+end)
+
+suite.test("zero shapiro tags on a face card; juggalo and puzzle board edit editions", function()
+    local game = install_pack()
+    local zs = add(game, "j_buncp_zero_shapiro")
+    zs.ability.extra.odds = 1
+    local tags_before = #game.tags
+    play_card(zs, card(13, "Hearts"), { card(13, "Hearts") })
+    T.assert_eq(#game.tags, tags_before + 1, "a D6 Tag was created")
+    local jg = add(game, "j_buncp_juggalo")
+    T.assert_true(game:add_consumable("tarot_fool"))
+    fire(jg, "on_blind_selected", {})
+    T.assert_true(game.consumables[#game.consumables].edition ~= nil, "consumable gained an edition")
+    local pb = add(game, "j_buncp_puzzle_board")
+    pb.ability.extra.odds = 1
+    local target = card(7, "Clubs")
+    ensure_hand(game)
+    game.hand.highlighted = { target }
+    fire(pb, "on_consumable_used", { consumable_id = "tarot_fool", consumable_kind = "tarot" })
+    T.assert_true(target.card_data.modifier ~= nil and target.card_data.modifier.edition ~= nil,
+        "highlighted card gained an edition")
+    wipe_mods()
+end)
+
+return suite
