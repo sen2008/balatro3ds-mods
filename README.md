@@ -9,7 +9,7 @@ Balatro3DS has a Steamodded-style mod loader, but PC mods do not drop in: there 
 ## Install
 
 1. Download a zip from this repo (or clone it).
-2. Copy the mod folder (`KCVanillaSwiss` or `KCVanillaPack`) to your SD card at `/3ds/save/Balatro3DS/sdmc/mods/`.
+2. Copy the mod folder (`KCVanillaSwiss`, `KCVanillaPack` or `NeatoPack`) to your SD card at `/3ds/save/Balatro3DS/sdmc/mods/`.
 3. Start (or restart) Balatro3DS and check **Options → Mods**.
 4. If a mod fails to load, the reason is written to `mods/mods_log.txt` in the same folder.
 
@@ -43,6 +43,32 @@ Download: `balatro3ds-kcvanilla-pack-v1.1.0.zip`.
 **The last five need the [Balatro3DS fork](https://github.com/sen2008/balatro3ds-fork) build.** They create and destroy cards through the fork's Tier 1 mod API (`SMODS.add_card` / `SMODS.destroy_joker` / `SMODS.destroy_card`), which the stock game does not have. On the stock Universal-Updater build the pack loads and the original nine work, but those five have no effects.
 
 
+### NeatoPack — fifteen Jokers
+
+Download: `balatro3ds-neato-pack-v1.1.0.zip`.
+
+From **Neato Jokers** by neatoqueen. All fifteen Jokers in the PC mod are ported.
+
+| Joker | Rarity / Cost | Effect |
+|---|---|---|
+| Unpaid Intern | Common / $6 | Scored 9s and 5s give +40 Chips |
+| Tabby Cat | Common / $6 | Gains +2 Mult every 9 cards discarded |
+| Wild Card Charlie | Uncommon / $7 | Wild Cards give X1.5 Mult when scored or held in hand |
+| Lock-In Joker | Common / $4 | Gains +3 Mult when a Blind is selected, resets when a Joker is sold |
+| Spare Cutoffs | Uncommon / $6 | Gains +12 Chips whenever a played hand contains a Two Pair |
+| Ice Cream Sandwich | Uncommon / $6 | X5 Mult, loses X1 Mult per round played, eaten when it runs out |
+| Australian Shepherd | Common / $4 | Create a random Planet card when a Blind is selected |
+| The Banana Stand | Common / $6 | 1 in 4 chance for a played hand to give $10; 1 in 25 chance at end of round to be destroyed and lose ALL money |
+| Blue Yourself | Rare / $8 | Retriggers Jokers and cards with the Foil edition |
+| Dayman | Uncommon / $6 | If the first hand of the round is a single Queen, destroy it and gain X0.5 Mult |
+| Nightman | Uncommon / $6 | When a hand is played, destroy a random scoring card and gain X0.1 Mult |
+| Dogs Playing Balatro | Rare / $6 | 1 in 4 chance to fetch a random Spectral card when a Planet is used |
+| Frosted Prime Rib | Uncommon / $6 | For the next 22 hands, every scored card permanently gains +2 Chips and +1 Mult |
+| Hatsune Joku | Uncommon / $5 | Retrigger played 9s an additional two times |
+| JokerZD | Rare / $8 | Gains X0.15 Mult for every unique Joker purchased |
+
+**The last nine need the [Balatro3DS fork](https://github.com/sen2008/balatro3ds-fork) build.** They create and destroy cards and use retrigger returns through the fork's Tier 1 mod API (`SMODS.add_card` / `SMODS.destroy_joker` / `SMODS.destroy_card`), which the stock game does not have. On the stock Universal-Updater build the pack loads and the original six work, but those nine have no effects, and Ice Cream Sandwich floors at X1 instead of being eaten (it is destroyed as on PC only with the fork).
+
 ### PokermonPack — 35 Gen 1 Pokémon Jokers
 
 From **Pokermon** by InertSteak (the #2 most popular Balatro mod). Bulbasaur, Charmander and Squirtle (with their +hand size / +discard / +hand passives), Pikachu, Magikarp, the Caterpie, Weedle and Pidgey lines, Rattata/Raticate, Diglett/Dugtrio, Shellder/Cloyster, Goldeen/Seaking, Mr. Mime, Pinsir, Rapidash, Articuno, and more. Zip: `balatro3ds-pokermon-pack-v1.0.0.zip`.
@@ -69,20 +95,30 @@ Port notes:
 - Cosmic Collapse has no `set_ability` to call, so a transform is the game's own consumable removal (which frees the Planet's slot first) plus a created `spectral_black_hole`. The odds roll through `SMODS.pseudorandom_probability`, so Oops! All 6s and probability Jokers apply as on PC.
 - Loose Tooth's random Tarot is picked by the game's own `random_consumable_id_of_kind` (the pool The Fool's family uses), because the fork's `add_card` needs a def id where Steamodded picks for you. A scoring Ace is read off the port's `counts_for_play_score` marker.
 - Scapegoat tracks "first discard of round" itself (reset at round begin): the port decrements its discard counter before the discard events fire, so PC's `discards_used` read has no equivalent. Its chip value rebuilds PC's `get_chip_bonus` from `card_data` (Stone counts 50, Bonus +30, permanent bonuses included) and the grant writes `card_data.Bonus`, the field Hiker writes. Because the game pushes a *copy* of a discarded card to the discard pile before the events fire, the port also removes that copy, so a destroyed card really leaves the game. Raw hand nodes have no `.debuff` field in this port, so the recipient check uses the game's own `debuffed` / `debuffed_for_scoring` predicate.
+- Dayman and Nightman (Neato) destroy played cards in the port's `after` pass, the slot the port's own Sixth Sense uses for Steamodded's `destroying_card` context, which Balatro3DS never raises; the destroyed card still scores first, as on PC. Dayman's "first hand of round" reads the game's `get_round_hands_played()`.
+- Frosted Prime Rib's permanent gains write `card_data.Bonus` (the field Hiker writes) and `card_data.mult_bonus`, the two fields the game's modifier path reads back when the card scores again; only scoring cards are granted, via the `counts_for_play_score` marker Hiker checks.
+- Blue Yourself answers both of the port's retrigger passes: `retrigger_joker_check` for Foil Jokers (the other Joker's def id and normalized edition stand in for PC's `config.center.key` / `edition.key`) and `context.repetition` for Foil playing cards (whose edition lives in `card_data.modifier.edition`). Its `in_pool` gate is kept — the port supports `in_pool` and the deck half reads the game's full-deck counter — but PC's guard against retriggering a foil Blueprint that is itself copying Blue Yourself reads `context.other_ret`, which the port does not provide, and is dropped.
+- Australian Shepherd and Dogs Playing Balatro pick their random consumable with the game's own `random_consumable_id_of_kind` (which never offers The Soul or a Black Hole), since the fork's `add_card` needs a def id where Steamodded picks for you. Australian Shepherd's `getting_sliced` check is dropped; port Jokers do not carry that flag.
+- The Banana Stand destroys itself with the fork's `SMODS.destroy_joker` and zeroes the money through the mod environment's `ease_dollars`, where PC queues a delayed event; the rolls go through `SMODS.pseudorandom_probability`, so Oops! All 6s applies as on PC.
+- JokerZD counts unique purchases by def id (`context.port.offer_id` on the port's shop-buy event) where PC counts by card label; buying JokerZD itself is excluded, as on PC.
+- Hatsune Joku is the effect only: the PC mod's custom music track (`SMODS.Sound`, its config tab and the `add_to_deck` juice) has no port equivalent.
 
 ## Not ported (and why)
 
 The other four KCVanilla Jokers still need things Balatro3DS mods do not have, even on the fork: Five-Day Forecast (Lovely patch on the rank-up path), Rakugo (booster-pack internals), Squid (live hands-left and projected score mid-round), Luck of the Irish (the port passes `trigger_obj = nil` for vanilla probability rolls, so a mod cannot tell which card rolled). Fortune Cookie, Rats!, Cosmic Collapse, Loose Tooth and Scapegoat were unblocked by the fork's Tier 1 API and joined the pack in v1.1.0.
 
+Neato Jokers is fully ported as of NeatoPack v1.1.0 (15/15): the nine that were blocked on create/destroy/retrigger-return mechanics (Australian Shepherd, The Banana Stand, Blue Yourself, Dayman, Nightman, Dogs Playing Balatro, Frosted Prime Rib, Hatsune Joku, JokerZD) were unblocked by the same Tier 1 API. Only pieces around them did not port: Hatsune Joku's music track and config tab, and Blue Yourself's `other_ret` sub-guard (see Port notes).
+
 Also found while porting: Balatro3DS does not fill `context.full_hand` for discard contexts (the batch is only in `context.port.discarded_nodes`). Handy Joker works around it; other discard mods should too.
 
 ## Validation
 
-Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 (loading, registration, tooltips, scoring, retriggers, scaling, Articuno's card conversion), with the game's own mod suite still green (38 tests on the stock tree, 43/43 on the fork) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
+Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 (loading, registration, tooltips, scoring, retriggers, scaling, Articuno's card conversion), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), with the game's own mod suite still green (38 tests on the stock tree, 43/43 on the fork) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
 
 ## Credits
 
 - **krackocloud** — KCVanilla, its Joker designs, text and art. KCVanilla ships no license; this is an unofficial fan port made for personal use, published with credit. If you are krackocloud and want anything changed or removed, open an issue and it will be handled immediately.
+- **neatoqueen (Neato)** — Neato Jokers, its Joker designs, text and art. Neato Jokers ships no license; this is an unofficial fan port made for personal use, published with credit. If you are neatoqueen and want anything changed or removed, open an issue and it will be handled immediately.
 - **InertSteak and the Pokermon contributors** — Pokermon, its Joker designs, text and art (GPLv3).
 - **idkhan / Gazpacho** — Balatro3DS and its mod API.
 - **LocalThunk** — Balatro.
