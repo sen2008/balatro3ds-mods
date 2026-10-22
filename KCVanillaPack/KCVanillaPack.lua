@@ -1,12 +1,18 @@
---- KCVanilla Pack (3DS Port) for Balatro3DS.
+--- KCVanilla Pack (3DS Port) for the Balatro3DS FORK.
 ---
---- Nine Jokers ported from KCVanilla by krackocloud (PC / Steamodded + Lovely):
+--- Fourteen Jokers ported from KCVanilla by krackocloud (PC / Steamodded + Lovely):
 --- Composition, Royal Guard, Joker-chan, Red Envelope, Jimbot, Ten-Pin,
---- Handy Joker, Joker Energy, Power Grid. (Swiss Cheese ships separately as
---- the KCVanillaSwiss mod.)
+--- Handy Joker, Joker Energy, Power Grid, plus (v1.1.0, fork-only)
+--- Fortune Cookie, Rats!, Cosmic Collapse, Loose Tooth and Scapegoat.
+--- (Swiss Cheese ships separately as the KCVanillaSwiss mod.)
 ---
---- Port notes: Balatro3DS has no Lovely, no G.GAME and no SMODS.add_card, so
---- each Joker is re-expressed with the port's documented mod API only
+--- The five v1.1.0 Jokers create and destroy cards, which the stock game's
+--- mod API cannot do: they need the fork's Tier 1 API (SMODS.add_card /
+--- SMODS.destroy_joker / SMODS.destroy_card) and will not load their
+--- effects on the Universal-Updater build. The original nine run on either.
+---
+--- Port notes: Balatro3DS has no Lovely and no G.GAME, so each Joker is
+--- re-expressed with the port's documented mod API only
 --- (joker_main / individual / after / discard / end_of_round / calc_dollar_bonus
 --- plus the game's own full-deck counter). Where PC Balatro auto-applies an
 --- ability field (Handy and Ten-Pin's x_mult), the port returns it from
@@ -498,6 +504,343 @@ SMODS.Joker {
         end
         if (context.end_of_round or context.setting_blind) and not context.blueprint then
             card.ability.kcv_count = 0
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- v1.1.0: the five Jokers that create or destroy cards. These need the
+-- Balatro3DS fork's Tier 1 mod API (SMODS.add_card / destroy_joker /
+-- destroy_card); on the stock game they register but their effects no-op
+-- because those functions do not exist there.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Fortune Cookie: +150 Chips, -50 Chips whenever a Tarot is used; when the
+-- value would run out, the cookie is eaten (it destroys itself). PC pays its
+-- chips with a status message; here joker_main returns them like every other
+-- flat-Chips Joker in this pack. PC decays through SMODS's using_consumeable
+-- context; the port carries the used consumable's kind on the raw event
+-- (context.port.consumable_kind).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "fortunecookie",
+    loc_txt = {
+        name = "Fortune Cookie",
+        text = {
+            "{C:chips}+#1#{} Chips,",
+            "{C:chips}-#2#{} Chips when",
+            "{C:tarot}Tarot{} card is used",
+        },
+    },
+    config = { extra = { chips = 150, chip_mod = 50 } },
+    rarity = 1,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "fortunecookie.png",
+    negative_sprite = "fortunecookie_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.chips, card.ability.extra.chip_mod } }
+    end,
+    calculate = function(self, card, context)
+        if context.using_consumeable and not context.blueprint then
+            local kind = context.port and context.port.consumable_kind
+            if kind == nil and context.consumeable then
+                kind = context.consumeable.kind
+            end
+            if kind == "tarot" then
+                local new_val = card.ability.extra.chips - card.ability.extra.chip_mod
+                if new_val > 0 then
+                    card.ability.extra.chips = new_val
+                    return { message = "-" .. card.ability.extra.chip_mod .. " Chips" }
+                end
+                -- PC removes it through a delayed event; the fork destroys
+                -- it on the spot, which is what destroy_joker is for.
+                SMODS.destroy_joker(card)
+                return { message = "Eaten!" }
+            end
+        end
+        if context.joker_main then
+            return { chips = card.ability.extra.chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Rats!: when the round begins, destroy a random card in hand and duplicate
+-- this Joker (must have room; the copy loses Negative, as on PC, so a
+-- Negative Rats cannot fill the board for free). PC checks #G.hand.cards > 1
+-- before destroying; the hand's nodes are the port's equivalent. The PC
+-- can_spawn flag is set and reset exactly as on PC even though the PC code
+-- never reads it; it is kept so saved ability state matches.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "rats",
+    loc_txt = {
+        name = "Rats!",
+        text = {
+            "When round begins, destroy",
+            "a random card in hand",
+            "and {C:attention}duplicate{} this Joker",
+            "{C:inactive}(Must have room,",
+            "{C:inactive}removes {C:dark_edition}Negative{C:inactive} from copy)",
+        },
+    },
+    config = { can_spawn = true },
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "rats.png",
+    negative_sprite = "rats_negative.png",
+    calculate = function(self, card, context)
+        if context.first_hand_drawn and not context.blueprint then
+            card.ability.can_spawn = false
+            local nodes = G and G.hand and G.hand.card_nodes
+            if nodes and #nodes > 1 then
+                local victim = SMODS.pseudorandom_element(nodes, "kcvp_rats")
+                if victim then
+                    SMODS.destroy_card(victim)
+                    local params = { set = "Joker", key = "j_kcvp_rats" }
+                    local edition = card.edition
+                    if Joker and Joker.normalize_edition then
+                        edition = Joker.normalize_edition(edition)
+                    end
+                    if type(edition) == "string" and edition ~= ""
+                        and edition ~= "base" and edition ~= "negative" then
+                        params.edition = edition
+                    end
+                    SMODS.add_card(params) -- nil, and no copy, when there is no room
+                    return { message = "Rats!" }
+                end
+            end
+        end
+        if context.end_of_round and not context.blueprint then
+            card.ability.can_spawn = true
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Cosmic Collapse: at end of round, each held Planet has a 1 in 2 chance to
+-- transform into a Black Hole. The port has no set_ability for consumables,
+-- so a transform is the game's own removal (remove_consumable_at, the slot
+-- the planet held frees first) followed by creating the Black Hole
+-- (spectral_black_hole) through SMODS.add_card. The kcv_collapse mark is
+-- PC's, kept so two Collapses resolving in the same pass never transform
+-- the same Planet twice.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "collapse",
+    loc_txt = {
+        name = "Cosmic Collapse",
+        text = {
+            "At end of round, held {C:planet}Planet{}",
+            "cards each have {C:green}#1# in #2#{} chance",
+            "to transform into a {C:spectral}Black Hole{}",
+        },
+    },
+    config = { numerator = 1, denominator = 2 },
+    rarity = 3,
+    cost = 7,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "collapse.png",
+    negative_sprite = "collapse_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card,
+            card.ability.numerator, card.ability.denominator, "cosmiccollapse")
+        return { vars = { numerator, denominator } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round then
+            local successes = {}
+            for _, c in ipairs((G and G.consumables) or {}) do
+                if c.kind == "planet" and not c.kcv_collapse then
+                    local hit = SMODS.pseudorandom_probability(card, "cosmiccollapse",
+                        card.ability.numerator, card.ability.denominator, "cosmiccollapse")
+                    if hit then
+                        c.kcv_collapse = true
+                        successes[#successes + 1] = c
+                    end
+                end
+            end
+            if #successes == 0 then return end
+            for _, planet in ipairs(successes) do
+                for i, c in ipairs(G.consumables) do
+                    if c == planet then
+                        G:remove_consumable_at(i)
+                        break
+                    end
+                end
+                SMODS.add_card { set = "Spectral", key = "spectral_black_hole" }
+                planet.kcv_collapse = nil
+            end
+            return { message = "Collapse!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Loose Tooth: if the played hand has a non-scoring Ace (an Ace that did not
+-- score, or a debuffed Ace), create a random Tarot (must have room). PC
+-- creates with SMODS.add_card { set = "Tarot" } and lets Steamodded pick;
+-- the port's add_card needs a def id, so the game's own random-Tarot picker
+-- (the one The Fool's family uses) picks it. The port's `before` context
+-- marks scoring cards with counts_for_play_score, which stands in for PC's
+-- scoring_hand membership test.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "loosetooth",
+    loc_txt = {
+        name = "Loose Tooth",
+        text = {
+            "Create a {C:tarot}Tarot{} card if",
+            "played hand has a",
+            "{C:attention}non-scoring Ace{}",
+            "{C:inactive}(Must have room){}",
+        },
+    },
+    config = {},
+    rarity = 1,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "loosetooth.png",
+    negative_sprite = "loosetooth_negative.png",
+    calculate = function(self, card, context)
+        if context.before and context.full_hand then
+            local has_nonscoring_ace = false
+            for _, other in ipairs(context.full_hand) do
+                if other:get_id() == 14 and (other.debuff or other.counts_for_play_score ~= true) then
+                    has_nonscoring_ace = true
+                    break
+                end
+            end
+            if has_nonscoring_ace and G and G.consumables
+                and G.get_effective_consumable_capacity
+                and #G.consumables < G:get_effective_consumable_capacity() then
+                local id = G.random_consumable_id_of_kind
+                    and G:random_consumable_id_of_kind("tarot", {}, "kcvp_loosetooth")
+                if id and SMODS.add_card { set = "Tarot", key = id } then
+                    return { message = "+1 Tarot" }
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Scapegoat: if the first discard of the round is a single non-debuffed
+-- card, destroy it and add its Chip value to a random other card held in
+-- hand (a debuffed recipient keeps nothing; the discarded card is still
+-- destroyed). Two port adaptations:
+-- * "First discard" is tracked on the Joker itself (reset when the round
+--   begins): the port decrements its discard counter before the discard
+--   events fire, so there is no discards-used value left to read the way
+--   PC reads G.GAME.current_round.discards_used.
+-- * The chip value is PC's get_chip_bonus rebuilt from card_data: base
+--   value (Ace 11, faces 10), +50 for Stone instead of its rank, +30 for a
+--   Bonus card, plus any permanent Bonus/chip_bonus already on the card.
+--   The grant writes card_data.Bonus, the same field Hiker writes.
+-- The discarded card's data is pushed to the discard pile before the
+-- discard events fire, as a copy; that copy is removed from the pile here
+-- so a destroyed card truly leaves the game instead of haunting the deck.
+--------------------------------------------------------------------------------
+
+local function kcvp_chip_value(view)
+    local data = (view and view.card_data) or {}
+    local val
+    if data.enhancement == "stone" then
+        val = 50
+    else
+        local id = view and view.get_id and view:get_id() or tonumber(data.rank) or 0
+        if id == 14 then val = 11
+        elseif id >= 11 and id <= 13 then val = 10
+        else val = id end
+    end
+    val = val + (tonumber(data.Bonus) or tonumber(data.bonus) or 0)
+    val = val + (tonumber(data.chip_bonus) or tonumber(data.chips_bonus) or 0)
+    if data.enhancement == "bonus" then val = val + 30 end
+    return val
+end
+
+SMODS.Joker {
+    key = "scapegoat",
+    loc_txt = {
+        name = "Scapegoat",
+        text = {
+            "If {C:attention}first discard{} of round",
+            "has only {C:attention}1{} card, destroy",
+            "it and add its {C:chips}Chip{} value",
+            "to a random card in hand",
+        },
+    },
+    config = {},
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "scapegoat.png",
+    negative_sprite = "scapegoat_negative.png",
+    calculate = function(self, card, context)
+        if context.first_hand_drawn and not context.blueprint then
+            card.ability.kcvp_discarded = false
+        end
+        if context.discard and not context.blueprint then
+            local is_first = not card.ability.kcvp_discarded
+            card.ability.kcvp_discarded = true
+            if not is_first then return end
+            local batch = context.port and context.port.discarded_nodes
+            if not (batch and #batch == 1) then return end
+            local other = context.other_card
+            if not (other and not other.debuff) then return end
+            local held = {}
+            for _, node in ipairs((G and G.hand and G.hand.card_nodes) or {}) do
+                if node ~= other then held[#held + 1] = node end
+            end
+            if #held == 0 then return end
+            local target = SMODS.pseudorandom_element(held, "kcvp_scapegoat")
+            if not target then return end
+            local value = kcvp_chip_value(other)
+            local data = other.card_data
+            if data and G and G.deck and G.deck.discard_pile then
+                for i, c in ipairs(G.deck.discard_pile) do
+                    if c == data or (data.uid ~= nil and c.uid == data.uid) then
+                        table.remove(G.deck.discard_pile, i)
+                        break
+                    end
+                end
+            end
+            SMODS.destroy_card(other)
+            -- Raw hand nodes carry no .debuff (contexts synthesize it);
+            -- the game's own predicate is debuffed / debuffed_for_scoring.
+            if target.debuff or target.debuffed or target.debuffed_for_scoring then
+                return { message = "Debuffed!" }
+            end
+            local cd = target.card_data
+            cd.Bonus = (tonumber(cd.Bonus) or tonumber(cd.bonus) or 0) + value
+            return { message = "Upgrade!" }
         end
     end,
 }
