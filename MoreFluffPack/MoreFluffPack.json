@@ -3,12 +3,12 @@
   "Muse (port)",
   "notmario (original mod)"
  ],
- "description": "103 Jokers ported from MoreFluff by notmario, including the Letter Jokers, the Scrapped (oldfluff) set and token Jokers. Requires the Balatro3DS fork build (github.com/sen2008/balatro3ds-fork): the port uses the fork's SMODS.Rarity registrations, SMODS.add_card / destroy_card, retrigger and post_trigger passes, probability-shaping contexts, the Tier 3 return readers (x_chips / e_mult / swap / level_up), the destroying_card and hand_drawn contexts, SMODS.set_debuff, and SMODS.Enhancement registrations for MoreFluff's Teal / Marigold / Brass / Gemstone / Yucky cards (weight 0, as on PC they arrive via Rotarots rather than the shop). Six MoreFluff rarities are registered at weight 0, as on PC they arrive via other Jokers and effects rather than the shop. The remaining 126 PC Jokers are blocked on systems the fork does not have (Slivers, Colour cards, prepared cards, exile, scale_card and more); the pack README lists each one with its blocker.",
+ "description": "108 Jokers ported from MoreFluff by notmario, including the Letter Jokers, the Scrapped (oldfluff) set and token Jokers. Requires the Balatro3DS fork build (github.com/sen2008/balatro3ds-fork): the port uses the fork's SMODS.Rarity registrations, SMODS.add_card / destroy_card, retrigger and post_trigger passes, probability-shaping contexts, the Tier 3 return readers (x_chips / e_mult / swap / level_up), the destroying_card and hand_drawn contexts, SMODS.set_debuff, SMODS.Enhancement registrations for MoreFluff's Teal / Marigold / Brass / Gemstone / Yucky cards (weight 0, as on PC they arrive via Rotarots rather than the shop), and the Wave 1 SMODS.poll_enhancement / SMODS.poll_seal polls and xlog_chips return reader. Six MoreFluff rarities are registered at weight 0, as on PC they arrive via other Jokers and effects rather than the shop. The remaining 121 PC Jokers are blocked on systems the fork does not have (Slivers, Colour cards, prepared cards, exile, scale_card and more); the pack README lists each one with its blocker.",
  "display_name": "MoreFluff Pack",
  "id": "MoreFluffPack",
  "main_file": "morefluffpack.lua",
  "name": "MoreFluff Pack",
  "prefix": "mfp",
  "priority": 0,
- "version": "1.2.0"
+ "version": "1.3.0"
 }

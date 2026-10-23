@@ -188,6 +188,11 @@ local JOKER_EXPECT = {
     ["pickle"] = { name = "Pickle", cost = 6, rarity = 2 },
     ["pity_prize"] = { name = "Pity Prize", cost = 2, rarity = 1 },
     ["yarnball"] = { name = "Yarn Ball", cost = 8, rarity = 3 },
+    ["kidnap"] = { name = "Kidnapping", cost = 4, rarity = 1 },
+    ["necromancer"] = { name = "Necromancer", cost = 5, rarity = 2 },
+    ["pumpkin"] = { name = "Pumpkin", cost = 10, rarity = 3 },
+    ["carved_pumpkin"] = { name = "Carved Pumpkin", cost = 10, rarity = 3 },
+    ["familiar_currency"] = { name = "Familiar Currency", cost = 0, rarity = 3 },
 }
 
 local CONSUMABLE_EXPECT = {
@@ -218,6 +223,7 @@ local CONSUMABLE_EXPECT = {
     ["ritual"] = { name = "Ritual", set = "Spectral", cost = 5 },
     ["commit"] = { name = "://COMMIT", set = "Code", cost = 4 },
     ["rework"] = { name = "://REWORK", set = "Code", cost = 4 },
+    ["alttab"] = { name = "://ALTTAB", set = "Code", cost = 4 },
 }
 
 local SPRITE_STEMS = {
@@ -643,6 +649,18 @@ local SPRITE_STEMS = {
     "universe_negative",
     "yarnball",
     "yarnball_negative",
+    "kidnap",
+    "kidnap_negative",
+    "necromancer",
+    "necromancer_negative",
+    "pumpkin",
+    "pumpkin_negative",
+    "carved_pumpkin",
+    "carved_pumpkin_negative",
+    "familiar_currency",
+    "familiar_currency_negative",
+    "alttab",
+    "alttab_negative",
 }
 
 
@@ -657,7 +675,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/CryptidPack.json", [[{
         "id": "CryptidPack", "name": "Cryptid Pack", "prefix": "cryp",
-        "main_file": "cryptidpack.lua", "version": "1.2.0",
+        "main_file": "cryptidpack.lua", "version": "1.3.0",
         "author": ["Cryptid team", "3DS port"]
     }]])
     love.filesystem.write(base .. "/cryptidpack.lua", main)
@@ -737,12 +755,12 @@ end
 -- Registration: rarities, hands, consumable types, every item + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads: 167 Jokers, 27 consumables, rarities, hands, types", function()
+suite.test("pack loads: 172 Jokers, 28 consumables, rarities, hands, types", function()
     local game = install_pack()
     local mod = ModLoader.by_id.CryptidPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 167, "167 Jokers register")
-    T.assert_eq(#mod.registered.consumables, 27, "27 consumables register")
+    T.assert_eq(#mod.registered.jokers, 172, "172 Jokers register")
+    T.assert_eq(#mod.registered.consumables, 28, "28 consumables register")
 
     T.assert_eq(SMODS.Rarities["cryp_epic"].weight, 0.3, "epic weight")
     T.assert_eq(SMODS.Rarities["cryp_exotic"].weight, 0, "exotic weight 0 (never in shop)")
@@ -1221,7 +1239,8 @@ suite.test("the automaton (a Tarot) creates a random Code card", function()
     use_slot(game, hold_consumable(game, "automaton"))
     T.assert_eq(#game.consumables, 1, "one consumable afterwards")
     T.assert_eq(game.consumables[1].kind, "Code", "the created card is a Code card")
-    local code_ids = { c_cryp_ctrl_v = true, c_cryp_commit = true, c_cryp_rework = true }
+    local code_ids = { c_cryp_ctrl_v = true, c_cryp_commit = true, c_cryp_rework = true,
+        c_cryp_alttab = true }
     T.assert_true(code_ids[game.consumables[1].id] == true,
         "and it is one of the pack's Code cards: " .. tostring(game.consumables[1].id))
     wipe_mods()
@@ -1870,6 +1889,154 @@ suite.test("rework destroys a Joker and the next shop Joker is that Joker, one e
     T.assert_eq(draft.id, "j_greedy_joker", "the draft becomes the reworked Joker")
     T.assert_eq(draft.edition, "foil", "with the climbed edition")
     T.assert_eq(#game.tags, 0, "the tag is consumed")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 1 (v1.3.0): sold-Joker history, game_over, joker_type_destroyed
+--------------------------------------------------------------------------------
+
+suite.test("kidnapping pays $4 per unique sold Type Joker", function()
+    local game = install_pack()
+    local kid = add(game, "j_cryp_kidnap")
+    local def = JOKER_DEFS["j_cryp_kidnap"]
+    local empty = def.smods.calc_dollar_bonus(def.smods, kid)
+    T.assert_true(empty == nil or empty == 0, "no Type sales: no bonus")
+    -- j_jolly counts by its "Type Mult" effect, j_sly by its name,
+    -- j_cryp_nutty by its PC "Cry Type Mult" effect; the duplicate
+    -- j_sly sale counts once, as PC's unique-key history does, and
+    -- a plain Joker does not count at all.
+    game.jokers_sold = { "j_jolly", "j_sly", "j_cryp_nutty", "j_sly", "j_joker" }
+    T.assert_eq(def.smods.calc_dollar_bonus(def.smods, kid), 12,
+        "3 unique Type Jokers at $4")
+    local lines = SMODS.tooltip_lines("j_cryp_kidnap", kid)
+    local text = table.concat(flatten(lines), " ")
+    T.assert_true(text:find("$12", 1, true) ~= nil,
+        "the tooltip shows the current $12: " .. text)
+    wipe_mods()
+end)
+
+suite.test("necromancer resurrects a random sold Joker at $0 sell value", function()
+    local game = install_pack()
+    local necro = add(game, "j_cryp_necromancer")
+    local other = add(game, "j_joker")
+    fire(necro, "on_joker_sold", { joker = other })
+    T.assert_eq(#game.jokers, 2, "empty history: nothing is created")
+    game.jokers_sold = { "j_cryp_necromancer" }
+    fire(necro, "on_joker_sold", { joker = other })
+    T.assert_eq(#game.jokers, 2, "the Necromancer itself is never in the pool")
+    game.jokers_sold = { "j_greedy_joker" }
+    fire(necro, "on_joker_sold", { joker = other })
+    T.assert_eq(#game.jokers, 3, "a sold Joker is created")
+    local made = game.jokers[#game.jokers]
+    T.assert_eq(made.def.id, "j_greedy_joker", "it is the sold Joker")
+    T.assert_eq(made.sell_cost, 0, "with $0 sell value")
+    wipe_mods()
+end)
+
+suite.test("pumpkin saves the run at 50% of the target, and only then", function()
+    local game = install_pack()
+    add(game, "j_cryp_pumpkin")
+    game.round_score = 150
+    game.current_blind_target = 300
+    T.assert_eq(SMODS.game_over_saved(game), 1, "150 of 300: the Pumpkin saves")
+    game.round_score = 149
+    T.assert_true(SMODS.game_over_saved(game) == nil, "149 of 300: no save")
+    wipe_mods()
+end)
+
+suite.test("pumpkin turns into carved pumpkin when destroyed, unless sold first", function()
+    local game = install_pack()
+    local pump = add(game, "j_cryp_pumpkin")
+    fire(pump, "on_joker_type_destroyed", { joker = pump })
+    T.assert_eq(#game.jokers, 2, "a Carved Pumpkin is created")
+    T.assert_eq(game.jokers[#game.jokers].def.id, "j_cryp_carved_pumpkin",
+        "the new Joker is the Carved Pumpkin")
+    wipe_mods()
+    game = install_pack()
+    local pump2 = add(game, "j_cryp_pumpkin")
+    fire(pump2, "on_joker_sold", { joker = pump2 })
+    T.assert_eq(pump2.ability.extra.enabled, false, "selling disables the transformation")
+    fire(pump2, "on_joker_type_destroyed", { joker = pump2 })
+    T.assert_eq(#game.jokers, 1, "a sold Pumpkin does not transform")
+    wipe_mods()
+end)
+
+suite.test("carved pumpkin disables boss blinds and is eaten after 5", function()
+    local game = install_pack()
+    T.assert_false(game:joker_allowed_in_random_pool("j_cryp_carved_pumpkin"),
+        "Carved Pumpkin stays out of the pool (in_pool = false)")
+    local carved = add(game, "j_cryp_carved_pumpkin")
+    local disabled = false
+    game.disable_boss_blind = function(self) disabled = true end
+    game.current_blind_index = 3
+    fire(carved, "on_blind_selected", {})
+    T.assert_true(disabled, "the Boss Blind is disabled at setting_blind")
+    for _ = 1, 4 do fire(carved, "on_round_end", {}) end
+    T.assert_eq(carved.ability.extra.disables, 1, "four Boss rounds counted down")
+    T.assert_eq(#game.jokers, 1, "still held at 1 disable left")
+    fire(carved, "on_round_end", {})
+    T.assert_eq(#game.jokers, 0, "destroyed when the disables reach 0")
+    wipe_mods()
+    game = install_pack()
+    local carved2 = add(game, "j_cryp_carved_pumpkin")
+    game.current_blind_index = 1
+    fire(carved2, "on_round_end", {})
+    T.assert_eq(carved2.ability.extra.disables, 5, "a Small Blind does not count down")
+    wipe_mods()
+end)
+
+suite.test("familiar currency pays $19 for a random Meme Joker at round end", function()
+    local game = install_pack()
+    local fam = add(game, "j_cryp_familiar_currency")
+    G.money = 100
+    fire(fam, "on_round_end", {})
+    T.assert_eq(#game.jokers, 2, "a Meme Joker is created")
+    T.assert_eq(G.money, 81, "$19 was paid")
+    local meme_ids = { j_cryp_happyhouse = true, j_cryp_cube = true, j_cryp_nice = true,
+        j_cryp_chad = true, j_cryp_jimball = true, j_cryp_sus = true,
+        j_cryp_krustytheclown = true, j_cryp_blurred = true, j_cryp_filler = true,
+        j_cryp_lebaron_james = true, j_cryp_wario = true, j_cryp_m = true,
+        j_cryp_boredom = true, j_cryp_curse_sob = true, j_cryp_bonk = true,
+        j_cryp_reverse = true }
+    local made = game.jokers[#game.jokers]
+    T.assert_true(meme_ids[made.def.id] == true,
+        "the created Joker is a Meme Joker: " .. tostring(made.def.id))
+    wipe_mods()
+    game = install_pack()
+    local fam2 = add(game, "j_cryp_familiar_currency")
+    G.money = 10
+    fire(fam2, "on_round_end", {})
+    T.assert_eq(#game.jokers, 1, "under $19: nothing is created")
+    T.assert_eq(G.money, 10, "and nothing is charged")
+    wipe_mods()
+end)
+
+suite.test("alttab creates the current blind's skip tag", function()
+    local game = install_pack_full()
+    game.skips = { 0, 0 }
+    game.current_blind_index = 1
+    use_slot(game, hold_consumable(game, "alttab"))
+    T.assert_eq(#game.tags, 1, "one tag is gained")
+    T.assert_eq(game.tags[1].type, "uncommon", "it is the Small Blind's skip Tag")
+    wipe_mods()
+end)
+
+suite.test("alttab rolls a random tag on a boss blind and a cat tag with kitty printer", function()
+    local game = install_pack_full()
+    local captured = nil
+    game.addTag = function(self, typ, opts) captured = typ end
+    game.current_blind_index = 3
+    use_slot(game, hold_consumable(game, "alttab"))
+    T.assert_true(type(captured) == "string" and captured ~= "",
+        "a Boss Blind grants some tag type: " .. tostring(captured))
+    wipe_mods()
+    game = install_pack_full()
+    add(game, "j_cryp_kittyprinter")
+    game.current_blind_index = 1
+    use_slot(game, hold_consumable(game, "alttab"))
+    T.assert_eq(game.tags[#game.tags].type, "cry_cat",
+        "a held Kitty Printer makes it a Cat Tag")
     wipe_mods()
 end)
 

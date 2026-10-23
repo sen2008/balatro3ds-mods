@@ -76,6 +76,7 @@ local ARCANA = {
     page_of_swords = "Page of Swords",
     six_of_wands = "Six of Wands",
     three_of_swords = "Three of Swords",
+    two_of_swords = "Two of Swords",
 }
 
 local function install_pack()
@@ -174,6 +175,15 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Dummy sprites for the Wave 1 (v1.2.0) Jokers.
+    for _, n in ipairs({
+        "milk_tea", "stardrop", "stardrop_soul", "bergentrucking",
+        "freedom_of_choice", "grenadine", "shinzaemon", "shinzaemon_soul",
+        "nigori", "aperol", "pink_joker", "sacred_heart", "determination",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
     ModLoader.load_all()
     local game = bootstrap.new_game(9182)
     game.hand = Hand(game)
@@ -229,11 +239,11 @@ end
 -- Registration
 --------------------------------------------------------------------------------
 
-suite.test("minor arcana type and all 44 cards register", function()
+suite.test("minor arcana type and all 45 cards register", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.consumables, 44, "44 arcana register")
+    T.assert_eq(#mod.registered.consumables, 45, "45 arcana register")
     local entry = SMODS.ConsumableTypes["pbp_minor_arcana"]
     T.assert_true(entry ~= nil, "the minor_arcana type registers")
     T.assert_eq(entry.kind, "minor_arcana", "the kind string is minor_arcana")
@@ -858,6 +868,42 @@ suite.test("queen of wands can put Dichrome on a held Joker", function()
         if j.edition == "dichrome" then landed = true break end
     end
     T.assert_true(landed, "Dichrome landed within 12 uses (1-in-3 each)")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 1 addition: Two of Swords (last scored suit, tracked pack-side)
+--------------------------------------------------------------------------------
+
+suite.test("two of swords converts selected cards to Spades before anything scored", function()
+    local game = install_pack()
+    local a, b = card(5, "Hearts"), card(9, "Clubs")
+    setup_hand(game, { a, b }, { a, b })
+    local slot = hold(game, "two_of_swords")
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(a.card_data.suit, "Spades", "PC's initial last scored suit")
+    T.assert_eq(b.card_data.suit, "Spades")
+    wipe_mods()
+end)
+
+suite.test("two of swords converts to the last suit a scoring pass observed", function()
+    local game = install_pack()
+    local stardrop = add_joker(game, "j_pbp_stardrop")
+    local diamond = card(7, "Diamonds")
+    local ctx = { event = "card_played", event_name = "card_played",
+        chips = 0, mult = 1, rank = 7, suit = "Diamonds",
+        card_node = diamond, played_cards = { diamond },
+        full_hand = { diamond } }
+    if stardrop:matches_trigger("card_played", ctx) then
+        stardrop:apply_effect(ctx)
+    end
+    T.assert_eq(game.pb_last_scored_suit, "Diamonds",
+        "Stardrop's individual pass tracked the scored card")
+    local a = card(5, "Hearts")
+    setup_hand(game, { a }, { a })
+    local slot = hold(game, "two_of_swords")
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(a.card_data.suit, "Diamonds")
     wipe_mods()
 end)
 

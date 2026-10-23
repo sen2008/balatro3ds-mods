@@ -1,5 +1,5 @@
-Bunco Pack (3DS Port) v1.2.0
-Fifty-three of Bunco's eighty Jokers, both exotic suits, the four
+Bunco Pack (3DS Port) v1.3.0
+Fifty-five of Bunco's eighty Jokers, both exotic suits, the four
 Spectrum-family poker hands plus Deal, six consumables, and the
 Fluorescent edition, from Bunco (PC, by Firch) ported to
 Balatro3DS.
@@ -14,7 +14,10 @@ need the fork build and its Tier 1 + Tier 2 mod APIs
 (SMODS.add_card / SMODS.destroy_joker / SMODS.destroy_card,
 SMODS.Suit, SMODS.PokerHand). The v1.2.0 additions (Neon, Bounty
 Hunter, the Fluorescent edition) use Tier 3
-(SMODS.Edition, the setting_ability and money_altered contexts):
+(SMODS.Edition, the setting_ability and money_altered contexts).
+The v1.3.0 additions (Fiendish, Head in the Clouds, and Bounty
+Hunter's tax moved onto it) use the fork's Wave 1 contexts
+(money_transform, level_up_hand):
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack still loads and the
 original nineteen Jokers work (without their exotic-suit branches),
@@ -43,7 +46,7 @@ Halberds. Registration Plate picks five ranks from your deck each
 round; playing exactly those ranks scores as the Deal hand, which
 carries the Chips and Mult of every poker hand played this run.
 
-INCLUDED JOKERS (53 of 80)
+INCLUDED JOKERS (55 of 80)
 Original nineteen: Cassette, Mosaic, Voxel, Crop Circles,
 Prehistoric, Shepherd, Dogs Playing Poker, Nil Bill, Slothful,
 Hierarchy of Needs, Headshot, Protester, Disproportionality,
@@ -88,11 +91,17 @@ New in v1.2.0:
 Also new in v1.2.0: the Fluorescent edition itself (Bunco's
 stat-less edition; Neon's grant and the shop/Aura edition polls
 can apply it).
+New in v1.3.0:
+- Fiendish (Uncommon, $5) [fork only]: double all sources of money, 1 in 3 chance to pay out with $1 instead.
+- Head in the Clouds (Uncommon, $6) [fork only]: 1 in 3 chance to upgrade High Card when you upgrade any poker hand; only appears once High Card is above level 1.
+- Bounty Hunter's tax now rides the money_transform seat (see
+  port notes): the gain itself lands $1 short, exactly as on PC.
 
 Validated headlessly against the Balatro3DS fork source (pack suite
-41/41, including suit/hand evaluation, the exotic gate,
-create/destroy behavior, and the v1.2.0 edition grant and money
-tax) on 2026-10-23. Not yet tested on real hardware.
+43/43, including suit/hand evaluation, the exotic gate,
+create/destroy behavior, the v1.2.0 edition grant and money tax,
+and the v1.3.0 money transforms and hand-level reactions)
+on 2026-10-23. Not yet tested on real hardware.
 
 Port notes:
 - The exotic gate is derived, not stored: PC sets a flag the first
@@ -122,23 +131,18 @@ Port notes:
   the immunities are NOT implemented: the edition registers with
   no stats and no shader (PC's look is a shader), and its tooltip
   says so. Neon's grant of it works exactly as on PC.
-- Bounty Hunter's tax lands as its own -$1 money event right after
-  each gain, rather than shrinking the gain before it lands as
-  PC's money wrapper does; final totals and Mult growth match.
-  One corner differs: with several copies held, each copy taxes
-  the same gain, where PC's later copies see the already-taxed
-  remainder (and stand down on a $1 gain).
+- Bounty Hunter's tax rides the fork's money_transform seat
+  since v1.3.0: the gain itself is shrunk by $1 before it lands,
+  exactly as PC's money wrapper does, and several copies tax the
+  shrinking remainder in slot order (a later copy stands down
+  once the gain is gone). At v1.2.0 the tax landed as a separate
+  -$1 money event after the gain; that deviation is gone.
 
-NOT PORTED (27 of 80 Jokers)
+NOT PORTED (25 of 80 Jokers)
 - Gameplan, Conquest: both debuff JOKERS (Gameplan its two
   neighbours, Conquest a random other Joker). Tier 3 debuff
   (SMODS.set_debuff / debuff_card) covers playing cards only;
   there is no mod-settable Joker debuff to build them on.
-- Fiendish: rewrites every money gain before it lands (1 in 3
-  chance it becomes $1, otherwise it doubles). money_altered
-  returns are additive amounts applied after the gain; doubling
-  via a second gain would be seen as a new gain by other Jokers
-  and would compound wrongly with multiple copies.
 - JMJB, Aristocrat: rewrite or extend Booster Pack contents (only
   Enhanced cards in Standard Packs; one extra pack choice). The
   open_booster context still carries no payload, and SMODS.Booster
@@ -172,10 +176,6 @@ NOT PORTED (27 of 80 Jokers)
   return-scored-cards-to-hand after the first play is a Lovely
   redirect of the play flow (press_play exists, but only arms
   it on PC).
-- Head in the Clouds: hooks the level_up_hand context, which
-  fires for ANY hand levelled, by any means. No hand-levelled
-  context exists; watching Planet use would miss level-ups from
-  Jokers and other sources.
 - Domino: acquires the two cards adjacent to a bought or used
   shop/Booster card, via pre-purchase contexts carrying the
   neighbours. The fork's buying contexts carry no such payload.

@@ -1,6 +1,6 @@
 --- Tests for the PaperbackPack expansion Jokers (the 188 ported after the
 --- original 36) for the Balatro3DS fork build. Registration and tooltip
---- sanity for all 269 Jokers in the pack, plus the per-slice behavior
+--- sanity for all 280 Jokers in the pack, plus the per-slice behavior
 --- suites (PB_TESTS_0 .. PB_TESTS_4). The mod's real main file is read
 --- from the PB_PACK_LUA env var, like the other pack suites.
 local T = require("tests.testlib")
@@ -92,6 +92,9 @@ local NAMES = {
         "off_epsilon", "off_omega", "one_with_nothing", "watermelon",
         "weather_radio", "da_capo", "jester_of_nihil", "cross",
         "unholy_alliance",
+    "milk_tea", "stardrop", "bergentrucking", "freedom_of_choice",
+    "grenadine", "shinzaemon", "nigori", "aperol", "pink_joker",
+    "sacred_heart", "determination",
 }
 
 local ARCANA = {
@@ -107,7 +110,7 @@ local ARCANA = {
     "five_of_cups", "five_of_pentacles", "queen_of_cups",
     "nine_of_wands", "knight_of_wands", "seven_of_wands",
     "queen_of_wands", "page_of_pentacles", "page_of_swords",
-    "six_of_wands", "three_of_swords",
+    "six_of_wands", "three_of_swords", "two_of_swords",
 }
 
 local function install_pack()
@@ -135,7 +138,7 @@ local function install_pack()
     end
     for _, n in ipairs({
         "jimbo_adventure_soul", "off_alpha_soul", "off_epsilon_soul",
-        "off_omega_soul",
+        "off_omega_soul", "stardrop_soul", "shinzaemon_soul",
     }) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
     end
@@ -215,11 +218,11 @@ end
 -- Registration + tooltips for the whole pack
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 269 Paperback Jokers", function()
+suite.test("pack loads and registers all 280 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 269)
+    T.assert_eq(#mod.registered.jokers, 280)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -445,6 +448,17 @@ suite.test("pack loads and registers all 269 Paperback Jokers", function()
         j_pbp_yacht_dice = { "Yacht Dice", 3, 8 },
         j_pbp_you_are_a_fool = { "You Are a Fool!", 3, 8 },
         j_pbp_zealous_joker = { "Zealous Joker", 1, 3 },
+        j_pbp_milk_tea = { "Milk Tea", 2, 6 },
+        j_pbp_stardrop = { "Stardrop", 2, 7 },
+        j_pbp_bergentrucking = { "Bergentrücking", 3, 8 },
+        j_pbp_freedom_of_choice = { "Freedom of Choice", 3, 8 },
+        j_pbp_grenadine = { "Grenadine", 2, 6 },
+        j_pbp_shinzaemon = { "Shinzaemon", 4, 20 },
+        j_pbp_nigori = { "Nigori", 2, 6 },
+        j_pbp_aperol = { "Aperol", 2, 6 },
+        j_pbp_pink_joker = { "Pink Joker", 1, 7 },
+        j_pbp_sacred_heart = { "Sacred Heart", 3, 10 },
+        j_pbp_determination = { "Determination", 3, 7 },
     }
     for id, e in pairs(expect) do
         local def = JOKER_DEFS[id]
@@ -1746,11 +1760,260 @@ PB_TESTS_5 = function(H)
     end)
 end
 
+PB_TESTS_6 = function(H)
+    local function near(a, b, msg)
+        H.assert_true(math.abs((tonumber(a) or 0) - b) < 0.001,
+            (msg or "near") .. ": expected ~" .. tostring(b)
+            .. ", got " .. tostring(a))
+    end
+
+    H.test("milk tea: balances half at joker_main; decays when final Mult beats Chips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "milk_tea")
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.chips, 10, "the larger total stays")
+        H.assert_eq(ctx.mult, 6, "2 moves halfway to 10 at 50%")
+        H.fire(j, "on_hand_final", { chips = 10, mult = 20 })
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(j.ability.extra.percent, 40, "reduced by 10")
+        local ctx2 = H.scored(j, {})
+        H.assert_eq(ctx2.mult, 5.2, "40%: 2 + 8 x 0.4")
+    end)
+
+    H.test("milk tea: no decay when Chips win; destroyed when the percent runs out", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "milk_tea")
+        H.fire(j, "on_hand_final", { chips = 30, mult = 20 })
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(j.ability.extra.percent, 50, "Chips won: no reduction")
+        j.ability.extra.percent = 10
+        H.fire(j, "on_hand_final", { chips = 10, mult = 20 })
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(#game.jokers, 0, "consumed at 0%")
+    end)
+
+    H.test("stardrop: each scored Stars card balances 2%, compounding", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "stardrop")
+        local s = H.node(7, "Stars")
+        local ctx = H.fire(j, "card_played", {
+            card_node = s, played_cards = { s }, full_hand = { s },
+            chips = 100, mult = 20, rank = 7, suit = "Stars",
+        })
+        H.assert_eq(ctx.chips, 100)
+        near(ctx.mult, 21.6, "20 + 80 x 0.02")
+        ctx = H.fire(j, "card_played", {
+            card_node = s, played_cards = { s }, full_hand = { s },
+            chips = ctx.chips, mult = ctx.mult, rank = 7, suit = "Stars",
+        })
+        near(ctx.mult, 23.168, "the second Stars card balances again")
+        local p = H.node(2, "Clubs")
+        local ctx2 = H.fire(j, "card_played", {
+            card_node = p, played_cards = { p }, full_hand = { p },
+            chips = 100, mult = 20, rank = 2, suit = "Clubs",
+        })
+        H.assert_eq(ctx2.mult, 20, "non-Stars cards do not balance")
+    end)
+
+    H.test("grenadine: scored Hearts gain perma X0.2 Mult; eaten after 5", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "grenadine")
+        local h = H.node(7, "Hearts")
+        H.play_card(j, h, { h })
+        near(SMODS.get_perma(h, "perma_x_mult"), 1.2)
+        H.assert_eq(j.ability.extra.remaining, 4)
+        local c = H.node(7, "Clubs")
+        H.play_card(j, c, { c })
+        H.assert_true(SMODS.get_perma(c, "perma_x_mult") == nil,
+            "other suits gain nothing")
+        H.assert_eq(j.ability.extra.remaining, 4)
+        j.ability.extra.remaining = 1
+        local h2 = H.node(9, "Hearts")
+        H.play_card(j, h2, { h2 })
+        H.assert_eq(j.ability.extra.remaining, 0)
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(#game.jokers, 0, "eaten when its charges run out")
+    end)
+
+    H.test("nigori: scored Stars gain perma X0.3 Chips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "nigori")
+        local s = H.node(7, "Stars")
+        H.play_card(j, s, { s })
+        near(SMODS.get_perma(s, "perma_x_chips"), 1.3)
+        H.assert_eq(j.ability.extra.remaining, 4)
+        local h = H.node(7, "Hearts")
+        H.play_card(j, h, { h })
+        H.assert_true(SMODS.get_perma(h, "perma_x_chips") == nil)
+    end)
+
+    H.test("aperol: scored Diamonds each gain perma $1", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "aperol")
+        local d1 = H.node(7, "Diamonds")
+        H.play_card(j, d1, { d1 })
+        H.assert_eq(SMODS.get_perma(d1, "perma_p_dollars"), 1)
+        local d2 = H.node(9, "Diamonds")
+        H.play_card(j, d2, { d2 })
+        H.assert_eq(SMODS.get_perma(d2, "perma_p_dollars"), 1,
+            "each card gains its own $1")
+        H.assert_eq(j.ability.extra.remaining, 3)
+    end)
+
+    H.test("pink joker: scored cards can gain perma $2 while a Stained card is held", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "pink_joker")
+        local target = H.node(7, "Clubs")
+        for _ = 1, 10 do H.play_card(j, target, { target }) end
+        H.assert_true(SMODS.get_perma(target, "perma_p_dollars") == nil,
+            "no Stained card held: nothing is granted")
+        local stained = H.node(4, "Hearts", { enhancement = "stained" })
+        game.hand.card_nodes = { stained }
+        local hit = false
+        for _ = 1, 80 do
+            target.card_data.perma_p_dollars = nil
+            H.play_card(j, target, { target })
+            if SMODS.get_perma(target, "perma_p_dollars") == 2 then
+                hit = true break
+            end
+        end
+        H.assert_true(hit, "the 1 in 5 roll lands within 80 tries")
+    end)
+
+    H.test("bergentrucking: Crowns gain perma X0.05 Mult and Hearts are destroyed", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "bergentrucking")
+        game.hand:add_card({ rank = 13, suit = "Crowns" })
+        game.hand:add_card({ rank = 14, suit = "Hearts" })
+        game.hand:add_card({ rank = 2, suit = "Clubs" })
+        local by_suit = {}
+        for _, n in ipairs(game.hand.card_nodes) do
+            by_suit[n.card_data.suit] = n
+        end
+        local crown = by_suit["Crowns"]
+        local heart = by_suit["Hearts"]
+        local plain = by_suit["Clubs"]
+        local hand = { crown, heart, plain }
+        for _, n in ipairs(hand) do H.play_card(j, n, hand) end
+        H.scored(j, { cards = hand })
+        near(SMODS.get_perma(crown, "perma_x_mult"), 1.05)
+        H.fire(j, "on_hand_after", { cards = hand })
+        H.assert_eq(#game.hand.card_nodes, 2, "the Hearts card is destroyed")
+        local heart_alive = false
+        for _, n in ipairs(game.hand.card_nodes) do
+            if n == heart then heart_alive = true end
+        end
+        H.assert_eq(heart_alive, false)
+        H.assert_eq(j.ability.extra.active_suit, false, "flags reset")
+    end)
+
+    H.test("bergentrucking: Crowns alone trigger nothing", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "bergentrucking")
+        game.hand:add_card({ rank = 13, suit = "Crowns" })
+        game.hand:add_card({ rank = 2, suit = "Clubs" })
+        local by_suit = {}
+        for _, n in ipairs(game.hand.card_nodes) do
+            by_suit[n.card_data.suit] = n
+        end
+        local crown = by_suit["Crowns"]
+        local plain = by_suit["Clubs"]
+        local hand = { crown, plain }
+        for _, n in ipairs(hand) do H.play_card(j, n, hand) end
+        H.scored(j, { cards = hand })
+        H.assert_true(SMODS.get_perma(crown, "perma_x_mult") == nil,
+            "no Hearts scored: no grant")
+        H.fire(j, "on_hand_after", { cards = hand })
+        H.assert_eq(#game.hand.card_nodes, 2, "nothing is destroyed")
+    end)
+
+    H.test("freedom of choice: a Five of a Kind grows every scoring card", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "freedom_of_choice")
+        local a, b = H.node(7, "Hearts"), H.node(7, "Clubs")
+        H.scored(j, { contains_hand_types = { ["Five of a Kind"] = true },
+            cards = { a, b } })
+        near(SMODS.get_perma(a, "perma_x_mult"), 1.05)
+        near(SMODS.get_perma(b, "perma_x_mult"), 1.05)
+        local c = H.node(2, "Spades")
+        H.scored(j, { contains_hand_types = { Pair = true },
+            cards = { c } })
+        H.assert_true(SMODS.get_perma(c, "perma_x_mult") == nil,
+            "other hands gain nothing")
+    end)
+
+    H.test("shinzaemon: the 5th scoring card gains perma X0.2 Mult", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "shinzaemon")
+        local hand = {}
+        for i = 1, 5 do hand[i] = H.node(i + 2, "Hearts") end
+        H.before(j, { scoring_hand = hand, cards = hand,
+            full_hand = hand })
+        near(SMODS.get_perma(hand[5], "perma_x_mult"), 1.2)
+        H.assert_true(SMODS.get_perma(hand[1], "perma_x_mult") == nil,
+            "only the 5th card gains")
+        local short = {}
+        for i = 1, 4 do short[i] = H.node(i + 2, "Clubs") end
+        H.before(j, { scoring_hand = short, cards = short,
+            full_hand = short })
+        H.assert_true(SMODS.get_perma(short[4], "perma_x_mult") == nil,
+            "a 4-card hand has no 5th card")
+    end)
+
+    H.test("sacred heart: a Flush Five retriggers the first card and destroys the rest", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "sacred_heart")
+        for _ = 1, 3 do
+            game.hand:add_card({ rank = 14, suit = "Hearts" })
+        end
+        local a = game.hand.card_nodes[1]
+        local hand = { game.hand.card_nodes[1], game.hand.card_nodes[2],
+            game.hand.card_nodes[3] }
+        H.scored(j, { hand_type = "Pair", cards = hand })
+        H.fire(j, "on_hand_after", { cards = hand })
+        H.assert_eq(#game.hand.card_nodes, 3, "a Pair changes nothing")
+        H.scored(j, { hand_type = "Flush Five", cards = hand })
+        H.fire(j, "on_hand_after", { cards = hand })
+        H.assert_eq(SMODS.get_perma(a, "perma_repetitions"), 1,
+            "the first card gains a permanent retrigger")
+        H.assert_eq(#game.hand.card_nodes, 1,
+            "the other scored cards are destroyed")
+    end)
+
+    H.test("determination: a lost blind is survived at -1 Ante and -1 hand size", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "determination")
+        game.ante = 3
+        game.STATE = game.STATES.SELECTING_HAND
+        game.hands = 0
+        game.round_score = 0
+        game.current_blind_target = 300
+        game:handle_failed_blind_reset()
+        H.assert_true(game.STATE ~= game.STATES.GAME_OVER,
+            "saved: the run continues")
+        H.assert_eq(#game.jokers, 0, "Determination spent itself")
+        H.assert_eq(game.ante, 2, "Ante -1")
+        H.assert_eq(game.hand_size_delta_juggle, -1, "hand size -1")
+    end)
+
+    H.test("determination: without it, the same lost blind ends the run", function()
+        local game = H.new_game()
+        H.make_joker(game, "claw")
+        game.STATE = game.STATES.SELECTING_HAND
+        game.hands = 0
+        game.round_score = 0
+        game.current_blind_target = 300
+        game:handle_failed_blind_reset()
+        H.assert_eq(game.STATE, game.STATES.GAME_OVER)
+    end)
+end
+
 PB_TESTS_0(H)
 PB_TESTS_1(H)
 PB_TESTS_2(H)
 PB_TESTS_3(H)
 PB_TESTS_4(H)
 PB_TESTS_5(H)
+PB_TESTS_6(H)
 
 return suite

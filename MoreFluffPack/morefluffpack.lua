@@ -3111,3 +3111,224 @@ SMODS.Joker {
         end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- Wave 1 top-up (v1.3.0): ports unblocked by the fork's Wave 1 polls
+-- (SMODS.poll_enhancement / SMODS.poll_seal, which deal a registered
+-- center by weight and return its port value) and the xlog_chips
+-- return reader.
+--------------------------------------------------------------------------------
+
+-- Hands remaining this round (the fork's G.hands; PC reads
+-- G.GAME.current_round.hands_left). The fork decrements it when the
+-- hand is played, before the scoring passes, so at `after` it is the
+-- post-hand count, exactly as PC's counter reads there.
+local function mf_hands_left()
+    local g = refresh_g()
+    return tonumber(g and g.hands) or 0
+end
+
+-- Set a card view's seal through its canonical setter when it has one
+-- (which raises setting_ability), else write the data field (the
+-- mf_set_enhancement pattern).
+local function mf_set_seal(view, value)
+    if type(view) ~= "table" then return end
+    if view.set_seal then
+        view:set_seal(value)
+    elseif view.card_data then
+        view.card_data.seal = value
+    end
+end
+
+-- The seal a card view carries (nil when none).
+local function mf_seal_of(view)
+    if type(view) ~= "table" then return nil end
+    if view.card_data and view.card_data.seal ~= nil then
+        return view.card_data.seal
+    end
+    return view.seal
+end
+
+-- Has this round's Blind been beaten once the hand just played lands?
+-- PC compares G.GAME.chips + SMODS.calculate_round_score() against
+-- G.GAME.blind.chips; the fork banks each hand's score into
+-- G.round_score before the `after` pass runs, so the banked total is
+-- the same sum. A raw event table that carries the hand's own totals
+-- (context.port.chips / mult, not yet banked) is honoured too, and
+-- Big totals compare through SMODS.big_cmp.
+local function mf_round_won(context)
+    local g = refresh_g()
+    local target = tonumber(g and g.current_blind_target)
+        or tonumber(context.port and context.port.blind_target) or 0
+    if target <= 0 then return false end
+    local score = g and g.round_score
+    if score ~= nil and SMODS.big_cmp and SMODS.big_cmp(score, target) >= 0 then
+        return true
+    end
+    local total = tonumber(score) or tonumber(context.port and context.port.round_score) or 0
+    if total >= target then return true end
+    local chips = tonumber(context.port and context.port.chips)
+    local mult = tonumber(context.port and context.port.mult)
+    if chips and mult and total + chips * mult >= target then return true end
+    return false
+end
+
+--------------------------------------------------------------------------------
+-- Freaky Pizza: Xlog_{freakiness}(Chips) Chips; +23 Freakiness at
+-- end of round. PC returns xlog_chips when the calc key exists (its
+-- own fallback path applies the same log by hand); PC's xlog branch
+-- reads card.ability.freakiness, a nil field (the value lives in
+-- ability.extra, as its fallback and tooltip both use), so the port
+-- returns extra.freakiness -- the effective PC behaviour. PC scales
+-- at end of round through SMODS.scale_card, which the fork does not
+-- have; the port does scale_card's scalar add directly on
+-- ability.extra (the sibling packs' pattern for scale_card ports).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "freaky_pizza",
+    loc_txt = { name = "Freaky Pizza", text = { "{X:chips,C:white}Xlog_#1#(Chips){} Chips", "{C:chips}+#2#{} Freakiness", "at end of round", "{C:inactive}just pure crazy!" } },
+    config = { extra = { freakiness = 23, increase = 23 } },
+    rarity = "oldfluff", cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "freaky_pizza.png", negative_sprite = "freaky_pizza_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.freakiness, e.increase } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.joker_main then
+            return { xlog_chips = e.freakiness }
+        end
+        if context.end_of_round and not context.blueprint then
+            e.freakiness = e.freakiness + e.increase
+            return { message = "+" .. e.increase .. " Freak" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Ace Up The Sleeve: when you have 1 hand left, add a random
+-- Enhanced Ace to your hand. PC polls the enhancement and creates
+-- the card through SMODS.add_card (which picks the suit itself on
+-- PC); the fork's add_card needs a suit, so the port rolls one the
+-- Blade Dance way. PC's flip/juice event queue is cosmetic and is
+-- dropped, as elsewhere in this pack.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "aceupthesleeve",
+    loc_txt = { name = "Ace Up The Sleeve", text = { "Add a random {C:attention}Enhanced", "{C:attention}Ace{} to your hand", "when you have {C:blue}1{}", "hand left" } },
+    config = { extra = {} },
+    rarity = "oldfluff", cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "aceupthesleeve.png", negative_sprite = "aceupthesleeve_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.after and mf_hands_left() == 1 then
+            local cen = SMODS.poll_enhancement({ guaranteed = true, no_replace = true })
+            local suit = pseudorandom_element({ "Hearts", "Clubs", "Diamonds", "Spades" }, "mf_aceupthesleeve_suit")
+            if SMODS.add_card { set = "Playing", rank = "Ace", suit = suit, enhancement = cen, bypass_limit = true } then
+                return { message = "+Ace" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Balatro Mods (Working 2024): if the first hand of the round has
+-- only 1 card, spend $2 to give it a random Enhancement. PC checks
+-- current_round.hands_played == 0 in `before` (its counter ticks
+-- after scoring); the fork ticks its counter when the hand is
+-- played, before the scoring passes, so the first hand reads 1
+-- here (the Dramatic Entrance offset). PC spends unconditionally
+-- (ease_dollars can take the player negative) and flips the card
+-- for show; the flip is cosmetic and dropped. PC's
+-- first_hand_drawn juice_card_until highlight is likewise cosmetic.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "balatromods",
+    loc_txt = { name = "Balatro Mods (Working 2024)", text = { "If {C:attention}first hand{} of round", "has only {C:attention}1{} card, spend", "{C:attention}$#1#{} to give it a", "random {C:attention}Enhancement{}" } },
+    config = { extra = { cost = 2 } },
+    rarity = "oldfluff", cost = 3, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "balatromods.png", negative_sprite = "balatromods_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.cost } } end,
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.before and context.full_hand and #context.full_hand == 1
+            and mf_hands_played() == 1 then
+            ease_dollars(-card.ability.extra.cost)
+            for _, view in ipairs(context.full_hand) do
+                mf_set_enhancement(view, SMODS.poll_enhancement({ guaranteed = true, no_replace = true }))
+            end
+            return { message = "Enhanced!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Glitter Bomb: sell this card to give all held cards a random
+-- Enhancement. PC polls one enhancement per held card and applies
+-- it through set_ability (the card's enhancement centre); the port
+-- applies the polled port value through mf_set_enhancement. PC's
+-- per-card flip/juice events are cosmetic and dropped. With no
+-- cards held, PC shows its "Nope!" message, kept here.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "glitterbomb",
+    loc_txt = { name = "Glitter Bomb", text = { "Sell this card to", "give all held cards", "a random {C:attention}Enhancement{}" } },
+    config = { extra = {} },
+    rarity = "oldfluff", cost = 14, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = false, perishable_compat = true,
+    sprite = "glitterbomb.png", negative_sprite = "glitterbomb_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.selling_self then
+            local g = refresh_g()
+            local nodes = (g and g.hand and g.hand.card_nodes) or {}
+            if #nodes < 1 then
+                return { message = "Nope!" }
+            end
+            for _, view in ipairs(nodes) do
+                mf_set_enhancement(view, SMODS.poll_enhancement({ guaranteed = true, no_replace = true }))
+            end
+            return { message = "Enhanced!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Seal the Deal: after you play a winning hand, add a random Seal
+-- to one of the played cards that does not already have one. PC
+-- picks the card with pseudorandom_element over the unsealed played
+-- cards (seed "seal_the_deal_card") and polls the seal with
+-- SMODS.poll_seal({ guaranteed = true }); the port does the same,
+-- applying the polled port value through the card's seal setter.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "sealthedeal",
+    loc_txt = { name = "Seal the Deal", text = { "After you play a winning hand,", "add a random {C:attention}Seal{} to", "one of the played cards" } },
+    config = { extra = {} },
+    rarity = "oldfluff", cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "sealthedeal.png", negative_sprite = "sealthedeal_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.after and context.full_hand and mf_round_won(context) then
+            local unsealed = {}
+            for _, view in ipairs(context.full_hand) do
+                if not mf_seal_of(view) then
+                    unsealed[#unsealed + 1] = view
+                end
+            end
+            if #unsealed > 0 then
+                local target = pseudorandom_element(unsealed, "seal_the_deal_card")
+                if target then
+                    mf_set_seal(target, SMODS.poll_seal({ guaranteed = true }))
+                    return { message = "Sealed!" }
+                end
+            end
+        end
+    end,
+}

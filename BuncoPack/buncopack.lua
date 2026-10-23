@@ -1,7 +1,7 @@
 --[[
     BuncoPack - Bunco content ported to Balatro3DS.
 
-    Fifty-one of Bunco's eighty Jokers, both exotic suits, the four
+    Fifty-five of Bunco's eighty Jokers, both exotic suits, the four
     Spectrum-family poker hands plus Registration Plate's Deal, and six
     consumables (the four Spectrum Planets, The Sky, The Abyss), ported
     from Bunco by Firch (PC / Steamodded + Lovely). The v1.1.0 additions
@@ -2802,8 +2802,9 @@ SMODS.Joker {
 
 --------------------------------------------------------------------------------
 -- v1.2.0: Tier 3 top-ups. The Fluorescent edition + Neon (setting_ability),
--- and Bounty Hunter (money_altered). Everything below needs the fork's
--- Tier 3 API.
+-- and Bounty Hunter (money_altered at v1.2.0; its tax moved to the Wave 1
+-- money_transform seat in v1.3.0, below). Everything below needs the
+-- fork's Tier 3 API.
 --------------------------------------------------------------------------------
 
 -- Fluorescent edition (PC SMODS.Edition key "fluorescent", in_shop = true,
@@ -2888,18 +2889,18 @@ SMODS.Joker {
 -- permanently gains +1 Mult per taxed gain.
 -- PC implements this inside Bunco's ease_dollars wrapper (funcs.ease_dollars
 -- + the get_money calculate): before a positive gain lands, each held
--- Bounty Hunter takes $1 off it and grows. The fork's Tier 3 money_altered
--- context fires for the same gains (Joker dollars, shop, selling, payouts,
--- interest) with context.amount, and a dollars return applies the tax.
--- Two honest differences, both cosmetic-to-edge: the gain lands in full
--- first and the tax follows as its own -$1 money event (which is
--- non-positive, so it cannot re-trigger), rather than shrinking the gain
--- before it lands -- final totals and Mult growth match PC. And where
--- PC's wrapper taxes a shrinking remainder (a second copy stands down on
--- a $1 gain), each fork copy sees the same original event, so several
--- copies each tax a tiny gain once. Blueprint copies do neither, as on
--- PC (the get_money growth is blueprint-guarded there, and the wrapper
--- only visits real Bounty Hunter cards).
+-- Bounty Hunter takes $1 off it and grows. Since v1.3.0 the port does the
+-- same on the fork's Wave 1 money_transform seat, which is asked of each
+-- held Joker in slot order before the gain lands with the gain as the
+-- previous Joker left it in context.amount: returning the amount minus
+-- $1 shrinks the gain itself, so several copies tax the shrinking
+-- remainder in turn (a later copy stands down once the gain is gone,
+-- because the seat stops at zero), exactly as PC's wrapper does. (At
+-- v1.2.0 the tax rode money_altered as a separate -$1 event after the
+-- gain landed in full; the totals matched but the ordering did not.)
+-- Blueprint copies do neither, as on PC: the seat only asks the held
+-- Joker's own calculate, never a copy's, and the get_money growth is
+-- blueprint-guarded there too.
 --------------------------------------------------------------------------------
 
 SMODS.Joker {
@@ -2928,13 +2929,157 @@ SMODS.Joker {
         return { vars = { card.ability.extra.bonus, card.ability.extra.mult } }
     end,
     calculate = function(self, card, context)
-        if context.money_altered and not context.blueprint
+        if context.money_transform and not context.blueprint
             and (tonumber(context.amount) or 0) > 0 then
             card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.bonus
-            return { dollars = -1, message = "Robbed!" }
+            return { amount = context.amount - 1, message = "Robbed!" }
         end
         if context.joker_main and card.ability.extra.mult ~= 0 then
             return { mult = card.ability.extra.mult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- v1.3.0: Wave 1 top-ups. Fiendish and Bounty Hunter's tax (above) ride
+-- the money_transform seat; Head in the Clouds rides level_up_hand.
+-- Everything below needs the fork's Wave 1 mod API.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Fiendish: rewrites every money gain before it lands. On a 1 in 3 roll
+-- the gain pays out as $1 instead; otherwise the gain is doubled.
+-- PC has no calculate for this at all: Bunco's ease_dollars wrapper walks
+-- the held Jokers itself, and for each non-debuffed Fiendish, on a
+-- positive gain, rolls pseudorandom against probabilities.normal / odds
+-- -- success sets the gain to $1, failure doubles it -- with later copies
+-- transforming the amount earlier copies left. The fork's money_transform
+-- seat is that wrapper's shape: asked of each held Joker in slot order
+-- before the gain lands, context.amount is the gain as the previous
+-- Joker left it, and returning { amount = n } replaces it. Boss-debuffed
+-- Jokers are skipped by the seat and a Blueprint/Brainstorm copy does
+-- not transform, both matching PC (whose wrapper keys off the held
+-- Joker's own center; PC also marks this Joker blueprint-incompatible).
+-- The roll goes through SMODS.pseudorandom_probability, the pack's usual
+-- surface, so Oops! All 6s and mod_probability Jokers count, as PC's
+-- probabilities.normal does.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "fiendish",
+    loc_txt = {
+        name = "Fiendish Joker",
+        text = {
+            "Double all sources of money,",
+            "{C:green}#1# in #2#{} chance to pay out",
+            "with {C:money}$1{} instead",
+        },
+    },
+    config = { extra = { odds = 3 } },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "fiendish.png",
+    negative_sprite = "fiendish_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local num, den = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, "buncp_fiendish")
+        return { vars = { num, den } }
+    end,
+    calculate = function(self, card, context)
+        if context.money_transform and not context.blueprint then
+            local amount = tonumber(context.amount) or 0
+            if amount > 0 then
+                if SMODS.pseudorandom_probability(card, "buncp_fiendish", 1, card.ability.extra.odds) then
+                    return { amount = 1, message = "$1" }
+                else
+                    return { amount = amount * 2, message = "$" .. (amount * 2) }
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Head in the Clouds: whenever any OTHER hand is levelled, a 1 in 3
+-- chance to level High Card.
+-- PC's calculate answers Bunco's level_up_hand context (a Lovely patch
+-- on level_up_hand itself, which fires the context for every held Head
+-- before the level lands): on a hit it levels the hand by calling
+-- level_up_hand with its own name, "Head in the Clouds", as the hand
+-- argument -- a sentinel a second patch translates to High Card after
+-- the contexts have fired. The guard context.level_up_hand ~= self.name
+-- is what keeps it from chaining: its own level-ups arrive carrying that
+-- sentinel name, never a real hand. The fork's level_up_hand context
+-- carries the hand's NAME (Steamodded's shape), so the port keeps PC's
+-- guard verbatim (no hand here is named "Head in the Clouds", so it
+-- never blocks a real level-up) and does the sentinel's real work with a
+-- game-level flag: while a Head-caused High Card upgrade is landing --
+-- the fork's upgrade funnel raises the context again as it lands, and
+-- chains are capped by the engine besides -- every held copy stands
+-- down, for this copy and for the other copies PC's sentinel would also
+-- have silenced. The level itself goes through the game's own upgrade
+-- funnel (G:upgrade_hand_level_at_index, the Dread / Starfruit route).
+-- PC also gates the pool: the Joker only appears once High Card is
+-- above level 1 (custom_in_pool), ported as in_pool below.
+--------------------------------------------------------------------------------
+
+local function buncp_head_in_the_clouds_pool(self, game)
+    -- SMODS.in_pool passes an args table, not the game; only trust a game
+    -- that actually carries a handlist.
+    if type(game) ~= "table" or game.handlist == nil then game = G end
+    if not (game and game.handlist and game.hand_stats) then return false end
+    for i, name in ipairs(game.handlist) do
+        if name == "High Card" then
+            return (tonumber(game.hand_stats[i].level) or 1) > 1
+        end
+    end
+    return false
+end
+
+SMODS.Joker {
+    key = "head_in_the_clouds",
+    loc_txt = {
+        name = "Head in the Clouds",
+        text = {
+            "{C:green}#1# in #2#{} chance to upgrade",
+            "{C:attention}High Card{} when you",
+            "upgrade any {C:attention}poker hand",
+        },
+    },
+    config = { extra = { odds = 3 } },
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = buncp_head_in_the_clouds_pool,
+    sprite = "head_in_the_clouds.png",
+    negative_sprite = "head_in_the_clouds_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local num, den = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, "buncp_head_in_the_clouds")
+        return { vars = { num, den } }
+    end,
+    calculate = function(self, card, context)
+        if context.level_up_hand and context.level_up_hand ~= "Head in the Clouds"
+            and not (G and G._buncp_head_leveling) then
+            if SMODS.pseudorandom_probability(card, "buncp_head_in_the_clouds", 1, card.ability.extra.odds) then
+                if G and G.handlist and G.upgrade_hand_level_at_index then
+                    for i, name in ipairs(G.handlist) do
+                        if name == "High Card" then
+                            G._buncp_head_leveling = true
+                            G:upgrade_hand_level_at_index(i)
+                            G._buncp_head_leveling = false
+                            return { message = "Upgrade!" }
+                        end
+                    end
+                end
+            end
         end
     end,
 }

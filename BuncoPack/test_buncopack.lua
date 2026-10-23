@@ -36,6 +36,8 @@ local NAMES = {
     "quaoar", "haumea", "sedna", "makemake", "sky", "abyss",
     -- v1.2.0
     "neon", "bounty_hunter",
+    -- v1.3.0
+    "fiendish", "head_in_the_clouds",
 }
 
 local NEW_JOKERS = {
@@ -47,6 +49,8 @@ local NEW_JOKERS = {
     "dynasty", "magic_wand", "starfruit", "fondue", "roygbiv", "rigoletto",
     -- v1.2.0
     "neon", "bounty_hunter",
+    -- v1.3.0
+    "fiendish", "head_in_the_clouds",
 }
 
 local function install_pack()
@@ -135,11 +139,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 53 Bunco Jokers", function()
+suite.test("pack loads and registers all 55 Bunco Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.BuncoPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 53)
+    T.assert_eq(#mod.registered.jokers, 55)
     local expect = {
         j_buncp_cassette = { "Cassette", 2, 5 }, j_buncp_mosaic = { "Mosaic Joker", 2, 4 },
         j_buncp_voxel = { "Voxel Joker", 2, 5 }, j_buncp_crop_circles = { "Crop Circles", 1, 4 },
@@ -198,6 +202,7 @@ suite.test("pack loads and registers all 53 Bunco Jokers", function()
         j_buncp_starfruit = { "Starfruit", 2, 5 }, j_buncp_fondue = { "Fondue", 3, 8 },
         j_buncp_roygbiv = { "Roy G. Biv", 2, 8 }, j_buncp_rigoletto = { "Rigoletto", 4, 20 },
         j_buncp_neon = { "Neon Joker", 2, 5 }, j_buncp_bounty_hunter = { "Bounty Hunter", 1, 5 },
+        j_buncp_fiendish = { "Fiendish Joker", 2, 5 }, j_buncp_head_in_the_clouds = { "Head in the Clouds", 2, 6 },
     }
     for id, e in pairs(expect_new) do
         local def = JOKER_DEFS[id]
@@ -891,28 +896,116 @@ suite.test("bounty hunter taxes positive gains and grows mult", function()
     local bh = add(game, "j_buncp_bounty_hunter")
     T.assert_eq(bh.ability.extra.mult, 0, "starts at +0 Mult")
 
-    -- A positive gain: $1 tax lands and the Mult grows by the bonus.
+    -- A positive gain through the real ease_dollars seat: the gain
+    -- itself lands $1 short (money_transform, not a separate -$1 event)
+    -- and the Mult grows by the bonus.
     local before_money = game.money
-    fire(bh, "on_money_altered", { amount = 10 })
-    T.assert_eq(game.money - before_money, -1, "the gain is taxed $1")
+    game:ease_dollars(10)
+    T.assert_eq(game.money - before_money, 9, "the gain is taxed $1 before it lands")
     T.assert_eq(bh.ability.extra.mult, 1, "and the Joker gains +1 Mult")
 
     -- Another gain: taxed and grown again.
     before_money = game.money
-    fire(bh, "on_money_altered", { amount = 3 })
-    T.assert_eq(game.money - before_money, -1, "every positive gain is taxed")
+    game:ease_dollars(3)
+    T.assert_eq(game.money - before_money, 2, "every positive gain is taxed")
     T.assert_eq(bh.ability.extra.mult, 2, "Mult keeps growing")
 
-    -- Losses and zero are not taxed and do not grow it.
+    -- Spending is never transformed: no tax, no growth.
     before_money = game.money
-    fire(bh, "on_money_altered", { amount = -5 })
-    fire(bh, "on_money_altered", { amount = 0 })
-    T.assert_eq(game.money - before_money, 0, "no tax on losses")
-    T.assert_eq(bh.ability.extra.mult, 2, "no growth on losses")
+    game:ease_dollars(-5)
+    T.assert_eq(game.money - before_money, -5, "spending lands in full")
+    T.assert_eq(bh.ability.extra.mult, 2, "no growth on spending")
+
+    -- A second copy taxes the shrinking remainder, as PC's wrapper
+    -- does: a $1 gain is fully eaten by the first copy and the second
+    -- copy stands down.
+    local bh2 = add(game, "j_buncp_bounty_hunter")
+    before_money = game.money
+    game:ease_dollars(10)
+    T.assert_eq(game.money - before_money, 8, "two copies tax the same gain twice")
+    T.assert_eq(bh.ability.extra.mult, 3)
+    T.assert_eq(bh2.ability.extra.mult, 1)
+    before_money = game.money
+    game:ease_dollars(1)
+    T.assert_eq(game.money - before_money, 0, "a $1 gain is eaten whole by the first copy")
+    T.assert_eq(bh.ability.extra.mult, 4, "the first copy still grows")
+    T.assert_eq(bh2.ability.extra.mult, 1, "the second copy stands down on an empty gain")
 
     -- The grown Mult scores at joker_main.
     local ctx = scored(bh)
-    T.assert_eq(ctx.mult, 4, "base 2 + the grown +2 Mult")
+    T.assert_eq(ctx.mult, 6, "base 2 + the grown +4 Mult")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.3.0: Fiendish (money_transform), Head in the Clouds (level_up_hand)
+--------------------------------------------------------------------------------
+
+suite.test("fiendish pays $1 on a hit and doubles on a miss", function()
+    local game = install_pack()
+    local fi = add(game, "j_buncp_fiendish")
+
+    -- Forced hit (odds 1 in 1): the gain pays out as $1 instead.
+    fi.ability.extra.odds = 1
+    local before_money = game.money
+    game:ease_dollars(10)
+    T.assert_eq(game.money - before_money, 1, "a hit turns a $10 gain into $1")
+
+    -- Forced miss (astronomical odds): the gain doubles.
+    fi.ability.extra.odds = 1000000000
+    before_money = game.money
+    game:ease_dollars(10)
+    T.assert_eq(game.money - before_money, 20, "a miss doubles a $10 gain to $20")
+
+    -- Spending is never transformed.
+    before_money = game.money
+    game:ease_dollars(-5)
+    T.assert_eq(game.money - before_money, -5, "spending lands untouched")
+
+    -- A second copy transforms what the first copy left: two forced
+    -- misses quadruple the gain, in slot order.
+    local fi2 = add(game, "j_buncp_fiendish")
+    fi2.ability.extra.odds = 1000000000
+    before_money = game.money
+    game:ease_dollars(10)
+    T.assert_eq(game.money - before_money, 40, "two misses: $10 -> $20 -> $40")
+    wipe_mods()
+end)
+
+suite.test("head in the clouds levels High Card on other hands' level-ups", function()
+    local game = install_pack()
+    local head = add(game, "j_buncp_head_in_the_clouds")
+    head.ability.extra.odds = 1
+    local hc_idx = hand_index(game, "High Card")
+    T.assert_true(hc_idx ~= nil, "High Card is in the handlist")
+
+    -- Pool gate (PC's custom_in_pool): shut while High Card is level 1.
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_head_in_the_clouds.smods),
+        "out of pool until High Card is above level 1")
+
+    -- Another hand levels: High Card rises by exactly 1 -- the Joker's
+    -- own level-up does not chain back into it (with odds forced to 1,
+    -- an unguarded chain would keep rising to the engine's cap).
+    local before_level = game.hand_stats[hc_idx].level
+    fire(head, "on_hand_level_up", { hand_name = "Pair", level = 2, amount = 1 })
+    T.assert_eq(game.hand_stats[hc_idx].level, before_level + 1,
+        "High Card levelled once, and only once")
+
+    -- The pool gate is open now.
+    T.assert_true(SMODS.in_pool(JOKER_DEFS.j_buncp_head_in_the_clouds.smods),
+        "in pool once High Card is above level 1")
+
+    -- PC's sentinel: a level-up carrying the Joker's own name (what its
+    -- own level_up_hand call passes on PC) never triggers it.
+    fire(head, "on_hand_level_up", { hand_name = "Head in the Clouds", level = 2, amount = 1 })
+    T.assert_eq(game.hand_stats[hc_idx].level, before_level + 1,
+        "its own sentinel name does not trigger it")
+
+    -- A missed roll (astronomical odds) levels nothing.
+    head.ability.extra.odds = 1000000000
+    fire(head, "on_hand_level_up", { hand_name = "Flush", level = 2, amount = 1 })
+    T.assert_eq(game.hand_stats[hc_idx].level, before_level + 1,
+        "a missed roll leaves High Card alone")
     wipe_mods()
 end)
 

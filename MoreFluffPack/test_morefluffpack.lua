@@ -50,6 +50,7 @@ local NAMES = {
     "allicantdo", "allicantdo_soul", "blahaj", "brass", "flintandsteel", "gemstonejoker", "jankman",
     "lettergem_e", "marigold", "marigold_soul", "rosetinted", "teacup", "tealjoker", "unpleasantcard",
     "widejoker", "yuckyrat",
+    "aceupthesleeve", "balatromods", "freaky_pizza", "glitterbomb", "sealthedeal",
     "enh_brass", "enh_gemstone", "enh_marigold", "enh_teal", "enh_yucky",
 }
 
@@ -68,7 +69,7 @@ local function install_pack()
         "name": "MoreFluff Pack",
         "prefix": "mfp",
         "main_file": "morefluffpack.lua",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "author": ["notmario", "3DS port"]
     }]])
     love.filesystem.write(base .. "/morefluffpack.lua", main)
@@ -283,15 +284,20 @@ local EXPECT = {
     ["j_mfp_unpleasantcard"] = { "Unpleasant Card", 2, 6.5 },
     ["j_mfp_widejoker"] = { "Wide Joker", 3, 9 },
     ["j_mfp_yuckyrat"] = { "Yucky Rat", 2, 8 },
+    ["j_mfp_aceupthesleeve"] = { "Ace Up The Sleeve", 5, 6 },
+    ["j_mfp_balatromods"] = { "Balatro Mods (Working 2024)", 5, 3 },
+    ["j_mfp_freaky_pizza"] = { "Freaky Pizza", 5, 6 },
+    ["j_mfp_glitterbomb"] = { "Glitter Bomb", 5, 14 },
+    ["j_mfp_sealthedeal"] = { "Seal the Deal", 5, 6 },
 }
 
-suite.test("pack loads and registers all 103 Jokers", function()
+suite.test("pack loads and registers all 108 Jokers", function()
     install_pack()
     local n = 0
     for id in pairs(JOKER_DEFS) do
         if id:sub(1, 6) == "j_mfp_" then n = n + 1 end
     end
-    T.assert_eq(n, 103, "103 pack Jokers registered")
+    T.assert_eq(n, 108, "108 pack Jokers registered")
     for _, value in ipairs({ "teal", "marigold", "brass", "gemstone", "yucky" }) do
         T.assert_not_nil(SMODS.EnhancementByValue[value], value .. " enhancement registered")
         T.assert_eq(SMODS.EnhancementByValue[value].weight, 0, value .. " stays out of the polls")
@@ -1211,6 +1217,124 @@ suite.test("all i can't do debuffs the first drawn hand and scales on debuffed p
     fire(aicd, "on_hand_played", { played_cards = { n1 }, full_hand = { n1 }, cards = { n1 } })
     T.assert_near(aicd.ability.extra.x_mult, 1.1, 0.001, "X0.1 per debuffed card played")
     T.assert_near(scored(aicd).mult, 2.2, 0.001)
+    wipe_mods()
+end)
+
+-- ---------------------------------------------------------------------------
+-- Behaviour: Wave 1 top-up ports (v1.3.0)
+-- ---------------------------------------------------------------------------
+
+suite.test("wave1 polls deal pollable centers and never the pack's weight-0 enhancements", function()
+    local game = install_pack()
+    local vanilla_enh = { bonus = true, mult = true, wild = true, glass = true,
+        steel = true, stone = true, gold = true, lucky = true }
+    for _ = 1, 40 do
+        local v = SMODS.poll_enhancement({ guaranteed = true, no_replace = true })
+        T.assert_true(vanilla_enh[v] == true, "polled a pollable enhancement: " .. tostring(v))
+    end
+    local vanilla_seal = { gold = true, red = true, blue = true, purple = true }
+    for _ = 1, 40 do
+        local v = SMODS.poll_seal({ guaranteed = true })
+        T.assert_true(vanilla_seal[v] == true, "polled a pollable seal: " .. tostring(v))
+    end
+    T.assert_eq(SMODS.poll_enhancement({ key = "lucky", guaranteed = true }), "lucky",
+        "key deals that specific center")
+    wipe_mods()
+end)
+
+suite.test("freaky pizza logs chips and gains freakiness at round end", function()
+    local game = install_pack()
+    local pizza = add(game, "j_mfp_freaky_pizza")
+    T.assert_eq(scored(pizza).chips, 10, "log_23(10) < 1: a small total is untouched")
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 529, mult = 2,
+        cards = {}, played_cards = {}, full_hand = {} }
+    if pizza:matches_trigger("on_hand_scored", ctx) then pizza:apply_effect(ctx) end
+    T.assert_near(ctx.chips, 1058, 0.01, "log_23(529) = 2: Chips are doubled")
+    fire(pizza, "on_round_end", {})
+    T.assert_eq(pizza.ability.extra.freakiness, 46, "+23 Freakiness at end of round")
+    fire(pizza, "on_round_end", {})
+    T.assert_eq(pizza.ability.extra.freakiness, 69, "and +23 again the next round")
+    wipe_mods()
+end)
+
+suite.test("ace up the sleeve deals an enhanced ace at one hand left", function()
+    local game = install_pack()
+    local ace = add(game, "j_mfp_aceupthesleeve")
+    game.hands = 2
+    fire(ace, "on_hand_after", { played_cards = {}, full_hand = {}, cards = {} })
+    T.assert_eq(#game.hand.card_nodes, 0, "nothing at 2 hands left")
+    game.hands = 1
+    fire(ace, "on_hand_after", { played_cards = {}, full_hand = {}, cards = {} })
+    T.assert_eq(#game.hand.card_nodes, 1, "an Ace was added at 1 hand left")
+    local node = game.hand.card_nodes[1]
+    -- A Stone poll parks the rank in _stone_rank (the engine's own
+    -- representation); every other enhancement leaves it in rank.
+    local rank = node.card_data.rank or node.card_data._stone_rank
+    T.assert_eq(rank, 14, "the added card is an Ace")
+    T.assert_true(node.card_data.enhancement ~= nil, "and it carries a polled enhancement")
+    wipe_mods()
+end)
+
+suite.test("balatro mods enhances a lone first-hand card for $2", function()
+    local game = install_pack()
+    local mods = add(game, "j_mfp_balatromods")
+    game.money = 10
+    game.round_hands_played = 1
+    local lone = card(7, "Clubs")
+    before(mods, { lone })
+    T.assert_eq(game.money, 8, "$2 spent on the lone first-hand card")
+    T.assert_true(lone.card_data.enhancement ~= nil, "the card gained a polled enhancement")
+    local second = card(8, "Clubs")
+    game.round_hands_played = 2
+    before(mods, { second })
+    T.assert_eq(game.money, 8, "no spend after the first hand")
+    T.assert_eq(second.card_data.enhancement, nil, "and no enhancement")
+    local a, b = card(9), card(10)
+    game.round_hands_played = 1
+    before(mods, { a, b })
+    T.assert_eq(game.money, 8, "no spend on a two-card first hand")
+    T.assert_eq(a.card_data.enhancement, nil)
+    T.assert_eq(b.card_data.enhancement, nil)
+    wipe_mods()
+end)
+
+suite.test("glitter bomb enhances every held card when sold", function()
+    local game = install_pack()
+    local bomb = add(game, "j_mfp_glitterbomb")
+    local a, b = card(5), card(6, "Clubs")
+    game.hand.card_nodes = { a, b }
+    fire(bomb, "on_joker_sold", { joker = bomb })
+    T.assert_true(a.card_data.enhancement ~= nil, "the first held card was enhanced")
+    T.assert_true(b.card_data.enhancement ~= nil, "the second held card was enhanced")
+    wipe_mods()
+    game = install_pack()
+    local bomb2 = add(game, "j_mfp_glitterbomb")
+    game.hand.card_nodes = {}
+    fire(bomb2, "on_joker_sold", { joker = bomb2 })
+    T.assert_eq(#game.hand.card_nodes, 0, "sold with an empty hand: nothing happens")
+    wipe_mods()
+end)
+
+suite.test("seal the deal seals an unsealed played card on a winning hand only", function()
+    local game = install_pack()
+    local deal = add(game, "j_mfp_sealthedeal")
+    game.current_blind_target = 300
+    game.round_score = 100
+    local a, b = card(5), card(6, "Clubs")
+    fire(deal, "on_hand_after", { played_cards = { a, b }, full_hand = { a, b }, cards = { a, b } })
+    T.assert_eq(a.card_data.seal, nil, "a losing hand seals nothing")
+    T.assert_eq(b.card_data.seal, nil)
+    game.round_score = 300
+    fire(deal, "on_hand_after", { played_cards = { a, b }, full_hand = { a, b }, cards = { a, b } })
+    local sealed = (a.card_data.seal and 1 or 0) + (b.card_data.seal and 1 or 0)
+    T.assert_eq(sealed, 1, "a winning hand seals exactly one played card")
+    local c = card(7, "Spades")
+    c.card_data.seal = "red"
+    c.seal = "red"
+    local d = card(8, "Diamonds")
+    fire(deal, "on_hand_after", { played_cards = { c, d }, full_hand = { c, d }, cards = { c, d } })
+    T.assert_eq(c.card_data.seal, "red", "an already-sealed card keeps its seal")
+    T.assert_true(d.card_data.seal ~= nil, "the unsealed card is the one sealed")
     wipe_mods()
 end)
 

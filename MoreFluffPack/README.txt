@@ -1,11 +1,26 @@
 MoreFluffPack for Balatro3DS
 ============================
 
-103 Jokers ported from MoreFluff (PC mod by notmario), including the
+108 Jokers ported from MoreFluff (PC mod by notmario), including the
 Letter Jokers, the Scrapped set and the token Jokers. The full roster
-is in the repository README; the 126 PC Jokers that could not be
+is in the repository README; the 121 PC Jokers that could not be
 ported are listed there too, each with the exact system it is blocked
 on.
+
+v1.3.0 (Wave 1 top-up) adds 5 Jokers unblocked by the fork's Wave 1
+polls (SMODS.poll_enhancement / SMODS.poll_seal) and the xlog_chips
+return reader: Ace Up The Sleeve, Balatro Mods (Working 2024) and
+Glitter Bomb (poll_enhancement), Seal the Deal (poll_seal) and
+Freaky Pizza (xlog_chips; its end-of-round scale_card growth is done
+with plain ability.extra arithmetic, which is all scale_card's
+scalar add does). The polls deal from the vanilla enhancements and
+seals plus any registered center with a positive weight; this pack's
+five custom enhancements stay at weight 0, exactly as in v1.2.0, so
+they never come out of these polls. Note: PC's Seaweed Colour card
+polls with key = "mf_seaweed" for a fixed "seaweed" enhancement, but
+MoreFluff registers no such enhancement on PC either (Seaweed there
+is a Colour consumable, a system this pack does not port), and no
+ported item needs it, so no seaweed enhancement is registered here.
 
 v1.2.0 (Tier 3 top-up) adds 14 Jokers unblocked by the fork's Tier 3
 systems: Unpleasant Card, Blahaj, Wide Joker, Letter E and Jankman
@@ -108,12 +123,23 @@ Deviations from the PC mod (all forced by missing fork systems):
   v1.0.0 port keys (bowling_ball, pixel_joker, jack_of_all_trades)
   so old saves keep working. Pixel Joker's art is a single solid
   pixel on PC, stretched over the card by the game; same here.
+- Freaky Pizza: PC's xlog_chips branch reads card.ability.freakiness,
+  a field that is never set on PC (the value lives in
+  ability.extra.freakiness, which PC's own fallback path and its
+  tooltip both use). The port returns extra.freakiness, the
+  effective PC behaviour.
+- Ace Up The Sleeve, Balatro Mods (Working 2024) and Glitter Bomb:
+  PC's per-card flip and juice event queues are dropped (cosmetic);
+  the enhancements land immediately. Balatro Mods' first_hand_drawn
+  highlight (juice_card_until) is likewise dropped. Ace Up The
+  Sleeve rolls its Ace's suit itself, since the fork's add_card
+  needs one named (PC's add_card picks it internally).
 
-Validation: 67 pack tests (registration and tooltips for all 103,
+Validation: 73 pack tests (registration and tooltips for all 108,
 behaviour tests for the non-trivial effects, including the Tier 3
-return readers, the level_up ports, the enhancement registrations
-and the debuff port) plus the fork's own mod suite, all passing on
-the fork build.
+return readers, the level_up ports, the enhancement registrations,
+the debuff port and the Wave 1 poll / xlog_chips ports) plus the
+fork's own mod suite, all passing on the fork build.
 
 Credit: MoreFluff is by notmario (github.com/notmario/MoreFluff).
 The PC repo carries no license file; this is an unofficial fan port

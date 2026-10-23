@@ -1387,8 +1387,9 @@ end
 --     contexts; the fork gives a card exactly one center calculate slot
 --     family (enhancement / seal) and no card-modifier registry, so a
 --     clip has nowhere to live. See the Tier 3 section header.
---   * two_of_swords converts to the last scored suit, which the fork
---     does not track anywhere.
+--   * two_of_swords converts to the last scored suit: ported in the
+--     Wave 1 section (v1.2.0), which tracks the last scored suit
+--     pack-side from the individual scoring passes.
 --
 -- Ported in the Tier 3 section (v1.1.0): the 8 enhancement-conversion
 -- arcana (five_of_cups, five_of_pentacles, nine_of_wands,
@@ -12785,6 +12786,12 @@ SMODS.Joker {
             and context.other_card
             and pb5_enh(context.other_card) ~= "stone" then
             e.last_suit = pb5_suit(context.other_card)
+            -- Also feed the pack-wide last-scored-suit state Two of
+            -- Swords reads (PC keeps it in G.GAME.paperback, updated by
+            -- a hook; the port updates it from the individual passes
+            -- that observe scored cards -- see the Wave 1 section).
+            local g = pb5_game()
+            if g and e.last_suit then g.pb_last_scored_suit = e.last_suit end
         end
         if context.after and e.last_suit and e.last_suit ~= e.suit then
             e.suit = e.last_suit
@@ -12839,9 +12846,9 @@ SMODS.Joker {
 
 -- unholy_alliance
 -- PORT NOTE: PC's revive (destroy itself instead of losing at 666+
--- Chips) answers a game_over check inside end_of_round; the fork raises
--- no game_over context and no return carries a save, so the revive is
--- unported. The scaling is exact.
+-- Chips) answers a game_over check inside end_of_round. The fork's
+-- Wave 1 game_over / saved context (v1.2.0) could carry it now, but
+-- the revive stays unported in this wave. The scaling is exact.
 SMODS.Joker {
     key = "unholy_alliance",
     name = "Unholy Alliance",
@@ -12993,3 +13000,555 @@ SMODS.Consumable {
 end -- SMODS.Consumable (Tier 3 arcana)
 
 end -- Tier 3 expansion block
+
+--------------------------------------------------------------------------------
+-- Wave 1 expansion (v1.2.0): the Jokers and the Minor Arcana the fork's
+-- Wave 1 bundle unblocks -- partial balance (a numeric `balance` return),
+-- the permanent card fields (SMODS.set_perma / get_perma and their
+-- readers) and the game_over / saved context.
+-- Ported from Paperback's MIT-licensed sources. Sub-effect deviations
+-- are marked with PORT NOTE comments.
+--------------------------------------------------------------------------------
+do
+
+local function pb6_game() return rawget(_G, "G") end
+
+local function pb6_round2(x) return math.floor(x * 100 + 0.5) / 100 end
+
+-- The fork's context translation marks both individual passes with
+-- context.individual and tells them apart by cardarea (play vs hand).
+local function pb6_play_area(context)
+    if not context.individual then return false end
+    local g = pb6_game()
+    if g and g.hand and context.cardarea == g.hand then return false end
+    return true
+end
+
+-- Add delta to a card's permanent field, seeding an unset field at
+-- base (1 for the X fields, whose unset meaning is X1; 0 for the flat
+-- dollar field).
+local function pb6_perma_add(view, field, delta, base)
+    if not view then return end
+    local cur = SMODS.get_perma(view, field)
+    if cur == nil then cur = base end
+    SMODS.set_perma(view, field, pb6_round2(cur + delta))
+end
+
+-- The scoring subset of a hand context. The fork's `before` and
+-- `after` passes hand over every played card (scoring_hand is built
+-- from the full played list), so the subset is the cards the engine
+-- flagged as scoring; when nothing is flagged (fabricated contexts),
+-- the whole list stands.
+local function pb6_scoring_views(context)
+    local src = context.scoring_hand
+    if type(src) ~= "table" or #src == 0 then src = context.full_hand end
+    if type(src) ~= "table" then return {} end
+    local flagged = {}
+    for _, v in ipairs(src) do
+        if type(v) == "table" and v.counts_for_play_score then
+            flagged[#flagged + 1] = v
+        end
+    end
+    if #flagged > 0 then return flagged end
+    return src
+end
+
+-- Last scored suit, PC's G.GAME.paperback.last_scored_suit (initial
+-- value Spades). PORT NOTE: on PC a global hook updates it on every
+-- scored card; the fork raises scoring contexts only to held Jokers,
+-- so the port updates it from the individual passes of the Jokers
+-- that observe scored cards (Bergentrucking, Pink Joker, Stardrop
+-- and Jester of Nihil). Until one of them has seen a card score this
+-- run it reads Spades, PC's initial value, and it is not saved with
+-- the run (the fork's snapshot keeps only its own fields).
+local function pb6_last_suit()
+    local g = pb6_game()
+    return (g and g.pb_last_scored_suit) or "Spades"
+end
+
+local function pb6_note_scored(view)
+    local g = pb6_game()
+    if not g or not view then return end
+    local d = view.card_data
+    if d and d.enhancement == "stone" then return end
+    local suit = d and d.suit
+    if not suit and view.is_suit then
+        for _, s in ipairs({ "Spades", "Hearts", "Clubs", "Diamonds",
+            "Stars", "Crowns" }) do
+            if view:is_suit(s) then suit = s break end
+        end
+    end
+    if suit then g.pb_last_scored_suit = suit end
+end
+
+local function pb6_highlighted()
+    local g = pb6_game()
+    local h = g and g.hand
+    if h and type(h.highlighted) == "table" then return h.highlighted end
+    return {}
+end
+
+local function pb6_sync(view)
+    if view and view.sync_visual_from_card_data then
+        view:sync_visual_from_card_data()
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Partial balance: Milk Tea and Stardrop
+-- PORT NOTE (both): PC's PB_UTIL.apply_plasma_effect moves Chips and
+-- Mult each the given fraction of the way toward their AVERAGE (the
+-- larger total falls). The fork's numeric `balance` return moves each
+-- total the fraction of the way toward the LARGER total (the larger
+-- total stays). Same fraction, different target: with Chips 100 /
+-- Mult 20 at 50%, PC lands on 80/40 and the fork on 100/60.
+--------------------------------------------------------------------------------
+
+-- milk_tea
+SMODS.Joker {
+    key = "milk_tea",
+    name = "Milk Tea",
+    rarity = 2,
+    cost = 6,
+    sprite = "milk_tea.png",
+    negative_sprite = "milk_tea_negative.png",
+    config = { extra = { percent = 50, reduction = 10,
+        mult_gt_chip = false } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.percent, e.reduction } }
+    end,
+    loc_txt = { name = "Milk Tea", text = {
+        "{C:purple}Balance{} {C:attention}#1#%{} of {C:chips}Chips{} and {C:mult}Mult",
+        "Reduces by {C:attention}#2#%{} if a hand's final",
+        "{C:mult}Mult{} ends up {C:attention}greater{} than its {C:chips}Chips",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main and e.percent > 0 then
+            return { balance = e.percent / 100 }
+        end
+        if context.final_scoring_step then
+            local c = context.port and context.port.chips
+            local m = context.port and context.port.mult
+            if c ~= nil and m ~= nil then
+                e.mult_gt_chip = SMODS.big_cmp(m, c) == 1
+            end
+        end
+        if context.after and not context.blueprint and e.mult_gt_chip then
+            e.percent = e.percent - e.reduction
+            e.mult_gt_chip = false
+            if e.percent <= 0 then
+                SMODS.destroy_joker(card)
+                return { message = "Consumed!" }
+            end
+            return { message = "Reduced!" }
+        end
+    end,
+}
+
+-- stardrop
+-- PC wraps the plasma call in a `func` return so it lands inside the
+-- Stars card's own scoring step; the fork applies a `balance` return
+-- from the individual pass at that same step. Each scored Stars card
+-- balances 2%, compounding card by card, as on PC.
+SMODS.Joker {
+    key = "stardrop",
+    name = "Stardrop",
+    rarity = 2,
+    cost = 7,
+    sprite = "stardrop.png",
+    negative_sprite = "stardrop_negative.png",
+    soul_sprite = "stardrop_soul.png",
+    config = { extra = { balance = 2 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.balance, "Stars" } }
+    end,
+    loc_txt = { name = "Stardrop", text = {
+        "Scored {C:attention}#2#{}",
+        "{C:purple}Balance{} {C:attention}#1#%{} of",
+        "{C:chips}Chips{} and {C:mult}Mult",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb6_play_area(context)
+            and context.other_card then
+            pb6_note_scored(context.other_card)
+            if context.other_card:is_suit("Stars") then
+                return { balance = card.ability.extra.balance / 100 }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Suit drinks: Grenadine, Nigori, Aperol
+-- PC runs all three through PB_UTIL.suit_drink_calculate (a `before`
+-- pass over the scoring hand, self-destructing at `after` once its 5
+-- charges are spent). PORT NOTE: the port follows the pack's earlier
+-- drink ports (Stout, Blue Curacao) and applies each grant in the
+-- card's individual pass instead; the fork reads a card's perma
+-- fields after its own scoring step, so a grant pays from the next
+-- hand the card scores, not the current one. PC's shared helper also
+-- seeds every upgraded field at 1, which would make Aperol pay $2;
+-- the port seeds the dollar field at 0, so Aperol pays the $1 its
+-- tooltip promises (the earlier flat drinks made the same call).
+--------------------------------------------------------------------------------
+
+local function pb6_suit_drink(key, name, suit, amount, upgrade, base,
+        gain_line)
+    SMODS.Joker {
+        key = key,
+        name = name,
+        rarity = 2,
+        cost = 6,
+        sprite = key .. ".png",
+        negative_sprite = key .. "_negative.png",
+        config = { extra = { amount = amount, suit = suit,
+            remaining = 5, upgrade = upgrade } },
+        loc_vars = function(self, info_queue, card)
+            local e = card.ability.extra
+            return { vars = { e.remaining, e.suit, e.amount } }
+        end,
+        loc_txt = { name = name, text = {
+            "The next #1# played and scored #2#",
+            gain_line,
+        } },
+        calculate = function(self, card, context)
+            local e = card.ability.extra
+            if context.individual and pb6_play_area(context)
+                and context.other_card and e.remaining > 0
+                and context.other_card:is_suit(e.suit) then
+                pb6_perma_add(context.other_card, e.upgrade,
+                    e.amount, base)
+                if not context.blueprint then
+                    e.remaining = e.remaining - 1
+                end
+                return { message = "Upgrade!" }
+            end
+            if context.after and not context.blueprint
+                and e.remaining <= 0 then
+                SMODS.destroy_joker(card)
+                return { message = "Consumed!" }
+            end
+        end,
+    }
+end
+
+pb6_suit_drink("grenadine", "Grenadine", "Hearts", 0.2,
+    "perma_x_mult", 1,
+    "permanently gain {X:mult,C:white}X#3#{} Mult when scored")
+pb6_suit_drink("nigori", "Nigori", "Stars", 0.3,
+    "perma_x_chips", 1,
+    "permanently gain {X:chips,C:white}X#3#{} Chips when scored")
+pb6_suit_drink("aperol", "Aperol", "Diamonds", 1,
+    "perma_p_dollars", 0,
+    "permanently gain {C:money}$#3#{} when scored")
+
+--------------------------------------------------------------------------------
+-- The remaining perma Jokers
+--------------------------------------------------------------------------------
+
+-- bergentrucking
+-- PORT NOTE: PC also converts up to 3 deck cards of distinct
+-- non-Crowns suits to Crowns when Lager is destroyed; Lager is
+-- unported, so that branch can never fire here and is omitted. PC
+-- destroys the scored Hearts through its destroy_card context during
+-- scoring; the port destroys them in the `after` pass, the pack's
+-- usual seat for destruction, so they still score the hand.
+SMODS.Joker {
+    key = "bergentrucking",
+    name = "Bergentrücking",
+    rarity = 3,
+    cost = 8,
+    sprite = "bergentrucking.png",
+    negative_sprite = "bergentrucking_negative.png",
+    config = { extra = { a_x_mult = 0.05,
+        active_suit = false, active_destroy = false } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Crowns", card.ability.extra.a_x_mult,
+            "Heart", "Hearts", "Crown" } }
+    end,
+    loc_txt = { name = "Bergentrücking", text = {
+        "If {C:attention}scored hand{} contains a {C:hearts}#3#{},",
+        "and contains a {C:paperback_crowns}#5#{},",
+        "scoring {C:paperback_crowns}#1#{} gain {X:mult,C:white}X#2#{} Mult",
+        "and scoring {C:hearts}#4#{} are {C:attention}destroyed{}",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.individual and pb6_play_area(context)
+            and context.other_card then
+            pb6_note_scored(context.other_card)
+            if context.other_card:is_suit("Crowns") then
+                e.active_suit = true
+            end
+            if context.other_card:is_suit("Hearts") then
+                e.active_destroy = true
+            end
+        end
+        if context.joker_main and e.active_suit and e.active_destroy then
+            for _, view in ipairs(pb6_scoring_views(context)) do
+                if view.is_suit and view:is_suit("Crowns") then
+                    pb6_perma_add(view, "perma_x_mult", e.a_x_mult, 1)
+                end
+            end
+            return { message = "Upgrade!" }
+        end
+        if context.after then
+            if e.active_suit and e.active_destroy then
+                for _, view in ipairs(pb6_scoring_views(context)) do
+                    if view.is_suit and view:is_suit("Hearts") then
+                        SMODS.destroy_card(view)
+                    end
+                end
+            end
+            e.active_suit = false
+            e.active_destroy = false
+        end
+    end,
+}
+
+-- freedom_of_choice
+-- PORT NOTE: PC checks the hand in its `before` pass; the port
+-- checks at joker_main, where the fork's context carries the
+-- contained hand types (a Flush Five contains a Five of a Kind) --
+-- the `before` context carries only the hand's own type. The perma
+-- grants therefore land after the cards have scored and pay from
+-- the next hand, the same timing as the drink grants above.
+SMODS.Joker {
+    key = "freedom_of_choice",
+    name = "Freedom of Choice",
+    rarity = 3,
+    cost = 8,
+    sprite = "freedom_of_choice.png",
+    negative_sprite = "freedom_of_choice_negative.png",
+    config = { extra = { poker_hands = "Five of a Kind",
+        a_xmult = 0.05 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.poker_hands, e.a_xmult } }
+    end,
+    loc_txt = { name = "Freedom of Choice", text = {
+        "If played hand contains a",
+        "{C:attention}#1#{}, scoring cards",
+        "permanently gain {X:mult,C:white}X#2#{} Mult",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main and context.poker_hands
+            and next(context.poker_hands[e.poker_hands]) then
+            for _, view in ipairs(pb6_scoring_views(context)) do
+                pb6_perma_add(view, "perma_x_mult", e.a_xmult, 1)
+            end
+            return { message = "Upgrade!" }
+        end
+    end,
+}
+
+-- shinzaemon
+SMODS.Joker {
+    key = "shinzaemon",
+    name = "Shinzaemon",
+    rarity = 4,
+    cost = 20,
+    sprite = "shinzaemon.png",
+    negative_sprite = "shinzaemon_negative.png",
+    soul_sprite = "shinzaemon_soul.png",
+    config = { extra = { card_count = 5, a_xmult = 0.2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.card_count, e.a_xmult } }
+    end,
+    loc_txt = { name = "Shinzaemon", text = {
+        "If scored hand",
+        "contains {C:attention}#1#{} cards",
+        "the {C:attention}#1#th{} card",
+        "permanently gains {X:mult,C:white}X#2#{} Mult",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.before then
+            local views = pb6_scoring_views(context)
+            if #views >= e.card_count then
+                pb6_perma_add(views[e.card_count], "perma_x_mult",
+                    e.a_xmult, 1)
+                return { message = "Upgrade!" }
+            end
+        end
+    end,
+}
+
+-- pink_joker
+-- PC rolls its 1-in-5 once per Stained card held in hand, in hand
+-- order, and stops at the first success; the port rolls the same
+-- way. PC writes the field directly (ability.perma_p_dollars = 2),
+-- an absolute set, not a grant: a card already at $2 or more is
+-- left alone.
+SMODS.Joker {
+    key = "pink_joker",
+    name = "Pink Joker",
+    rarity = 1,
+    cost = 7,
+    sprite = "pink_joker.png",
+    negative_sprite = "pink_joker_negative.png",
+    config = { extra = { odds = 5, p_dollars = 2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        local num, den = 1, e.odds
+        if SMODS.get_probability_vars then
+            num, den = SMODS.get_probability_vars(card, num, den,
+                "paperback_pink_joker_coins")
+        end
+        return { vars = { num, den, e.p_dollars } }
+    end,
+    loc_txt = { name = "Pink Joker", text = {
+        "While a {C:attention}Stained Card{} is held in hand,",
+        "scored cards have a {C:green}#1# in #2#{} chance",
+        "to permanently gain {C:money}+$#3#{} when scored",
+        "if they do not already have it",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.individual and pb6_play_area(context)
+            and context.other_card then
+            pb6_note_scored(context.other_card)
+            local g = pb6_game()
+            local held = g and g.hand and g.hand.card_nodes or {}
+            for _, hv in ipairs(held) do
+                local hd = hv.card_data
+                if hd and hd.enhancement == "stained"
+                    and (SMODS.get_perma(context.other_card,
+                        "perma_p_dollars") or 0) < e.p_dollars
+                    and SMODS.pseudorandom_probability(card,
+                        "pink_joker_coins", 1, e.odds,
+                        "paperback_pink_joker_coins") then
+                    SMODS.set_perma(context.other_card,
+                        "perma_p_dollars", e.p_dollars)
+                    return { message = "Upgrade!" }
+                end
+            end
+        end
+    end,
+}
+
+-- sacred_heart
+-- PORT NOTE: PC reads the hand's name in its `after` pass; the
+-- fork's `after` context carries no hand name, so the name is
+-- stashed at joker_main (the Journal pattern) and read back in
+-- `after`. PC skips the destruction when a Blueprint copy asks,
+-- but still grants the repetition; the port does the same.
+SMODS.Joker {
+    key = "sacred_heart",
+    name = "Sacred Heart",
+    rarity = 3,
+    cost = 10,
+    sprite = "sacred_heart.png",
+    negative_sprite = "sacred_heart_negative.png",
+    config = { extra = { poker_hand = "Flush Five", armed = false } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.poker_hand } }
+    end,
+    loc_txt = { name = "Sacred Heart", text = {
+        "If played hand is a {C:attention}#1#{},",
+        "give the {C:attention}first{} scored card",
+        "{C:attention}1{} {C:red}permanent retrigger{} and",
+        "destroy all other scored cards",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main then
+            e.armed = context.scoring_name == e.poker_hand
+        end
+        if context.after and e.armed then
+            local views = pb6_scoring_views(context)
+            if #views > 0 then
+                pb6_perma_add(views[1], "perma_repetitions", 1, 0)
+                if not context.blueprint then
+                    for i = 2, #views do
+                        SMODS.destroy_card(views[i])
+                    end
+                    e.armed = false
+                end
+                return { message = "Upgrade!" }
+            end
+            if not context.blueprint then e.armed = false end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Determination: the game_over save
+-- PORT NOTE: PC eases the Ante with ease_ante and shrinks the hand
+-- with G.hand:change_size. The fork has no ante API, so the Ante is
+-- written directly, clamped at 1 (the Punch Card precedent), and
+-- the hand-size cut rides the fork's persistent hand_size_delta
+-- field, which is saved with the run.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "determination",
+    name = "Determination",
+    rarity = 3,
+    cost = 7,
+    sprite = "determination.png",
+    negative_sprite = "determination_negative.png",
+    config = { extra = { delta = -1 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.delta } }
+    end,
+    loc_txt = { name = "Determination", text = {
+        "Prevents death, on death",
+        "{C:attention}#1#{} Ante, {C:attention}#1#{} hand size",
+        "and {C:red}self-destructs",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.game_over and not context.blueprint then
+            local g = pb6_game()
+            SMODS.destroy_joker(card)
+            if g then
+                g.ante = math.max(1, (tonumber(g.ante) or 1) + e.delta)
+                g.hand_size_delta_juggle =
+                    (tonumber(g.hand_size_delta_juggle) or 0) + e.delta
+            end
+            return { saved = true, message = "NGAAAHH!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Two of Swords: convert selected cards to the last scored suit
+--------------------------------------------------------------------------------
+
+if SMODS.Consumable then
+
+SMODS.Consumable {
+    set = "minor_arcana", key = "two_of_swords", cost = 3,
+    loc_txt = { name = "Two of Swords", text = {
+        "Converts up to",
+        "{C:attention}#1#{} selected cards",
+        "to last {C:attention}scored{} suit",
+        "{C:inactive}(Currently: #2#){}",
+    } },
+    config = { max_highlighted = 3 },
+    sprite = "two_of_swords.png",
+    negative_sprite = "two_of_swords_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local cfg = (card and (card.ability or card.config)) or {}
+        return { vars = { cfg.max_highlighted or 3, pb6_last_suit() } }
+    end,
+    use = function(self, card, area, copier)
+        local suit = pb6_last_suit()
+        for _, view in ipairs(pb6_highlighted()) do
+            local d = view.card_data
+            if d then
+                d.suit = suit
+                pb6_sync(view)
+            end
+        end
+    end,
+}
+
+end -- SMODS.Consumable (Wave 1 arcana)
+
+end -- Wave 1 expansion block

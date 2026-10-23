@@ -1,7 +1,7 @@
 --[[
     CryptidPack - Cryptid content ported to Balatro3DS.
 
-    167 Jokers and 27 consumables ported from Cryptid by the Cryptid
+    172 Jokers and 28 consumables ported from Cryptid by the Cryptid
     team / SpectralPack (PC / Steamodded + Talisman, GPLv3, source
     v0.5.17c). Requires the Balatro3DS fork build
     (https://github.com/sen2008/balatro3ds-fork): custom rarities,
@@ -10,7 +10,9 @@
     need the fork's Tier 3 systems (the x_chips / e_mult / e_chips /
     balance calculate returns, registered Seals / Editions / Tags,
     and the destroying_card / debuff_card / money_altered /
-    tag_added contexts).
+    tag_added contexts). The v1.3.0 additions need the fork's
+    Wave 1 systems (G.jokers_sold, the game_over context with a
+    saved = true return, and joker_type_destroyed).
 
     Port notes:
       * The Talisman bignum wrapper (lenient_bignum / to_big) is
@@ -10451,5 +10453,509 @@ SMODS.Consumable {
             end
         end
         if SMODS.destroy_joker then SMODS.destroy_joker(target) end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wave 1 section (v1.3.0): the ports the fork's Wave 1 systems unlock
+-- (G.jokers_sold, the game_over context, joker_type_destroyed).
+-- Helpers are prefixed crypW_ and declared before the defs that use
+-- them, like the Tier 3 block above.
+--------------------------------------------------------------------------------
+
+-- The Meme pool: every ported Joker whose PC def carries
+-- pools = { Meme = true } (items/misc_joker.lua, items/epic.lua,
+-- items/m.lua), enumerated the same way the M pool is above.
+-- PC's pool also holds Cat Owl, which is not ported, so the pool
+-- here is the 16 members that exist in the pack now.
+local CRYPT_MEME_POOL = {
+    "j_cryp_happyhouse", "j_cryp_cube", "j_cryp_nice", "j_cryp_chad",
+    "j_cryp_jimball", "j_cryp_sus", "j_cryp_krustytheclown",
+    "j_cryp_blurred", "j_cryp_filler", "j_cryp_lebaron_james",
+    "j_cryp_wario", "j_cryp_m", "j_cryp_boredom", "j_cryp_curse_sob",
+    "j_cryp_bonk", "j_cryp_reverse",
+}
+
+local function crypW_meme_pool_ids()
+    return CRYPT_MEME_POOL
+end
+
+-- PC's sold-Joker history (G.GAME.jokers_sold, kept by Cryptid's
+-- Card:sell_card override) holds each Joker key at most once, and
+-- never holds the Necromancer. The fork's G.jokers_sold is a plain
+-- per-sale list, duplicates included, so the Wave 1 readers below
+-- rebuild PC's shape from it: distinct def ids, in first-sale
+-- order, with the Necromancer's own key dropped where PC's rule
+-- applies. One PC case has no fork equivalent: a sold Joker that
+-- counted as a Jolly Joker (the M edition) also entered PC's
+-- history as j_jolly; the fork records only the sold def id, so
+-- that entry is lost here.
+local function crypW_sold_ids(exclude_necromancer)
+    local seen, out = {}, {}
+    for _, id in ipairs((G and G.jokers_sold) or {}) do
+        if type(id) == "string" and not seen[id] then
+            seen[id] = true
+            if not (exclude_necromancer and id == "j_cryp_necromancer") then
+                out[#out + 1] = id
+            end
+        end
+    end
+    return out
+end
+
+-- PC's Kidnapping predicate, verbatim: a sold Joker counts when its
+-- centre's effect is "Type Mult", "Cry Type Mult", "Cry Type
+-- Chips" or "Boost Kidnapping", or when its name is one of the
+-- five vanilla Type Chips Jokers (whose centres carry no effect
+-- string). The fork exposes the effect and name on vanilla defs
+-- directly; a mod Joker's SMODS centre is checked the same way,
+-- and the pack's own ported Cry Type Jokers are listed explicitly
+-- because the fork's Joker registration does not carry an effect
+-- field for them (their PC effects are in the table below).
+local CRYPT_CRY_TYPE_EFFECTS = {
+    j_cryp_nutty = "Cry Type Mult", j_cryp_manic = "Cry Type Mult",
+    j_cryp_silly = "Cry Type Mult", j_cryp_delirious = "Cry Type Mult",
+    j_cryp_wacky = "Cry Type Mult", j_cryp_kooky = "Cry Type Mult",
+    j_cryp_bonkers = "Cry Type Mult", j_cryp_foolhardy = "Cry Type Mult",
+    j_cryp_dubious = "Cry Type Chips", j_cryp_shrewd = "Cry Type Chips",
+    j_cryp_tricksy = "Cry Type Chips", j_cryp_foxy = "Cry Type Chips",
+    j_cryp_savvy = "Cry Type Chips", j_cryp_subtle = "Cry Type Chips",
+    j_cryp_discreet = "Cry Type Chips", j_cryp_adroit = "Cry Type Chips",
+    j_cryp_treacherous = "Cry Type Chips",
+}
+local CRYPT_TYPE_NAMES = {
+    ["Sly Joker"] = true, ["Wily Joker"] = true,
+    ["Clever Joker"] = true, ["Devious Joker"] = true,
+    ["Crafty Joker"] = true,
+}
+
+local function crypW_is_type_joker(id)
+    local def = (JOKER_DEFS or {})[id]
+    if type(def) ~= "table" then return false end
+    local effect = def.effect or CRYPT_CRY_TYPE_EFFECTS[id]
+    if not effect then
+        local center = (SMODS.Centers or {})[id] or def.smods
+        if type(center) == "table" then effect = center.effect end
+    end
+    if effect == "Type Mult" or effect == "Cry Type Mult"
+        or effect == "Cry Type Chips" or effect == "Boost Kidnapping" then
+        return true
+    end
+    return def.name ~= nil and CRYPT_TYPE_NAMES[def.name] == true
+end
+
+local function crypW_type_sold_count()
+    local n = 0
+    for _, id in ipairs(crypW_sold_ids(false)) do
+        if crypW_is_type_joker(id) then n = n + 1 end
+    end
+    return n
+end
+
+--------------------------------------------------------------------------------
+-- Kidnapping (PC key kidnap): earn $4 at end of round per Type
+-- Mult / Type Chips Joker sold this run.
+-- PORT NOTE: PC pays through calc_dollar_bonus over
+-- G.GAME.jokers_sold; the port reads the fork's G.jokers_sold the
+-- same way, rebuilt to PC's unique-key shape (see crypW_sold_ids).
+-- PC's forcetrigger branch (Demicolon) has no fork context and is
+-- dropped, as elsewhere in the pack.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "kidnap",
+    loc_txt = {
+        name = "Kidnapping",
+        text = {
+            "Earn {C:money}$#1#{} at end of round",
+            "per unique {C:attention}Type Mult{} or",
+            "{C:attention}Type Chips{} Joker sold this run",
+            "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
+        },
+    },
+    config = { extra = { money = 4 } },
+    rarity = 1,
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "kidnap.png",
+    negative_sprite = "kidnap_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.money,
+            card.ability.extra.money * crypW_type_sold_count() } }
+    end,
+    calc_dollar_bonus = function(self, card)
+        local value = crypW_type_sold_count()
+        if value == 0 then return nil end
+        return card.ability.extra.money * value
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Necromancer: when a Joker is sold for more than $0, gain a
+-- random Joker sold this run, with $0 sell value.
+-- PORT NOTE: PC picks from G.GAME.jokers_sold with a retry loop
+-- (up to 10 draws for a key that still names a centre); the port
+-- builds the candidate list once -- distinct sold keys that name
+-- a registered Joker, the Necromancer's own key excluded because
+-- PC never records it -- which is the same uniform choice over
+-- the same set. PC marks the created Joker cry_no_sell_value
+-- (its sell value is $0); the port writes sell_cost = 0 directly,
+-- the M Chain pattern. An empty history creates nothing, as on PC.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "necromancer",
+    loc_txt = {
+        name = "Necromancer",
+        text = {
+            "When a Joker is {C:attention}sold{} for more than {C:attention}#1#{},",
+            "gain a {C:attention}random{} Joker {C:attention}sold{} this run",
+            "with {C:money}#1#{} sell value",
+        },
+    },
+    config = { extra = {}, immutable = { sell_cost_min = 0 } },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "necromancer.png",
+    negative_sprite = "necromancer_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.immutable.sell_cost_min } }
+    end,
+    calculate = function(self, card, context)
+        if context.selling_card and not context.blueprint
+            and not context.retrigger_joker then
+            local sold = context.card
+                or (context.port and context.port.joker)
+            if not sold then return end
+            if crypT_joker_id(sold) == nil then return end
+            if (tonumber(sold.sell_cost) or 0)
+                <= card.ability.immutable.sell_cost_min then return end
+            local pool = {}
+            for _, id in ipairs(crypW_sold_ids(true)) do
+                if (JOKER_DEFS or {})[id] then pool[#pool + 1] = id end
+            end
+            if #pool == 0 then return end
+            local created = SMODS.add_card { set = "Joker",
+                key = pool[SMODS.pseudorandom("cryp_necromancer", 1, #pool)] }
+            if created then
+                created.sell_cost = 0
+                return { message = "+ Joker!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Pumpkin: prevents death if the round score is at least 50% of
+-- the Blind target; turns into Carved Pumpkin when destroyed.
+-- PORT NOTE: PC reads G.GAME.chips / G.GAME.blind.chips in its
+-- game_over context; the fork carries the same numbers on
+-- context.port (round_score / blind_target), with the game's own
+-- counters as fallback. The comparison is big-number safe (the
+-- totals promote past ~1.8e308): SMODS.big_cmp decides when
+-- either side is big. Selling the Pumpkin sets enabled = false
+-- first (PC's selling_self branch), so a Pumpkin that was sold
+-- and somehow destroyed afterwards does not transform -- sales
+-- never raise joker_type_destroyed in the fork anyway. The
+-- engine does not spend the saver, exactly as on PC: a saved
+-- Pumpkin stays held and can save again.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "pumpkin",
+    loc_txt = {
+        name = "Pumpkin",
+        text = {
+            "Prevents Death if chips scored",
+            "are atleast {C:attention}#1#%{} of required chips",
+            "{C:attention}Turns into Carved Pumpkin",
+            "{C:attention}when{} {C:red}destroyed",
+        },
+    },
+    config = { extra = { scoreReq = 50, enabled = true } },
+    rarity = 3,
+    cost = 10,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = false,
+    sprite = "pumpkin.png",
+    negative_sprite = "pumpkin_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.scoreReq } }
+    end,
+    calculate = function(self, card, context)
+        if context.game_over then
+            local port = context.port or {}
+            local score = port.round_score
+            if score == nil and G then score = G.round_score end
+            local target = port.blind_target
+            if target == nil and G then target = G.current_blind_target end
+            if score ~= nil and target ~= nil then
+                local threshold = target * (card.ability.extra.scoreReq / 100)
+                local saved
+                if (SMODS.is_big and SMODS.is_big(score))
+                    or (SMODS.is_big and SMODS.is_big(target)) then
+                    saved = SMODS.big_cmp(score, threshold) >= 0
+                else
+                    saved = (tonumber(score) or 0) >= (tonumber(threshold) or 0)
+                end
+                if saved then
+                    return { saved = true, message = "Saved!" }
+                end
+            end
+        end
+        if context.selling_self then
+            card.ability.extra.enabled = false
+        end
+        if context.joker_type_destroyed and context.card == card
+            and card.ability.extra.enabled == true then
+            SMODS.add_card { set = "Joker", key = "j_cryp_carved_pumpkin" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Carved Pumpkin: the next 5 Boss Blinds have their abilities
+-- disabled. Only created by Pumpkin (in_pool = false, as on PC).
+-- PORT NOTE: PC disables through G.GAME.blind:disable() at
+-- setting_blind and counts down at end_of_round on Boss Blinds.
+-- The fork's canonical disable is G:disable_boss_blind(), which
+-- only lands once the Blind is live, so the port attempts it at
+-- setting_blind and again at first_hand_drawn (the Weather Radio
+-- pattern); the call itself is a no-op once the Boss is disabled,
+-- so the second attempt never double-fires. PC dissolves at 0
+-- disables; the port destroys through SMODS.destroy_joker, the
+-- pack's self-destruct pattern.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "carved_pumpkin",
+    loc_txt = {
+        name = "Carved Pumpkin",
+        text = {
+            "The next {C:attention}#1#{} Boss Blinds",
+            "will have their abilities",
+            "{C:attention}disabled",
+        },
+    },
+    config = { extra = { disables = 5 } },
+    rarity = 3,
+    cost = 10,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = false,
+    sprite = "carved_pumpkin.png",
+    negative_sprite = "carved_pumpkin_negative.png",
+    in_pool = function(self, args)
+        return false
+    end,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.disables } }
+    end,
+    calculate = function(self, card, context)
+        local boss = (context.port and context.port.is_boss_blind)
+            or (G and tonumber(G.current_blind_index) == 3)
+        if (context.setting_blind or context.first_hand_drawn)
+            and not context.blueprint and boss then
+            if G and G.disable_boss_blind then
+                G:disable_boss_blind()
+                return { message = "Boss Disabled!" }
+            end
+        end
+        if context.end_of_round and not context.blueprint
+            and not context.individual and not context.repetition then
+            if boss then
+                card.ability.extra.disables = card.ability.extra.disables - 1
+                if card.ability.extra.disables <= 0 then
+                    SMODS.destroy_joker(card)
+                    return { message = "Eaten!" }
+                end
+                return { message = "-1 Disable" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Familiar Currency: at end of round, if you have at least $19,
+-- pay $19 and create a random Meme Joker (must have room).
+-- PORT NOTE: PC checks G.GAME.dollars - G.GAME.bankrupt_at >= 19
+-- (bankrupt_at is a challenge floor the fork does not have; it is
+-- 0 in a normal run, so the port checks G.money directly), then
+-- charges and creates through SMODS.add_card({ set = "Meme" }).
+-- The fork has no Meme set to roll, so the port enumerates the
+-- Meme pool the way the M pool is enumerated above
+-- (CRYPT_MEME_POOL: the Meme members ported so far) and creates
+-- from it; the charge lands only when a Joker was actually
+-- created, so a full Joker tray is never charged -- PC checks
+-- room before charging, the same net result. As on PC, a
+-- Blueprint copy triggers this too (no blueprint exclusion).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "familiar_currency",
+    loc_txt = {
+        name = "Familiar Currency",
+        text = {
+            "Create a {C:attention}Meme Joker{}",
+            "at the end of round",
+            "for {C:money}$#1#{} {C:inactive}(if possible)",
+            "{C:inactive}(Must have room)",
+        },
+    },
+    config = { extra = { cost = 19 } },
+    rarity = 3,
+    cost = 0,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "familiar_currency.png",
+    negative_sprite = "familiar_currency_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.cost } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.individual
+            and not context.repetition then
+            local cost = card.ability.extra.cost
+            if ((G and tonumber(G.money)) or 0) < cost then return end
+            local pool = {}
+            for _, id in ipairs(crypW_meme_pool_ids()) do
+                if (JOKER_DEFS or {})[id] then pool[#pool + 1] = id end
+            end
+            if #pool == 0 then return end
+            local created = SMODS.add_card { set = "Joker",
+                key = pool[SMODS.pseudorandom("cryp_familiar_currency", 1, #pool)] }
+            if created then
+                ease_dollars(-cost)
+                return { message = "+ Joker!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- ://ALTTAB (Code): create the current Blind's skip Tag.
+-- PORT NOTE: PC's use() resolves the Tag in three steps, and the
+-- port follows all three over the fork's own state:
+--   1. Cryptid.get_next_tag() returns the Cat Tag while a Kitty
+--      Printer is held, and nothing otherwise -- so a held Kitty
+--      Printer makes this grant a Cat Tag.
+--   2. On a Boss Blind there is no skip Tag, so PC rolls a random
+--      one (get_next_tag_key); the port rolls the pack's shared
+--      tag pool (crypT_random_tag_type, no exclusions).
+--   3. Otherwise the Tag is the current Blind's own skip Tag:
+--      PC reads G.GAME.round_resets.blind_tags[type]; the fork
+--      stores the same roll in G.skips[blind index], read back
+--      through G:tag_type_for_id, with the Orbital Tag's stored
+--      hand passed the way the game's own skip grants pass it.
+-- PC's can_use requires being in a Blind (G.GAME.blind.in_blind);
+-- the fork's equivalent is the hand-selection state. PC's
+-- loc_vars shows the resolved Tag's name, "???" on a Boss Blind
+-- and None outside a Blind; the port shows the same, resolving
+-- the name through the fork's skip-Tag tooltip.
+--------------------------------------------------------------------------------
+
+local function crypW_alttab_skip_tag()
+    if not G then return nil end
+    local idx = tonumber(G.current_blind_index)
+    if idx ~= 1 and idx ~= 2 then return nil end
+    local skip_id = G.skips and G.skips[idx]
+    if skip_id == nil or not G.tag_type_for_id then return nil end
+    local typ = G:tag_type_for_id(skip_id)
+    if not typ then return nil end
+    local orbital = nil
+    if typ == "orbital" then
+        orbital = G.skip_tag_orbital_hand and G.skip_tag_orbital_hand[idx]
+    end
+    return typ, orbital
+end
+
+local function crypW_alttab_display()
+    if not G then return "None" end
+    for _, j in ipairs(crypT_held_jokers()) do
+        if crypT_joker_id(j) == "j_cryp_kittyprinter" then
+            return "Cat Tag"
+        end
+    end
+    local idx = tonumber(G.current_blind_index)
+    if idx == 3 then return "???" end
+    local typ = crypW_alttab_skip_tag()
+    if not typ then return "None" end
+    local skip_id = G.skips and G.skips[idx]
+    if skip_id ~= nil and G.get_skip_tag_tooltip then
+        local info = G:get_skip_tag_tooltip(skip_id, idx)
+        if info and info.name then return info.name end
+    end
+    return typ
+end
+
+SMODS.Consumable {
+    key = "alttab",
+    set = "Code",
+    loc_txt = {
+        name = "://ALTTAB",
+        text = {
+            "Create the {C:attention}current{}",
+            "blind's {C:attention}skip tag{}",
+            "{C:inactive}(Current: {C:attention}#1#{C:inactive})",
+        },
+    },
+    config = { cryp = true },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "alttab.png",
+    negative_sprite = "alttab_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { crypW_alttab_display() } }
+    end,
+    can_use = function(self, card)
+        return G ~= nil and G.STATE ~= nil and G.STATES ~= nil
+            and G.STATE == G.STATES.SELECTING_HAND
+    end,
+    use = function(self, card, area, copier)
+        if not (G and G.addTag) then return end
+        local typ, orbital = nil, nil
+        for _, j in ipairs(crypT_held_jokers()) do
+            if crypT_joker_id(j) == "j_cryp_kittyprinter" then
+                typ = "cry_cat"
+                break
+            end
+        end
+        if not typ then
+            if tonumber(G.current_blind_index) == 3 then
+                typ = crypT_random_tag_type()
+            else
+                typ, orbital = crypW_alttab_skip_tag()
+            end
+        end
+        if not typ then return end
+        if typ == "orbital" then
+            local idx = orbital
+                or (G.roll_orbital_hand_index and G:roll_orbital_hand_index())
+            if idx then
+                G:addTag(typ, { orbital_hand_index = idx })
+            else
+                G:addTag(typ)
+            end
+        else
+            G:addTag(typ)
+        end
     end,
 }
