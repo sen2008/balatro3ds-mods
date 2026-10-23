@@ -2550,3 +2550,564 @@ SMODS.Joker {
         end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- Tier 3 top-up (v1.2.0): ports unblocked by the fork's Tier 3 systems
+-- (return readers for x_chips / e_mult / swap / level_up, the
+-- destroying_card / setting_ability / hand_drawn contexts,
+-- SMODS.set_debuff, and the SMODS.Enhancement registrar).
+--------------------------------------------------------------------------------
+
+-- The enhancement a card view carries ("" when none).
+local function mf_enhancement_of(view)
+    if type(view) ~= "table" then return nil end
+    if view.card_data and view.card_data.enhancement ~= nil then
+        return view.card_data.enhancement
+    end
+    return view.enhancement
+end
+
+-- How many cards in the full deck carry a given enhancement value.
+local function mf_count_enhancement(value)
+    local g = refresh_g()
+    if g and g.count_cards_in_full_deck then
+        local ok, n = pcall(function()
+            return g:count_cards_in_full_deck(function(c) return c.enhancement == value end)
+        end)
+        if ok and tonumber(n) then return tonumber(n) end
+    end
+    local n = 0
+    if g and g.deck then
+        for _, d in ipairs(g.deck.cards or {}) do
+            if d.enhancement == value then n = n + 1 end
+        end
+        for _, d in ipairs(g.deck.discard_pile or {}) do
+            if d.enhancement == value then n = n + 1 end
+        end
+    end
+    if g and g.hand and g.hand.card_nodes then
+        for _, node in ipairs(g.hand.card_nodes) do
+            if node.card_data and node.card_data.enhancement == value then n = n + 1 end
+        end
+    end
+    return n
+end
+
+-- Set a card view's enhancement through its canonical setter when it
+-- has one (which raises setting_ability), else write the data field
+-- (the PaperbackPack pattern).
+local function mf_set_enhancement(view, value)
+    if type(view) ~= "table" then return end
+    if view.set_enhancement then
+        view:set_enhancement(value)
+    elseif view.card_data then
+        view.card_data.enhancement = value
+    end
+end
+
+--------------------------------------------------------------------------------
+-- MoreFluff's custom enhancements, registered at weight 0: on PC they
+-- are delivered by the Rotarot consumables (not ported), so they stay
+-- out of the fork's random-enhancement polls; cards can still carry
+-- them through SMODS.add_card / mod_conv, and the Jokers below read
+-- them. Brass and Yucky have no intrinsic center effect the fork can
+-- run (enhancement retriggers and destroy-after-scoring rolls are
+-- never asked of a center -- only seals get a retrigger query), so
+-- Brass Joker and Yucky Rat mediate those two effects while held.
+--------------------------------------------------------------------------------
+
+if SMODS.Enhancement then
+    SMODS.Enhancement {
+        key = "teal",
+        loc_txt = { name = "Teal Card", text = { "{X:chips,C:white} X#1# {} Chips", "while this card", "stays in hand" } },
+        config = { h_x_chips = 1.5 },
+        weight = 0,
+        sprite = "enh_teal.png",
+        loc_vars = function(self, info_queue, card)
+            return { vars = { self.config.h_x_chips } }
+        end,
+        calculate = function(self, card, context)
+            if context.held_in_hand then
+                return { x_chips = self.config.h_x_chips }
+            end
+        end,
+    }
+    SMODS.Enhancement {
+        key = "marigold",
+        loc_txt = { name = "Marigold Card", text = { "Earn {C:money}$#1#{} at", "end of round, plus", "{C:money}$#1#{} for each other", "{C:attention}Marigold Card{} in hand" } },
+        config = { cash = 1 },
+        weight = 0,
+        sprite = "enh_marigold.png",
+        loc_vars = function(self, info_queue, card)
+            return { vars = { self.config.cash } }
+        end,
+        calculate = function(self, card, context)
+            if context.on_round_end then
+                local g = refresh_g()
+                local count = 1
+                if g and g.hand and g.hand.card_nodes then
+                    count = 0
+                    for _, node in ipairs(g.hand.card_nodes) do
+                        if node.card_data and node.card_data.enhancement == "marigold" then
+                            count = count + 1
+                        end
+                    end
+                    if count == 0 then count = 1 end
+                end
+                return { dollars = self.config.cash * count }
+            end
+        end,
+    }
+    SMODS.Enhancement {
+        key = "brass",
+        loc_txt = { name = "Brass Card", text = { "{C:attention}Retriggers{} #1# additional", "times when scored", "{C:green}#2# in #3#{} chance to be", "{C:red}destroyed{} after being scored" } },
+        config = { retriggers = 2, chance = 3 },
+        weight = 0,
+        sprite = "enh_brass.png",
+        loc_vars = function(self, info_queue, card)
+            local n, d = 1, self.config.chance
+            if card and SMODS.get_probability_vars then
+                n, d = SMODS.get_probability_vars(card, 1, self.config.chance, "brass_card")
+            end
+            return { vars = { self.config.retriggers, n, d } }
+        end,
+    }
+    SMODS.Enhancement {
+        key = "gemstone",
+        loc_txt = { name = "Gemstone Card", text = { "Earn {C:money}$#1#{} at", "end of round while", "held in hand" } },
+        config = { h_dollars = 3 },
+        weight = 0,
+        sprite = "enh_gemstone.png",
+        loc_vars = function(self, info_queue, card)
+            return { vars = { self.config.h_dollars } }
+        end,
+    }
+    SMODS.Enhancement {
+        key = "yucky",
+        loc_txt = { name = "Yucky Card", text = { "{C:green}#1# in #2#{} chance to", "be {C:red}destroyed{}", "after being scored" } },
+        config = { chance = 2 },
+        weight = 0,
+        sprite = "enh_yucky.png",
+        loc_vars = function(self, info_queue, card)
+            local n, d = 1, self.config.chance
+            if card and SMODS.get_probability_vars then
+                n, d = SMODS.get_probability_vars(card, 1, self.config.chance, "yucky_card")
+            end
+            return { vars = { n, d } }
+        end,
+    }
+end
+
+--------------------------------------------------------------------------------
+-- Unpleasant Card: X2.067 Chips. PC's second clause (Booster Packs
+-- contain only 1 card) is a Lovely patch on pack creation and is
+-- dropped; see README.txt.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "unpleasantcard",
+    loc_txt = { name = "Unpleasant Card", text = { "{X:chips,C:white} X#1# {} Chips", "{C:attention}Booster Packs{} contain", "only {C:attention}1{} card" } },
+    config = { extra = { x_chips = 2.067 } },
+    rarity = 2, cost = 6.5, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "unpleasantcard.png", negative_sprite = "unpleasantcard_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.x_chips } } end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { x_chips = card.ability.extra.x_chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Blahaj: swap Chips and Mult (the fork's swap return reader).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "blahaj",
+    loc_txt = { name = "Blåhaj", text = { "Swaps {C:chips}Chips{} and {C:mult}Mult{}" } },
+    config = { extra = {} },
+    rarity = 1, cost = 1, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "blahaj.png", negative_sprite = "blahaj_negative.png",
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { swap = true, message = "Swapped!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wide Joker: Mult ^ 1.14 (the fork's e_mult return reader).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "widejoker",
+    loc_txt = { name = "Wide Joker", text = { "{X:mult,C:white}^#1#{} Mult" } },
+    config = { extra = { powmult = 1.14 } },
+    rarity = 3, cost = 9, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "widejoker.png", negative_sprite = "widejoker_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.powmult } } end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { e_mult = card.ability.extra.powmult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Letter E: Mult ^ 1.4 (e_mult return reader).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "lettergem_e",
+    loc_txt = { name = "E", text = { "{X:mult,C:white}^#1#{} Mult" } },
+    config = { extra = { emult = 1.4 } },
+    rarity = "letter", cost = 2, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "lettergem_e.png", negative_sprite = "lettergem_e_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.emult } } end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { e_mult = card.ability.extra.emult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Jankman: every modded Joker (and Jolly Joker, as PC's tooltip jokes)
+-- gives X1.31 Chips as it triggers. PC uses context.other_joker; the
+-- fork's post_trigger is the same beat (the Simplified Joker pattern).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "jankman",
+    loc_txt = { name = "Jankman", text = { "All {C:dark_edition}modded{} Jokers", "{C:inactive}(and also Jolly Joker){}", "each give {X:chips,C:white} X#1# {} Chips" } },
+    config = { extra = { x_chips = 1.31 } },
+    rarity = 3, cost = 9, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "jankman.png", negative_sprite = "jankman_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.x_chips } } end,
+    calculate = function(self, card, context)
+        if context.post_trigger and context.other_card and context.other_card ~= card
+            and context.other_context and context.other_context.joker_main then
+            local def = context.other_card.def
+            if def and (def.smods or def.id == "j_jolly") then
+                return { x_chips = card.ability.extra.x_chips }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Teacup: level up each played hand, for the next 5 hands. PC calls
+-- level_up_hand in `before`; the port returns level_up at joker_main,
+-- where the fork's reader also adds the level's delta to the running
+-- totals (the same final numbers). The charge is spent in `before`
+-- and the cup is destroyed in `after` once spent, so the last charge
+-- still levels its hand, as on PC.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "teacup",
+    loc_txt = { name = "Teacup", text = { "Upgrade the level of", "each {C:attention}played hand{}", "for the next {C:attention}#1#{} hands" } },
+    config = { extra = 5 },
+    rarity = 2, cost = 7, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = false, perishable_compat = true,
+    sprite = "teacup.png", negative_sprite = "teacup_negative.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra } } end,
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.before and not context.blueprint and not context.retrigger_joker then
+            card.ability.extra = card.ability.extra - 1
+        end
+        if context.joker_main then
+            return { level_up = 1, message = "Upgrade!" }
+        end
+        if context.after and not context.blueprint and card.ability.extra <= 0 then
+            SMODS.destroy_joker(card)
+            return { message = "Drank!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Flint and Steel: level up the played hand when the scoring hand
+-- contains a Stone Card and a Steel Card. PC calls
+-- SMODS.upgrade_poker_hands in `before`; the level_up return at
+-- joker_main levels the same (scored) hand with its delta added.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "flintandsteel",
+    loc_txt = { name = "Flint and Steel", text = { "Upgrade the level of each", "{C:attention}played hand{} if scored hand contains", "a {C:attention}Stone Card{} and {C:attention}Steel Card{}" } },
+    config = { extra = {} },
+    rarity = "oldfluff", cost = 4, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = false, perishable_compat = true,
+    sprite = "flintandsteel.png", negative_sprite = "flintandsteel_negative.png",
+    calculate = function(self, card, context)
+        if context.joker_main and context.scoring_hand then
+            local flint, steel = false, false
+            for _, view in ipairs(context.scoring_hand) do
+                local enh = mf_enhancement_of(view)
+                if enh == "stone" then flint = true end
+                if enh == "steel" then steel = true end
+            end
+            if flint and steel then
+                return { level_up = 1, message = "Upgrade!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Rose-Tinted Glasses: if the first hand of the round is a single 2,
+-- destroy it and create a Double Tag. PC hooks Steamodded's
+-- destroying_card check, which runs after scoring; the port destroys
+-- in the `after` pass, the Sixth Sense / Dayman slot, so the 2 still
+-- scores first, as on PC.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "rosetinted",
+    loc_txt = { name = "Rose-Tinted Glasses", text = { "If {C:attention}first hand{} of round is", "a single {C:attention}2{}, destroy it and", "create a free {C:attention}Double Tag{}" } },
+    config = { extra = {} },
+    rarity = "oldfluff", cost = 5, unlocked = true, discovered = true,
+    blueprint_compat = false, eternal_compat = true, perishable_compat = true,
+    sprite = "rosetinted.png", negative_sprite = "rosetinted_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.after and not context.blueprint and mf_hands_played() == 1
+            and context.full_hand and #context.full_hand == 1 then
+            local view = context.full_hand[1]
+            if view and view.get_id and view:get_id() == 2 then
+                if SMODS.destroy_card(view) then
+                    if G and G.addTag then G:addTag("double") end
+                    return { message = "+Double Tag" }
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Teal Joker: X1 + X0.2 Chips per Teal Card in the full deck. PC
+-- keeps the tally in an update() tick; the port counts live, the
+-- Coupon Catalogue pattern.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "tealjoker",
+    loc_txt = { name = "Teal Joker", text = { "Gives {X:chips,C:white} X#1# {} Chips", "for each {C:attention}Teal Card", "in your {C:attention}full deck", "{C:inactive}(Currently {X:chips,C:white} X#2# {C:inactive} Chips)" } },
+    config = { extra = { x_chips_per = 0.2 } },
+    rarity = 2, cost = 7, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "tealjoker.png", negative_sprite = "tealjoker_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local per = card.ability.extra.x_chips_per
+        return { vars = { per, 1 + per * mf_count_enhancement("teal") } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local tally = mf_count_enhancement("teal")
+            if tally > 0 then
+                return { x_chips = 1 + card.ability.extra.x_chips_per * tally }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Marigold: retrigger played and held Marigold Cards 2 more times
+-- (the Joker repetition query covers both, as PC's does).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "marigold",
+    loc_txt = { name = "Marigold", text = { "{C:attention}Retriggers{} played and held", "{C:attention}Marigold Cards{} #1# times" } },
+    config = { extra = { retriggers = 2 } },
+    rarity = 4, cost = 20, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "marigold.png", negative_sprite = "marigold_negative.png",
+    soul_sprite = "marigold_soul.png",
+    loc_vars = function(self, info_queue, card) return { vars = { card.ability.extra.retriggers } } end,
+    calculate = function(self, card, context)
+        if context.repetition and context.other_card
+            and mf_enhancement_of(context.other_card) == "marigold" then
+            return { message = "Again!", repetitions = card.ability.extra.retriggers }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Brass Joker: retrigger the Joker to the right once per 3 Brass
+-- Cards destroyed. The Brass Card's own scored retrigger and its
+-- 1-in-3 destroy-after-scoring roll are enhancement effects the fork
+-- never asks a center for, so this Joker mediates both while held
+-- (see the enhancement registration note above).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "brass",
+    loc_txt = { name = "Brass Joker", text = { "{C:attention}Retrigger{} the joker", "to the right once for every", "{C:attention}#4# Brass Cards{} destroyed", "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2#/#3#{C:inactive})" } },
+    config = { extra = { retriggers = 0, partial_rounds = 0, upgrade_rounds = 3 } },
+    rarity = 3, cost = 10, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "brass.png", negative_sprite = "brass_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.retriggers, e.partial_rounds, e.upgrade_rounds, e.upgrade_rounds } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.retrigger_joker_check and not context.retrigger_joker
+            and context.other_card ~= card and e.retriggers >= 1 then
+            local idx, list = mf_joker_index(card)
+            if idx and list[idx + 1] == context.other_card then
+                return { message = "Again!", repetitions = e.retriggers }
+            end
+        end
+        if context.repetition and context.other_card
+            and mf_enhancement_of(context.other_card) == "brass" then
+            return { message = "Again!", repetitions = 2 }
+        end
+        if context.remove_playing_cards and not context.blueprint then
+            local removed = (context.port and context.port.destroyed_cards) or {}
+            local count = 0
+            for _, view in ipairs(removed) do
+                if mf_enhancement_of(view) == "brass" then count = count + 1 end
+            end
+            if count > 0 then
+                e.partial_rounds = e.partial_rounds + count
+                local upgraded = false
+                while e.partial_rounds >= e.upgrade_rounds do
+                    e.partial_rounds = e.partial_rounds - e.upgrade_rounds
+                    e.retriggers = e.retriggers + 1
+                    upgraded = true
+                end
+                if upgraded then return { message = "Upgrade!" } end
+                return { message = e.partial_rounds .. "/" .. e.upgrade_rounds }
+            end
+        end
+        if context.after and not context.blueprint and context.full_hand then
+            for _, view in ipairs(context.full_hand) do
+                if mf_enhancement_of(view) == "brass" then
+                    local hit = SMODS.pseudorandom_probability(view, "brass_card", 1, 3, "brass_card")
+                    if hit then SMODS.destroy_card(view) end
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Gemstone Joker: earn $1 at end of round per Gemstone Card in the
+-- full deck (calc_dollar_bonus, live tally as for Teal).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "gemstonejoker",
+    loc_txt = { name = "Gemstone Joker", text = { "Earn {C:money}$#1#{} at end of round", "for each {C:attention}Gemstone Card{}", "in your {C:attention}full deck{}", "{C:inactive}(Currently {C:money}$#2#{C:inactive})" } },
+    config = { extra = { dollars_per = 1 } },
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "gemstonejoker.png", negative_sprite = "gemstonejoker_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local per = card.ability.extra.dollars_per
+        return { vars = { per, per * mf_count_enhancement("gemstone") } }
+    end,
+    calc_dollar_bonus = function(self, card)
+        local bonus = card.ability.extra.dollars_per * mf_count_enhancement("gemstone")
+        if bonus > 0 then return bonus end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Yucky Rat: played unenhanced cards become Yucky Cards; gains
+-- X0.05 Mult per card converted. The Yucky Card's 1-in-2
+-- destroy-after-scoring roll is an enhancement effect the fork never
+-- asks a center for, so the Rat mediates it in the `after` pass while
+-- held (see the enhancement registration note above).
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "yuckyrat",
+    loc_txt = { name = "Yucky Rat", text = { "Played {C:attention}unenhanced{} cards", "are converted to {C:attention}Yucky Cards{}.", "Gains {X:red,C:white} X#1# {} Mult for", "each card converted", "{C:inactive}(Currently {X:red,C:white} X#2# {C:inactive} Mult)" } },
+    config = { extra = { x_mult = 1, x_mult_mod = 0.05 } },
+    rarity = 2, cost = 8, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "yuckyrat.png", negative_sprite = "yuckyrat_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.x_mult_mod, e.x_mult } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.before and context.full_hand then
+            local converted = 0
+            for _, view in ipairs(context.full_hand) do
+                if mf_enhancement_of(view) == nil then
+                    mf_set_enhancement(view, "yucky")
+                    converted = converted + 1
+                end
+            end
+            if converted > 0 then
+                e.x_mult = mf_round2(e.x_mult + e.x_mult_mod * converted)
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and e.x_mult > 1 then
+            return { xmult = e.x_mult }
+        end
+        if context.after and not context.blueprint and context.full_hand then
+            for _, view in ipairs(context.full_hand) do
+                if mf_enhancement_of(view) == "yucky" then
+                    local hit = SMODS.pseudorandom_probability(view, "yucky", 1, 2, "yucky_card")
+                    if hit then SMODS.destroy_card(view) end
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- All I Can't Do: debuff the first drawn hand of the round; gains
+-- X0.1 Mult per debuffed card played. PC debuffs through
+-- SMODS.debuff_card at first_hand_drawn; the port arms on
+-- setting_blind and debuffs the first hand_drawn deal through
+-- SMODS.set_debuff (the fork's canonical setter). PC's debuff is
+-- source-keyed and lifts if the Joker leaves; the fork's perma_debuff
+-- persists -- see README.txt.
+--------------------------------------------------------------------------------
+SMODS.Joker {
+    key = "allicantdo",
+    loc_txt = { name = "All I Can't Do", text = { "{C:red}Debuffs{} first drawn hand", "Gains {X:red,C:white} X#1# {} Mult for", "each played {C:red}debuffed{} card", "{C:inactive}(Currently {X:red,C:white} X#2# {C:inactive})" } },
+    config = { extra = { x_mult = 1, x_mult_mod = 0.1, armed = false } },
+    rarity = 3, cost = 9, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "allicantdo.png", negative_sprite = "allicantdo_negative.png",
+    soul_sprite = "allicantdo_soul.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.x_mult_mod, e.x_mult } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.setting_blind and not context.blueprint then
+            e.armed = true
+        end
+        if context.hand_drawn and e.armed and not context.blueprint then
+            e.armed = false
+            for _, view in ipairs(context.hand_drawn or {}) do
+                SMODS.set_debuff(view, true)
+            end
+            return { message = "Debuffed!" }
+        end
+        if context.before and not context.blueprint and context.full_hand then
+            local count = 0
+            for _, view in ipairs(context.full_hand) do
+                if view.debuff or (view.card_data and view.card_data.perma_debuff) then
+                    count = count + 1
+                end
+            end
+            if count > 0 then
+                e.x_mult = mf_round2(e.x_mult + e.x_mult_mod * count)
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and e.x_mult > 1 then
+            return { xmult = e.x_mult }
+        end
+    end,
+}

@@ -1,6 +1,6 @@
 --- Tests for the PaperbackPack expansion Jokers (the 188 ported after the
 --- original 36) for the Balatro3DS fork build. Registration and tooltip
---- sanity for all 224 Jokers in the pack, plus the per-slice behavior
+--- sanity for all 269 Jokers in the pack, plus the per-slice behavior
 --- suites (PB_TESTS_0 .. PB_TESTS_4). The mod's real main file is read
 --- from the PB_PACK_LUA env var, like the other pack suites.
 local T = require("tests.testlib")
@@ -80,6 +80,18 @@ local NAMES = {
     "twenty_first_century", "ultra_rare", "war_without_reason", "wheat_field",
     "whitebeard", "wild_plus_four", "wild_prize", "wish_you_were_here",
     "yacht", "yacht_dice", "you_are_a_fool", "zealous_joker",
+    "collector", "festive_joker", "greeting_card", "happy_accident",
+        "kintsugi_joker", "mexican_train", "plastic_wrap", "sommelier",
+        "spotty_joker", "teapot", "watercolor_joker", "pinot_noir",
+        "gauze", "blue_star", "chocolate_joker", "crispy_taco",
+        "deck_of_cards", "nachos", "oracle", "quartz",
+        "ready_to_fly", "stella_octangula", "angel_investor", "book_of_life",
+        "j_and_js", "jimbo_adventure", "jokers_11", "shopkeep",
+        "spirit_box", "stereoscopic_specs", "the_wonder_of_you", "let_it_happen",
+        "coin_collection", "frutiger_aero", "cream_liqueur", "off_alpha",
+        "off_epsilon", "off_omega", "one_with_nothing", "watermelon",
+        "weather_radio", "da_capo", "jester_of_nihil", "cross",
+        "unholy_alliance",
 }
 
 local ARCANA = {
@@ -92,6 +104,10 @@ local ARCANA = {
     "two_of_pentacles", "three_of_pentacles", "four_of_pentacles",
     "six_of_pentacles", "eight_of_pentacles", "ten_of_pentacles",
     "queen_of_pentacles", "knight_of_pentacles", "king_of_pentacles",
+    "five_of_cups", "five_of_pentacles", "queen_of_cups",
+    "nine_of_wands", "knight_of_wands", "seven_of_wands",
+    "queen_of_wands", "page_of_pentacles", "page_of_swords",
+    "six_of_wands", "three_of_swords",
 }
 
 local function install_pack()
@@ -116,6 +132,12 @@ local function install_pack()
     for _, n in ipairs(ARCANA) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
+    for _, n in ipairs({
+        "jimbo_adventure_soul", "off_alpha_soul", "off_epsilon_soul",
+        "off_omega_soul",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
     end
     ModLoader.load_all()
     local game = bootstrap.new_game(7721)
@@ -193,11 +215,11 @@ end
 -- Registration + tooltips for the whole pack
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 224 Paperback Jokers", function()
+suite.test("pack loads and registers all 269 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 224)
+    T.assert_eq(#mod.registered.jokers, 269)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -1194,10 +1216,541 @@ PB_TESTS_4 = function(H)
     end)
 end
 
+-- Behavior tests for the Tier 3 (v1.1.0) wave: enhancements and the
+-- Jokers / systems they unblock.
+PB_TESTS_5 = function(H)
+    local function tag_spy(game)
+        game._tags = {}
+        game.addTag = function(self, t) self._tags[#self._tags + 1] = t end
+        return game._tags
+    end
+    local function defcalc(key, j, ctx)
+        local def = JOKER_DEFS["j_pbp_" .. key]
+        return def.smods.calculate(def.smods, j, ctx)
+    end
+    local function near(a, b, msg)
+        H.assert_true(math.abs((tonumber(a) or 0) - b) < 0.001,
+            (msg or "near") .. ": expected ~" .. tostring(b)
+            .. ", got " .. tostring(a))
+    end
+
+    H.test("collector: $1 per Sleeved card in the full deck at round end", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "collector")
+        game.deck.cards = {
+            { rank = 5, suit = "Hearts", enhancement = "sleeved" },
+            { rank = 9, suit = "Clubs", enhancement = "sleeved" },
+            { rank = 9, suit = "Spades", enhancement = "sleeved" },
+            { rank = 2, suit = "Spades" },
+        }
+        local def = JOKER_DEFS["j_pbp_collector"]
+        H.assert_eq(def.smods.calc_dollar_bonus(def.smods, j), 3)
+    end)
+
+    H.test("greeting card: a scored Wrapped card raises its sell value", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "greeting_card")
+        local before = j.sell_cost
+        local w = H.node(7, "Hearts", { enhancement = "wrapped" })
+        H.play_card(j, w, { w })
+        H.assert_eq(j.sell_cost, before + 2)
+        local p = H.node(7, "Hearts")
+        H.play_card(j, p, { p })
+        H.assert_eq(j.sell_cost, before + 2, "plain cards do nothing")
+    end)
+
+    H.test("teapot: scored Ceramic cards grow its Chips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "teapot")
+        local c = H.node(7, "Hearts", { enhancement = "ceramic" })
+        H.play_card(j, c, { c })
+        H.play_card(j, c, { c })
+        H.assert_eq(j.ability.extra.chips, 10)
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.chips, 20, "base 10 + 10 grown")
+    end)
+
+    H.test("mexican train: scored Domino pays $1 per played Domino", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "mexican_train")
+        local d1 = H.node(7, "Hearts", { enhancement = "domino" })
+        local d2 = H.node(9, "Clubs", { enhancement = "domino" })
+        game.hand.card_nodes = { d1, d2 }
+        local money = game.money
+        H.play_card(j, d1, { d1, d2 })
+        H.assert_eq(game.money, money + 2)
+    end)
+
+    H.test("kintsugi: destroyed Ceramic cards raise the Ceramic payout", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "kintsugi_joker")
+        local c1 = H.node(7, "Hearts", { enhancement = "ceramic" })
+        local c2 = H.node(9, "Clubs", { enhancement = "ceramic" })
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_destroy", { destroyed_cards = { c1, c2, p } })
+        H.assert_eq(j.ability.extra.total, 4, "2 Ceramic x $2 increase")
+    end)
+
+    H.test("plastic wrap: a destroyed Sleeved card sleeves 2 deck cards", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "plastic_wrap")
+        game.deck.cards = {
+            { rank = 5, suit = "Hearts" }, { rank = 9, suit = "Clubs" },
+            { rank = 2, suit = "Spades" },
+        }
+        local s = H.node(7, "Hearts", { enhancement = "sleeved" })
+        H.fire(j, "on_destroy", { destroyed_cards = { s } })
+        local n = 0
+        for _, d in ipairs(game.deck.cards) do
+            if d.enhancement == "sleeved" then n = n + 1 end
+        end
+        H.assert_eq(n, 2)
+    end)
+
+    H.test("sommelier: the first discard's first Stained card gains a seal", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "sommelier")
+        local st = H.node(7, "Hearts", { enhancement = "stained" })
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_pre_discard", { discarded_nodes = { p, st } })
+        H.assert_true(st.card_data.seal ~= nil, "the Stained card is sealed")
+        H.assert_eq(j.ability.extra.active, false, "once per round")
+    end)
+
+    H.test("gauze: a lone last discard becomes Bandaged", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "gauze")
+        game.discards = 1
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_pre_discard", { discarded_nodes = { p } })
+        H.assert_eq(p.card_data.enhancement, "bandaged")
+    end)
+
+    H.test("spotty joker: Domino cards in the scoring hand grow its XMult", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "spotty_joker")
+        local d1 = H.node(7, "Hearts", { enhancement = "domino" })
+        local d2 = H.node(9, "Clubs", { enhancement = "domino" })
+        H.before(j, { scoring_hand = { d1, d2 }, cards = { d1, d2 } })
+        near(j.ability.extra.xmult, 1.2)
+        local ctx = H.scored(j, {})
+        near(ctx.mult, 2.4, "base Mult 2 at X1.2")
+    end)
+
+    H.test("pinot noir: held Stained cards burn its remaining triggers", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "pinot_noir")
+        local st = H.node(7, "Hearts", { enhancement = "stained" })
+        H.fire(j, "card_held", { card_node = st })
+        H.assert_eq(j.ability.extra.remaining, 9)
+    end)
+
+    H.test("happy accident: a held Antique card pays XChips at halved scaling", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "happy_accident")
+        local a = H.node(7, "Hearts", { enhancement = "antique" })
+        a.card_data.pb_antique_x = 3
+        local ctx = H.fire(j, "card_held",
+            { card_node = a, chips = 20, mult = 1 })
+        near(ctx.chips, 40, "X3 halved is X2: 20 -> 40")
+    end)
+
+    H.test("blue star: Stars grow it, Clubs shrink it", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "blue_star")
+        local s = H.node(7, "Stars")
+        H.play_card(j, s, { s })
+        near(j.ability.extra.x_chips, 1.05)
+        local c = H.node(7, "Clubs")
+        H.play_card(j, c, { c })
+        near(j.ability.extra.x_chips, 0.85)
+        local ctx = H.scored(j, {})
+        near(ctx.chips, 8.5, "base 10 at X0.85")
+    end)
+
+    H.test("chocolate joker: XChips grows with every held Joker", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "chocolate_joker")
+        H.make_joker(game, "claw")
+        H.make_joker(game, "jacks")
+        local ctx = H.scored(j, {})
+        near(ctx.chips, 16, "3 Jokers: X1.6 on base 10")
+    end)
+
+    H.test("crispy taco: X3 Chips while it lasts", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "crispy_taco")
+        local ctx = H.scored(j, {})
+        near(ctx.chips, 30)
+    end)
+
+    H.test("deck of cards: a lone Antique hand grows it and eats the card", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "deck_of_cards")
+        game.hand:add_card({ rank = 7, suit = "Hearts",
+            enhancement = "antique" })
+        local a = game.hand.card_nodes[#game.hand.card_nodes]
+        H.before(j, { scoring_hand = { a }, cards = { a },
+            full_hand = { a }, played_cards = { a } })
+        near(j.ability.extra.x_chips, 1.25)
+        H.assert_eq(#game.hand.card_nodes, 0, "the Antique card is destroyed")
+    end)
+
+    H.test("nachos: discards shave its XChips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "nachos")
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_discard", { card_node = p })
+        near(j.ability.extra.X_chips, 1.95)
+        local ctx = H.scored(j, {})
+        near(ctx.chips, 19.5)
+    end)
+
+    H.test("oracle: unique Minor Arcana used grow its XChips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "oracle")
+        game.consumable_usage = {
+            c_pbp_five_of_cups = { kind = "minor_arcana", count = 1 },
+            c_pbp_two_of_cups = { kind = "minor_arcana", count = 3 },
+            c_fool = { kind = "tarot", count = 1 },
+        }
+        local ctx = H.scored(j, {})
+        near(ctx.chips, 12, "2 unique Arcana: X1.2 on base 10")
+    end)
+
+    H.test("quartz: a scored Star pays more per other played Star", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "quartz")
+        local s1 = H.node(7, "Stars")
+        local s2 = H.node(9, "Stars")
+        local s3 = H.node(2, "Stars")
+        local ctx = H.fire(j, "card_played", {
+            card_node = s1, played_cards = { s1, s2, s3 },
+            full_hand = { s1, s2, s3 }, chips = 10, mult = 1,
+            rank = 7, suit = "Stars",
+        })
+        near(ctx.chips, 14, "X1.4 for two other Stars")
+    end)
+
+    H.test("ready to fly: adjacent Joker triggers grow it", function()
+        local game = H.new_game()
+        local left = H.make_joker(game, "claw")
+        local j = H.make_joker(game, "ready_to_fly")
+        H.make_joker(game, "jacks")
+        defcalc("ready_to_fly", j, { post_trigger = true, other_card = left })
+        near(j.ability.extra.xchips, 1.02)
+        local far = H.make_joker(game, "nazar")
+        defcalc("ready_to_fly", j, { post_trigger = true, other_card = far })
+        near(j.ability.extra.xchips, 1.02, "non-adjacent triggers do nothing")
+    end)
+
+    H.test("stella octangula: the first Star each round pays X2 Chips once", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "stella_octangula")
+        local s = H.node(7, "Stars")
+        local p = H.node(2, "Clubs")
+        H.before(j, { scoring_hand = { p, s }, cards = { p, s } })
+        local ctx = H.fire(j, "card_played", {
+            card_node = s, played_cards = { p, s }, full_hand = { p, s },
+            chips = 10, mult = 1, rank = 7, suit = "Stars",
+        })
+        near(ctx.chips, 20, "the first Star pays X2")
+        ctx = H.fire(j, "card_played", {
+            card_node = s, played_cards = { p, s }, full_hand = { p, s },
+            chips = 10, mult = 1, rank = 7, suit = "Stars",
+        })
+        near(ctx.chips, 10, "only once per round")
+    end)
+
+    H.test("angel investor: skipping or beating the Boss grants its Tag", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "angel_investor")
+        H.fire(j, "on_blind_skipped", {})
+        H.assert_eq(tags[1], "angel_investment")
+        game.current_blind_index = 3
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(tags[2], "angel_investment")
+    end)
+
+    H.test("jimbo adventure: skipping creates a random Tag", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "jimbo_adventure")
+        H.fire(j, "on_blind_skipped", {})
+        H.assert_eq(#tags, 1)
+    end)
+
+    H.test("j and js: a Spectrum makes 2 Tags; it is consumed in 3 rounds", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "j_and_js")
+        H.before(j, { contains_hand_types = { Spectrum = true },
+            scoring_hand = {}, cards = {} })
+        H.assert_eq(#tags, 2)
+        H.fire(j, "on_round_end", {})
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(#game.jokers, 1, "still here after 2 rounds")
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(#game.jokers, 0, "consumed after the 3rd")
+    end)
+
+    H.test("shopkeep: Coupon every 2 blinds, Voucher for the Boss", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "shopkeep")
+        game.current_blind_index = 1
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(#tags, 0)
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(tags[1], "coupon")
+        game.current_blind_index = 3
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(tags[2], "voucher")
+    end)
+
+    H.test("the wonder of you: selecting the Boss creates 2 Tags", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "the_wonder_of_you")
+        game.current_blind_index = 3
+        H.fire(j, "on_blind_selected", {})
+        H.assert_eq(#tags, 2)
+        game.current_blind_index = 1
+        H.fire(j, "on_blind_selected", {})
+        H.assert_eq(#tags, 2, "not for a small blind")
+    end)
+
+    H.test("spirit box: its chosen hand makes a Tag once per round", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "spirit_box")
+        j.ability.extra.hand = "Pair"
+        H.before(j, { contains_hand_types = { Pair = true },
+            scoring_hand = {}, cards = {} })
+        H.assert_eq(#tags, 1)
+        H.before(j, { contains_hand_types = { Pair = true },
+            scoring_hand = {}, cards = {} })
+        H.assert_eq(#tags, 1, "once per round")
+        H.fire(j, "on_round_end", {})
+        j.ability.extra.hand = "Pair"
+        H.before(j, { contains_hand_types = { Pair = true },
+            scoring_hand = {}, cards = {} })
+        H.assert_eq(#tags, 2, "re-armed next round")
+    end)
+
+    H.test("stereoscopic specs: copies the last Tag gained after the Boss", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "stereoscopic_specs")
+        H.fire(j, "on_tag_added", { tag = { type = "double" } })
+        H.assert_eq(j.ability.extra.last_tag, "double")
+        game.current_blind_index = 3
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(tags[1], "double")
+    end)
+
+    H.test("book of life: copies the blind's own Tag, given a few rounds", function()
+        local game = H.new_game()
+        local tags = tag_spy(game)
+        local j = H.make_joker(game, "book_of_life")
+        game.skips = { [1] = 22 } -- the Economy Tag's skip id
+        game.current_blind_index = 1
+        for _ = 1, 12 do
+            H.fire(j, "on_round_end", {})
+            if #tags > 0 then break end
+        end
+        H.assert_eq(tags[1], "economy")
+    end)
+
+    H.test("let it happen: balances each hand once per Ante", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "let_it_happen")
+        local ret = defcalc("let_it_happen", j,
+            { joker_main = true, scoring_name = "Pair" })
+        H.assert_true(ret and ret.balance == true, "first Pair balances")
+        ret = defcalc("let_it_happen", j,
+            { joker_main = true, scoring_name = "Pair" })
+        H.assert_true(ret == nil, "second Pair does not")
+        ret = defcalc("let_it_happen", j,
+            { joker_main = true, scoring_name = "Flush" })
+        H.assert_true(ret and ret.balance == true, "a new hand balances")
+        game.current_blind_index = 3
+        H.fire(j, "on_round_end", {})
+        ret = defcalc("let_it_happen", j,
+            { joker_main = true, scoring_name = "Pair" })
+        H.assert_true(ret and ret.balance == true, "reset after the Boss")
+    end)
+
+    H.test("coin collection: every gain pays an extra $1, once", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "coin_collection")
+        game.money = 10
+        game:ease_dollars(5)
+        H.assert_eq(game.money, 16, "$5 gained + $1 collection")
+        game:ease_dollars(-3)
+        H.assert_eq(game.money, 13, "spending pays nothing")
+    end)
+
+    H.test("frutiger aero: shop spending drains its Chips; Boss resets", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "frutiger_aero")
+        game:ease_dollars(-10, { from_shop = true })
+        H.assert_eq(j.ability.extra.chips, 80)
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.chips, 90)
+        game.current_blind_index = 3
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(j.ability.extra.chips, 100)
+    end)
+
+    H.test("cream liqueur: Tags pay $5; it is consumed in 3 rounds", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "cream_liqueur")
+        local money = game.money
+        game:addTag("double")
+        H.assert_eq(game.money, money + 5, "the Tag paid $5")
+        H.fire(j, "on_round_end", {})
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(#game.jokers, 1)
+        H.fire(j, "on_round_end", {})
+        H.assert_eq(#game.jokers, 0, "consumed after the 3rd round")
+    end)
+
+    H.test("off switch: creates its three eternal addons, which scale on destroys", function()
+        local game = H.new_game()
+        local sw = H.make_joker(game, "off_switch")
+        H.assert_eq(#game.jokers, 4, "switch + Alpha + Omega + Epsilon")
+        local alpha, omega, epsilon
+        for _, j in ipairs(game.jokers) do
+            if j.def.id == "j_pbp_off_alpha" then alpha = j end
+            if j.def.id == "j_pbp_off_omega" then omega = j end
+            if j.def.id == "j_pbp_off_epsilon" then epsilon = j end
+        end
+        H.assert_true(alpha and omega and epsilon, "all three addons exist")
+        H.assert_true(alpha.eternal and omega.eternal and epsilon.eternal,
+            "the addons are Eternal")
+        local victim = H.make_joker(game, "claw")
+        local money = game.money
+        SMODS.destroy_joker(victim)
+        H.assert_eq(alpha.ability.extra.chips, 13)
+        H.assert_eq(omega.ability.extra.mult, 13)
+        H.assert_eq(game.money, money + 13, "Epsilon paid $13")
+        near(sw.ability.extra.x_mult, 3, "the Switch gained X2")
+    end)
+
+    H.test("one with nothing: playing a hand destroys the cards left in hand", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "one_with_nothing")
+        game.hand:add_card({ rank = 7, suit = "Hearts" })
+        game.hand:add_card({ rank = 9, suit = "Clubs" })
+        game.hand:add_card({ rank = 2, suit = "Spades" })
+        local a = game.hand.card_nodes[1]
+        H.fire(j, "on_press_play", { full_hand = { a } })
+        H.assert_eq(#game.hand.card_nodes, 1, "only the played card remains")
+        H.assert_true(game.hand.card_nodes[1] == a)
+    end)
+
+    H.test("watermelon: enhancing grows it, destroyed cards shrink and eat it", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "watermelon")
+        local a = H.node(7, "Hearts", { enhancement = "bonus" })
+        H.fire(j, "on_setting_ability",
+            { card_node = a, old = nil, unchanged = false })
+        near(j.ability.extra.x_mult, 1.1)
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_destroy", { destroyed_cards = { p } })
+        near(j.ability.extra.x_mult, 1.0)
+        H.fire(j, "on_destroy", { destroyed_cards = { p } })
+        H.assert_eq(#game.jokers, 0, "dropping below X1 eats it")
+    end)
+
+    H.test("cross: playing cards cannot be destroyed while it is held", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "cross")
+        local hand = Hand(game)
+        game.hand = hand
+        hand:add_card({ rank = 12, suit = "Hearts" })
+        local queen = hand.card_nodes[1]
+        H.assert_true(SMODS.card_destroy_vetoed(queen), "the veto answers")
+        H.assert_eq(hand:destroy_card_node(queen), false)
+        H.assert_eq(#hand.card_nodes, 1)
+    end)
+
+    H.test("unholy alliance: destroyed cards and Jokers feed its Chips", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "unholy_alliance")
+        local p = H.node(2, "Clubs")
+        H.fire(j, "on_destroy", { destroyed_cards = { p, p } })
+        H.assert_eq(j.ability.extra.chips, 24)
+        local victim = H.make_joker(game, "claw")
+        SMODS.destroy_joker(victim)
+        H.assert_eq(j.ability.extra.chips, 36)
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.chips, 46)
+    end)
+
+    H.test("da capo: debuffs every suit but the current movement's", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "da_capo")
+        game.deck.cards = {
+            { rank = 5, suit = "Clubs" }, { rank = 9, suit = "Hearts" },
+            { rank = 2, suit = "Spades" },
+        }
+        H.fire(j, "on_blind_selected", {})
+        H.assert_true(game.deck.cards[1].perma_debuff == nil,
+            "Clubs (movement 1) stay live")
+        H.assert_eq(game.deck.cards[2].perma_debuff, true,
+            "Hearts are debuffed")
+        local ctx = H.scored(j, {})
+        near(ctx.mult, 8, "X4 Mult on base 2")
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(game.deck.cards[1].perma_debuff, true,
+            "movement 2 debuffs Clubs")
+        H.assert_true(game.deck.cards[3].perma_debuff == nil,
+            "Spades stay live in movement 2")
+    end)
+
+    H.test("jester of nihil: debuffs the last scored suit and pays per debuff", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "jester_of_nihil")
+        game.deck.cards = {
+            { rank = 5, suit = "Hearts" }, { rank = 9, suit = "Hearts" },
+            { rank = 2, suit = "Clubs" },
+        }
+        local h = H.node(7, "Hearts")
+        H.play_card(j, h, { h })
+        H.fire(j, "on_hand_after", {})
+        H.assert_eq(game.deck.cards[1].perma_debuff, true)
+        H.assert_eq(game.deck.cards[2].perma_debuff, true)
+        H.assert_true(game.deck.cards[3].perma_debuff == nil)
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.mult, 12, "base 2 + 2 debuffed x +5")
+    end)
+
+    H.test("weather radio: its hand grows it; at X3+ the Boss is disabled", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "weather_radio")
+        local disabled = false
+        game.disable_boss_blind = function(self) disabled = true end
+        j.ability.extra.hand = "Pair"
+        H.before(j, { contains_hand_types = { Pair = true },
+            scoring_hand = {}, cards = {} })
+        near(j.ability.extra.x_mult, 1.5)
+        j.ability.extra.x_mult = 3
+        game.current_blind_index = 3
+        H.before(j, { contains_hand_types = { Pair = true },
+            scoring_hand = {}, cards = {} })
+        H.assert_true(disabled, "the Boss was disabled")
+        near(j.ability.extra.x_mult, 1.5, "3 + 0.5 growth - 2 penalty")
+    end)
+end
+
 PB_TESTS_0(H)
 PB_TESTS_1(H)
 PB_TESTS_2(H)
 PB_TESTS_3(H)
 PB_TESTS_4(H)
+PB_TESTS_5(H)
 
 return suite

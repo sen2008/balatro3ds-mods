@@ -1,22 +1,28 @@
 --[[
     CryptidPack - Cryptid content ported to Balatro3DS.
 
-    140 Jokers and 22 consumables ported from Cryptid by the Cryptid
+    167 Jokers and 27 consumables ported from Cryptid by the Cryptid
     team / SpectralPack (PC / Steamodded + Talisman, GPLv3, source
     v0.5.17c). Requires the Balatro3DS fork build
     (https://github.com/sen2008/balatro3ds-fork): custom rarities,
     SMODS.PokerHand, SMODS.ConsumableType, create/destroy and
-    retrigger returns are fork features.
+    retrigger returns are fork features. The v1.2.0 additions also
+    need the fork's Tier 3 systems (the x_chips / e_mult / e_chips /
+    balance calculate returns, registered Seals / Editions / Tags,
+    and the destroying_card / debuff_card / money_altered /
+    tag_added contexts).
 
     Port notes:
       * The Talisman bignum wrapper (lenient_bignum / to_big) is
-        stripped wherever the values are ordinary numbers. Jokers
-        whose effects need Talisman values (e_mult / ee_mult /
-        e_chips returns, 1e100+ stats, exponent-scaling) are NOT in
-        this pack; neither are Jokers bound to systems the fork does
-        not have (Cryptid editions, enhancements, seals, tags,
-        stickers, code-program state). Every unported item is listed
-        with its exact blocker in README.txt.
+        stripped wherever the values are ordinary numbers; the fork
+        reads the e_mult / e_chips / x_chips returns natively and
+        promotes hand totals to big numbers past ~1.8e308 on its
+        own, so most former "Talisman-only" Jokers are in as of
+        v1.2.0. What stays out is bound to systems the fork still
+        does not have (Cryptid stickers, code-program state, the
+        Double-Sided / Glitched edition mechanics, per-effect
+        scaling hooks). Every unported item is listed with its
+        exact blocker in README.txt.
       * Cryptid's "gameset" system (modest / mainline / madness) is
         dropped: every item ships with its plain (mainline) config
         and text, and content gates on gamesets are removed.
@@ -162,6 +168,412 @@ if SMODS.ConsumableType then
     end
     if not (SMODS.ConsumableKinds and SMODS.ConsumableKinds["Unique"]) then
         SMODS.ConsumableType { key = "Unique", loc_txt = { name = "Unique" }, shop_rate = 0 }
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Tier 3 helpers (v1.2.0, crypT_ prefix). Declared before the Tier 3
+-- registrations because Lua locals are lexically scoped: every def
+-- below (registrations and the appended Tier 3 section) closes over
+-- these.
+--------------------------------------------------------------------------------
+
+-- The M pool: every ported Joker whose PC def carries
+-- pools = { M = true } (items/m.lua and friends), plus Tiny and
+-- Tredecim themselves. PC's create_card("M") rolls this pool.
+local CRYPT_M_POOL = {
+    "j_cryp_m", "j_cryp_M", "j_cryp_jollysus", "j_cryp_bubblem",
+    "j_cryp_foodm", "j_cryp_mstack", "j_cryp_mneon", "j_cryp_notebook",
+    "j_cryp_bonk", "j_cryp_loopy", "j_cryp_scrabble", "j_cryp_sacrifice",
+    "j_cryp_reverse", "j_cryp_doodlem", "j_cryp_virgo", "j_cryp_biggestm",
+    "j_cryp_macabre", "j_cryp_megg", "j_cryp_longboi", "j_cryp_smallestm",
+    "j_cryp_mprime",
+}
+local CRYPT_M_SET = {}
+for _, id in ipairs(CRYPT_M_POOL) do CRYPT_M_SET[id] = true end
+
+local function crypT_m_pool_ids()
+    return CRYPT_M_POOL
+end
+
+local function crypT_held_jokers()
+    if not (G and G.jokers) then return {} end
+    local list = G.jokers.cards or G.jokers
+    if type(list) ~= "table" then return {} end
+    return list
+end
+
+local function crypT_joker_id(j)
+    if type(j) ~= "table" then return nil end
+    if j.def and j.def.id then return j.def.id end
+    return j.def_id or j.id
+end
+
+-- PC's Card:is_jolly(): the vanilla Jolly Joker, Jolly Joker?
+-- (jollysus), or any Joker carrying the Jolly (M) edition.
+local function crypT_is_jolly(j)
+    local id = crypT_joker_id(j)
+    if id == "j_jolly" or id == "j_cryp_jollysus" then return true end
+    if j and j.edition == "cry_m" then return true end
+    return false
+end
+
+local function crypT_is_m(j)
+    local id = crypT_joker_id(j)
+    return id ~= nil and CRYPT_M_SET[id] == true
+end
+
+-- Create a random Joker of a registered rarity (the Trick-or-Treat
+-- pool pattern, shared): defs of that rarity not currently held,
+-- falling back to the full rarity pool. Returns the created Joker
+-- or nil.
+local function crypT_spawn_rarity(rarity_key, seed, edition)
+    local entry = SMODS.Rarities and SMODS.Rarities[rarity_key]
+    if not entry then return nil end
+    local held, pool = {}, {}
+    for _, j in ipairs(crypT_held_jokers()) do
+        local id = crypT_joker_id(j)
+        if id then held[id] = true end
+    end
+    for id, def in pairs(JOKER_DEFS or {}) do
+        if type(def) == "table" and tonumber(def.rarity) == entry.index
+            and not held[id] then
+            pool[#pool + 1] = id
+        end
+    end
+    if #pool == 0 then
+        for id, def in pairs(JOKER_DEFS or {}) do
+            if type(def) == "table" and tonumber(def.rarity) == entry.index then
+                pool[#pool + 1] = id
+            end
+        end
+    end
+    if #pool == 0 then return nil end
+    return SMODS.add_card { set = "Joker",
+        key = pool[SMODS.pseudorandom(seed, 1, #pool)], edition = edition }
+end
+
+-- Create a random Joker whose def rarity equals a numeric rarity
+-- index (vanilla 1-4 or a custom rarity's index), for ://COMMIT.
+local function crypT_spawn_rarity_index(index, seed)
+    if not index then return nil end
+    local pool = {}
+    for id, def in pairs(JOKER_DEFS or {}) do
+        if type(def) == "table" and tonumber(def.rarity) == index then
+            pool[#pool + 1] = id
+        end
+    end
+    if #pool == 0 then return nil end
+    return SMODS.add_card { set = "Joker",
+        key = pool[SMODS.pseudorandom(seed, 1, #pool)] }
+end
+
+local function crypT_copy(t)
+    if type(t) ~= "table" then return t end
+    local out = {}
+    for k, v in pairs(t) do out[k] = crypT_copy(v) end
+    return out
+end
+
+-- A random tag type for Pickle / Pity Prize: PC rolls the whole tag
+-- pool (get_next_tag_key), so this is every vanilla tag type plus
+-- every registered custom tag that polls (weight > 0 and not vetoed
+-- by its in_pool), minus the caller's exclusions. The Boss Tag is
+-- excluded by both callers, as on PC.
+local CRYPT_VANILLA_TAG_TYPES = {
+    "uncommon", "rare", "negative", "foil", "holo", "polychrome",
+    "investment", "voucher", "boss", "standard", "charm", "meteor",
+    "buffoon", "handy", "garbage", "ethereal", "coupon", "double",
+    "juggle", "d6", "topup", "speed", "orbital", "economy",
+}
+local function crypT_random_tag_type(exclude)
+    local pool = {}
+    for _, t in ipairs(CRYPT_VANILLA_TAG_TYPES) do
+        if not (exclude and exclude[t]) then pool[#pool + 1] = t end
+    end
+    if SMODS.TagByType then
+        for typ, entry in pairs(SMODS.TagByType) do
+            if (tonumber(entry.weight) or 0) > 0
+                and not (exclude and exclude[typ]) then
+                local ok = true
+                if type(entry.in_pool) == "function" then
+                    local okc, res = pcall(entry.in_pool, entry, G)
+                    ok = okc and res ~= false
+                end
+                if ok then pool[#pool + 1] = typ end
+            end
+        end
+    end
+    if #pool == 0 then return nil end
+    return pool[SMODS.pseudorandom("cryp_random_tag", 1, #pool)]
+end
+
+local function crypT_add_random_tag(exclude)
+    local typ = crypT_random_tag_type(exclude)
+    if not typ or not (G and G.addTag) then return nil end
+    if typ == "orbital" and G.roll_orbital_hand_index then
+        G:addTag(typ, { orbital_hand_index = G:roll_orbital_hand_index() })
+    else
+        G:addTag(typ)
+    end
+    return typ
+end
+
+-- Display name of an edition value (for the Rework Tag's tooltip).
+local CRYPT_EDITION_NAMES = {
+    base = "Base", foil = "Foil", holo = "Holographic",
+    polychrome = "Polychrome", negative = "Negative",
+}
+local function crypT_edition_name(value)
+    if type(value) ~= "string" then return nil end
+    if CRYPT_EDITION_NAMES[value] then return CRYPT_EDITION_NAMES[value] end
+    local entry = SMODS.EditionByValue and SMODS.EditionByValue[value]
+    if entry then return entry.name end
+    return nil
+end
+
+-- The Collection-order edition ladder ://REWORK upgrades along:
+-- base -> foil -> holo -> polychrome -> negative -> the pack's
+-- registered editions in registration order, wrapping around.
+local function crypT_edition_ladder()
+    local ladder = { "base", "foil", "holo", "polychrome", "negative" }
+    local customs = {}
+    if SMODS.EditionByValue then
+        for value, entry in pairs(SMODS.EditionByValue) do
+            customs[#customs + 1] = { value = value, order = entry.order or 0 }
+        end
+    end
+    table.sort(customs, function(a, b) return a.order < b.order end)
+    for _, c in ipairs(customs) do ladder[#ladder + 1] = c.value end
+    return ladder
+end
+
+local function crypT_next_edition(current)
+    local ladder = crypT_edition_ladder()
+    local cur = current or "base"
+    if cur == "" then cur = "base" end
+    local idx = 1
+    for i, v in ipairs(ladder) do
+        if v == cur then idx = i break end
+    end
+    idx = idx + 1
+    if idx > #ladder then idx = idx - #ladder end
+    return ladder[idx]
+end
+
+--------------------------------------------------------------------------------
+-- Tier 3 registrations (v1.2.0): Cryptid's two seals, three of its
+-- editions and three of its tags. Guarded like the rarities above.
+--
+-- Seals: PC's Green Seal creates a Code card when its card is played
+-- and unscored, and the Azure Seal fires when its card is destroyed
+-- in play; the fork raises neither moment for seals (its seal moments
+-- are card_played / held_in_hand / on_round_end / on_discard), so both
+-- seals are registered as markers -- they can be applied (Source,
+-- Typhoon, Seal the Deal) and seen in the collection, but their own
+-- effects do not fire here. Both sit at poll weight 0, as on PC
+-- (neither is in the Standard-pack seal poll there either).
+--
+-- Editions: the fork's edition config carries chips / mult / x_mult
+-- only -- no e_mult and no calculate -- so Astral's ^1.1 Mult and
+-- Mosaic's X2.5 Chips cannot be expressed as edition effects. Both
+-- are registered as markers (weight 0, out of every poll) so that
+-- Ritual can apply them and Universe can detect Astral; their own
+-- scoring effects do not apply here. The Jolly (M) edition is real:
+-- its +8 Mult is plain edition config.
+--------------------------------------------------------------------------------
+
+if SMODS.Seal then
+    if not (SMODS.SealByValue and SMODS.SealByValue["cry_green"]) then
+        SMODS.Seal {
+            key = "cry_green",
+            loc_txt = {
+                name = "Green Seal",
+                text = {
+                    "Creates a {C:attention}Code{} card",
+                    "when played and unscoring",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            config = {},
+            weight = 0,
+            sprite = "cry_green.png",
+        }
+    end
+    if not (SMODS.SealByValue and SMODS.SealByValue["cry_azure"]) then
+        SMODS.Seal {
+            key = "cry_azure",
+            loc_txt = {
+                name = "Azure Seal",
+                text = {
+                    "Create {C:attention}#1#{} {C:dark_edition}Negative{}",
+                    "{C:planet}Planet{} cards for played",
+                    "{C:attention}poker hand{}, then",
+                    "{C:red}destroy{} this card",
+                },
+            },
+            config = { planets_amount = 3 },
+            weight = 0,
+            sprite = "cry_azure.png",
+            loc_vars = function(self, info_queue, card)
+                return { vars = { self.config.planets_amount } }
+            end,
+        }
+    end
+end
+
+if SMODS.Edition then
+    if not (SMODS.EditionByValue and SMODS.EditionByValue["cry_astral"]) then
+        SMODS.Edition {
+            key = "cry_astral",
+            loc_txt = {
+                name = "Astral",
+                text = { "{X:mult,C:white}^#1#{} Mult" },
+            },
+            config = {},
+            weight = 0,
+            cost = 9,
+            sprite = "cry_astral.png",
+            loc_vars = function(self, info_queue, card)
+                return { vars = { 1.1 } }
+            end,
+        }
+    end
+    if not (SMODS.EditionByValue and SMODS.EditionByValue["cry_mosaic"]) then
+        SMODS.Edition {
+            key = "cry_mosaic",
+            loc_txt = {
+                name = "Mosaic",
+                text = { "{X:chips,C:white} X#1# {} Chips" },
+            },
+            config = {},
+            weight = 0,
+            cost = 5,
+            sprite = "cry_mosaic.png",
+            loc_vars = function(self, info_queue, card)
+                return { vars = { 2.5 } }
+            end,
+        }
+    end
+    if not (SMODS.EditionByValue and SMODS.EditionByValue["cry_m"]) then
+        SMODS.Edition {
+            key = "cry_m",
+            loc_txt = {
+                name = "Jolly",
+                text = {
+                    "{C:mult}+#1#{} Mult",
+                    "This card is feeling",
+                    "rather {C:attention}jolly{}",
+                },
+            },
+            config = { mult = 8 },
+            weight = 0,
+            cost = 0,
+            sprite = "cry_m.png",
+            loc_vars = function(self, info_queue, card)
+                return { vars = { self.config.mult } }
+            end,
+        }
+    end
+end
+
+if SMODS.Tag then
+    -- Cat Tag: a pure marker on PC too (no apply); its level is what
+    -- Yarn Ball reads and what Kitty Printer's conversion produces.
+    if not (SMODS.TagByType and SMODS.TagByType["cry_cat"]) then
+        SMODS.Tag {
+            key = "cry_cat",
+            loc_txt = {
+                name = "Cat Tag",
+                text = {
+                    "Meow.",
+                    "{C:inactive}Level {C:dark_edition}#1#",
+                },
+            },
+            config = { level = 1 },
+            sprite = "cry_cat.png",
+            loc_vars = function(self, tag)
+                local lvl = tag and tag.ability and tag.ability.level or 1
+                return { vars = { lvl } }
+            end,
+        }
+    end
+    -- Double M Tag: the next shop Joker is replaced by a random
+    -- M-pool Joker carrying the Jolly (M) edition.
+    -- PORT NOTE: PC also makes the offer free (couponed); the fork
+    -- prices a store_joker_create draft after the moment fires and
+    -- a tag gets only one moment, so the offer is priced normally.
+    if not (SMODS.TagByType and SMODS.TagByType["cry_double_m"]) then
+        SMODS.Tag {
+            key = "cry_double_m",
+            loc_txt = {
+                name = "Double M Tag",
+                text = {
+                    "Shop has a",
+                    "{C:dark_edition}Jolly {C:legendary}M Joker{}",
+                },
+            },
+            config = { type = "store_joker_create" },
+            weight = 0,
+            sprite = "cry_double_m.png",
+            apply = function(self, tag, context)
+                local card = context and context.card
+                if not card then return false end
+                local pool = {}
+                for _, id in ipairs(crypT_m_pool_ids()) do
+                    if (JOKER_DEFS or {})[id] then pool[#pool + 1] = id end
+                end
+                if #pool == 0 then return false end
+                card.id = pool[SMODS.pseudorandom("cryp_double_m", 1, #pool)]
+                card.edition = "cry_m"
+                return true
+            end,
+        }
+    end
+    -- Rework Tag: created by ://REWORK with per-instance state (the
+    -- destroyed Joker's key and its upgraded edition) written onto
+    -- the held tag's ability by the consumable; the shop draft is
+    -- rewritten to that Joker and edition here.
+    if not (SMODS.TagByType and SMODS.TagByType["cry_rework"]) then
+        SMODS.Tag {
+            key = "cry_rework",
+            loc_txt = {
+                name = "Rework Tag",
+                text = {
+                    "Shop has a#3#",
+                    "{C:dark_edition}#1# {C:attention}#2#",
+                },
+            },
+            config = { type = "store_joker_create" },
+            weight = 0,
+            sprite = "cry_rework.png",
+            loc_vars = function(self, tag)
+                local ab = (tag and tag.ability) or {}
+                local ed = ab.rework_edition
+                local ed_name = ed and crypT_edition_name(ed) or nil
+                local j_name = ab.rework_key
+                    and (JOKER_DEFS or {})[ab.rework_key]
+                    and JOKER_DEFS[ab.rework_key].name or nil
+                local shown_ed = ed_name or "[edition]"
+                local art = "n"
+                if ed_name then
+                    local first = shown_ed:sub(1, 1):lower()
+                    art = (first == "a" or first == "e" or first == "i"
+                        or first == "o" or first == "u") and "n" or ""
+                end
+                return { vars = { shown_ed, j_name or "[joker]", art } }
+            end,
+            apply = function(self, tag, context)
+                local card = context and context.card
+                local ab = (tag and tag.ability) or {}
+                if not card then return false end
+                local key = ab.rework_key
+                if not (key and (JOKER_DEFS or {})[key]) then key = "j_scholar" end
+                card.id = key
+                if ab.rework_edition then card.edition = ab.rework_edition end
+                return true
+            end,
+        }
     end
 end
 
@@ -907,10 +1319,10 @@ SMODS.Joker {
 --------------------------------------------------------------------------------
 -- Seal the Deal: add a random seal to each card scored on the final hand
 -- of the round.
--- PORT NOTE: PC picks from every seal via SMODS.poll_seal, including the
--- Cryptid-only Green and Azure seals, which cannot exist here; the pool
--- is the four vanilla seals, written to card_data.seal (the Paperback
--- pattern). "Final hand" is the fork's hands-remaining counter G.hands
+-- PORT NOTE: PC picks from every seal via SMODS.poll_seal; the pool is
+-- the four vanilla seals plus the pack's registered Green and Azure
+-- seals (v1.2.0), written to card_data.seal (the Paperback pattern).
+-- "Final hand" is the fork's hands-remaining counter G.hands
 -- hitting 0; the Panopticon branch checks the held-Joker list for
 -- j_cryp_panopticon instead of SMODS.find_card. PC's sprite-variant
 -- set_ability (art chosen by a random seal name) is dropped: one sprite
@@ -948,7 +1360,7 @@ SMODS.Joker {
                 end
             end
             if not final then return end
-            local seals = { "gold", "red", "blue", "purple" }
+            local seals = { "gold", "red", "blue", "purple", "cry_azure", "cry_green" }
             local sealed_any = false
             for _, view in ipairs(context.scoring_hand) do
                 local data = view.card_data
@@ -3458,13 +3870,19 @@ SMODS.Joker {
 }
 
 --------------------------------------------------------------------------------
--- Kitty Printer: X2 Mult.
--- PORT NOTE: the "all skip tags become Cat Tags" half is dropped and
--- its description line removed: it lives in Cryptid's library tag
--- hook (Cryptid.get_next_tag) and Cat Tags are Cryptid tags, which
--- cannot be registered in the fork. Only the Joker's own calculate
--- (X2 Mult) is ported.
+-- Kitty Printer: X2 Mult, and all skip tags become Cat Tags.
+-- PORT NOTE: on PC the conversion lives in Cryptid's library tag
+-- hook (Cryptid.get_next_tag replaces the tag roll itself). The fork
+-- has no roll hook, so the port converts after the fact: the tag a
+-- gain raises (tag_added) is remembered per instance, and when the
+-- blind is skipped (skip_blind fires after the grant) the granted
+-- tag is swapped for a Cat Tag -- but only if it is still the newest
+-- held tag, so a tag that fired and was consumed on gain (an
+-- immediate tag) is never replaced by mistake; PC would have turned
+-- that roll into a Cat Tag instead of letting it fire.
 --------------------------------------------------------------------------------
+
+local cryp_kitty_last_tag = setmetatable({}, { __mode = "k" })
 
 SMODS.Joker {
     key = "kittyprinter",
@@ -3472,6 +3890,8 @@ SMODS.Joker {
         name = "Kitty Printer",
         text = {
             "{X:mult,C:white} X#1# {} Mult",
+            "All {C:attention}skip{} tags",
+            "become {C:attention}Cat Tags{}",
         },
     },
     config = { extra = { Xmult = 2 } },
@@ -3491,13 +3911,100 @@ SMODS.Joker {
         if context.joker_main then
             return { xmult = card.ability.extra.Xmult }
         end
+        if context.tag_added and context.tag_added then
+            cryp_kitty_last_tag[card] = context.tag_added
+        end
+        if context.skip_blind then
+            local granted = cryp_kitty_last_tag[card]
+            cryp_kitty_last_tag[card] = nil
+            if granted and G and G.tags and G.removeTag and G.addTag
+                and G.tags[#G.tags] == granted
+                and granted.type ~= "cry_cat" then
+                G:removeTag(#G.tags)
+                G:addTag("cry_cat")
+                return { message = "Meow!" }
+            end
+        end
     end,
 }
 
 --------------------------------------------------------------------------------
--- Exposed: retrigger all scored non-face cards 2 additional times.
--- PORT NOTE: the "all face cards are debuffed" half is dropped: it
--- uses the debuff_card context, which the fork does not raise.
+-- Exposed / Mask debuff sweeps. On PC the debuff half is a predicate
+-- (the debuff_card context asked as a query): every matching card
+-- simply counts as debuffed while the Joker is held. The fork's
+-- debuff_card is an application event with no predicate form, so the
+-- port sweeps instead: it writes the persistent perma_debuff flag --
+-- the same flag the canonical setter (SMODS.set_debuff /
+-- Game:set_card_debuff) writes -- onto every matching card in the
+-- deck, discard pile and hand, marking the cards it flipped so
+-- remove_from_deck clears exactly those. The sweep re-runs when the
+-- Joker is gained, at setting_blind, before each hand and after
+-- each draw, so cards that enter play later are caught; a card
+-- debuffed by anything else is never marked and never cleared.
+--------------------------------------------------------------------------------
+
+local function crypT_rank_id(data)
+    local r = data and data.rank
+    if type(r) == "string" then
+        r = ({ J = 11, Q = 12, K = 13, A = 14, T = 10 })[r] or tonumber(r)
+    end
+    return tonumber(r)
+end
+
+local function crypT_is_face_data(data)
+    if type(data) ~= "table" or data.enhancement == "stone" then
+        return false
+    end
+    local id = crypT_rank_id(data)
+    return id == 11 or id == 12 or id == 13
+end
+
+local function crypT_each_card_data(fn, extra_views)
+    if not G then return end
+    local seen = {}
+    local function visit(data)
+        if type(data) == "table" and not seen[data] then
+            seen[data] = true
+            fn(data)
+        end
+    end
+    if G.deck then
+        for _, d in ipairs(G.deck.cards or {}) do visit(d) end
+        for _, d in ipairs(G.deck.discard_pile or {}) do visit(d) end
+    end
+    if G.hand then
+        for _, d in ipairs(G.hand.cards or {}) do visit(d) end
+        for _, n in ipairs(G.hand.card_nodes or {}) do
+            visit(n and n.card_data)
+        end
+    end
+    for _, v in ipairs(extra_views or {}) do
+        visit(v and v.card_data)
+    end
+end
+
+local function crypT_debuff_sweep(mark, want_face, views)
+    crypT_each_card_data(function(data)
+        if crypT_is_face_data(data) == want_face
+            and data.perma_debuff ~= true then
+            data.perma_debuff = true
+            data[mark] = true
+        end
+    end, views)
+end
+
+local function crypT_debuff_clear(mark)
+    crypT_each_card_data(function(data)
+        if data[mark] then
+            data[mark] = nil
+            data.perma_debuff = nil
+        end
+    end)
+end
+
+--------------------------------------------------------------------------------
+-- Exposed: retrigger all scored non-face cards 2 additional times;
+-- all face cards are debuffed.
 --------------------------------------------------------------------------------
 
 SMODS.Joker {
@@ -3507,6 +4014,7 @@ SMODS.Joker {
         text = {
             "Retrigger all scored non-{C:attention}face{} cards",
             "{C:attention}#1#{} additional times",
+            "All {C:attention}face{} cards are debuffed",
         },
     },
     config = { extra = { retriggers = 2, max_retriggers = 40 } },
@@ -3522,7 +4030,19 @@ SMODS.Joker {
     loc_vars = function(self, info_queue, card)
         return { vars = { math.min(card.ability.extra.max_retriggers, card.ability.extra.retriggers) } }
     end,
+    add_to_deck = function(self, card, from_debuff)
+        crypT_debuff_sweep("cryp_exposed_mark", true)
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        crypT_debuff_clear("cryp_exposed_mark")
+    end,
     calculate = function(self, card, context)
+        if context.setting_blind or context.hand_drawn then
+            crypT_debuff_sweep("cryp_exposed_mark", true)
+        end
+        if context.before and context.full_hand then
+            crypT_debuff_sweep("cryp_exposed_mark", true, context.full_hand)
+        end
         if context.repetition and context.cardarea == G.play and context.other_card then
             if not context.other_card:is_face() then
                 return {
@@ -3534,9 +4054,8 @@ SMODS.Joker {
 }
 
 --------------------------------------------------------------------------------
--- Mask: retrigger all scored face cards 3 additional times.
--- PORT NOTE: the "all non-face cards are debuffed" half is dropped:
--- it uses the debuff_card context, which the fork does not raise.
+-- Mask: retrigger all scored face cards 3 additional times; all
+-- non-face cards are debuffed (same sweep as Exposed, inverted).
 --------------------------------------------------------------------------------
 
 SMODS.Joker {
@@ -3546,6 +4065,7 @@ SMODS.Joker {
         text = {
             "Retrigger all scored {C:attention}face{} cards",
             "{C:attention}#1#{} additional times",
+            "All non-{C:attention}face{} cards are debuffed",
         },
     },
     config = { extra = { retriggers = 3, max_retriggers = 40 } },
@@ -3561,7 +4081,19 @@ SMODS.Joker {
     loc_vars = function(self, info_queue, card)
         return { vars = { math.min(card.ability.extra.max_retriggers, card.ability.extra.retriggers) } }
     end,
+    add_to_deck = function(self, card, from_debuff)
+        crypT_debuff_sweep("cryp_mask_mark", false)
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        crypT_debuff_clear("cryp_mask_mark")
+    end,
     calculate = function(self, card, context)
+        if context.setting_blind or context.hand_drawn then
+            crypT_debuff_sweep("cryp_mask_mark", false)
+        end
+        if context.before and context.full_hand then
+            crypT_debuff_sweep("cryp_mask_mark", false, context.full_hand)
+        end
         if context.repetition and context.cardarea == G.play and context.other_card then
             if context.other_card:is_face() then
                 return {
@@ -8022,23 +8554,28 @@ SMODS.Consumable {
 }
 
 --------------------------------------------------------------------------------
--- Conduit: Swap the editions of 2 selected playing cards.
--- PORT NOTE: PC can also target Jokers (Cryptid.get_highlighted_cards
--- over G.hand and G.jokers); the fork has no Joker-selection path for
--- consumables (selection is hand cards only), so the port covers
--- playing cards only and the description is adjusted to match.
+-- Conduit: Swap the editions of 2 selected playing cards or Jokers.
+-- PORT NOTE: PC selects any 2 cards from hand and Jokers combined
+-- (Cryptid.get_highlighted_cards over both areas). The fork's
+-- Joker-targeting consumables resolve exactly one target Joker, so
+-- the port covers the two mixed branches: 2 selected playing cards,
+-- or 1 selected playing card plus the targeted Joker (target_joker).
+-- Selecting 2 Jokers stays impossible here -- there is only one
+-- target slot -- and the selection minimum of 1 playing card is the
+-- fork's (a use with no playing card selected cannot start).
 --------------------------------------------------------------------------------
 
 SMODS.Consumable {
     set = "Spectral", key = "conduit",
+    target_joker = true,
     loc_txt = {
         name = "Conduit",
         text = {
             "Swap the {C:attention}editions{} of",
-            "{C:attention}2{} selected playing cards",
+            "{C:attention}2{} selected playing cards or {C:attention}Jokers{}",
         },
     },
-    config = { min_highlighted = 2, max_highlighted = 2 },
+    config = { min_highlighted = 1, max_highlighted = 2 },
     cost = 4,
     sprite = "conduit.png",
     negative_sprite = "conduit_negative.png",
@@ -8047,17 +8584,33 @@ SMODS.Consumable {
             or (self.config and self.config.max_highlighted) or 1
         return { vars = { mh } }
     end,
-    use = function(self, card, area, copier)
+    can_use = function(self, card, target)
         local hl = (G and G.hand and G.hand.highlighted) or {}
-        if #hl ~= 2 then return end
-        local d1 = hl[1] and hl[1].card_data
-        local d2 = hl[2] and hl[2].card_data
-        if not (d1 and d2) then return end
-        local e1, e2 = crypH_card_edition(d1), crypH_card_edition(d2)
-        crypH_set_card_edition(d1, e2)
-        crypH_set_card_edition(d2, e1)
-        crypH_sync(hl[1])
-        crypH_sync(hl[2])
+        if #hl == 2 then return true end
+        if #hl == 1 then return target ~= nil end
+        return false
+    end,
+    use = function(self, card, area, copier, target)
+        local hl = (G and G.hand and G.hand.highlighted) or {}
+        if #hl == 2 then
+            local d1 = hl[1] and hl[1].card_data
+            local d2 = hl[2] and hl[2].card_data
+            if not (d1 and d2) then return end
+            local e1, e2 = crypH_card_edition(d1), crypH_card_edition(d2)
+            crypH_set_card_edition(d1, e2)
+            crypH_set_card_edition(d2, e1)
+            crypH_sync(hl[1])
+            crypH_sync(hl[2])
+        elseif #hl == 1 and target then
+            local d = hl[1] and hl[1].card_data
+            if not d then return end
+            local e_card = crypH_card_edition(d)
+            local e_joker = target.edition
+            if e_joker == "base" or e_joker == "" then e_joker = nil end
+            crypH_set_card_edition(d, e_joker)
+            target.edition = e_card
+            crypH_sync(hl[1])
+        end
     end,
 }
 
@@ -8267,5 +8820,1636 @@ SMODS.Consumable {
                 return
             end
         end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Tier 3 section (v1.2.0): the ports the fork's Tier 3 systems
+-- unblocked -- the e_mult / e_chips / x_chips / balance calculate
+-- returns, registered seals / editions / tags, Joker-targeting
+-- consumables, and the tag_added / skipping_booster contexts.
+-- Shared helpers (crypT_) are declared at the top of the file.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Circulus Pistoris: ^pi Chips and ^pi Mult at exactly 3 hands
+-- remaining.
+-- PORT NOTE: PC's cost is 10*pi; the fork's costs are whole dollars,
+-- so it sells for $31 here. The Oversaturated-edition tau variant
+-- (2*pi) has no fork edition to read and is dropped.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "circulus_pistoris",
+    loc_txt = {
+        name = "Circulus Pistoris",
+        text = {
+            "{X:chips,C:white}^#1#{} Chips and {X:mult,C:white}^#1#{} Mult",
+            "if {C:attention}exactly{} #2#",
+            "hands remaining",
+        },
+    },
+    config = { extra = { Emult = math.pi, Echips = math.pi, hands_remaining = 3 } },
+    rarity = "exotic",
+    cost = 31,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "circulus_pistoris.png",
+    negative_sprite = "circulus_pistoris_negative.png",
+    soul_sprite = "circulus_pistoris_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "pi", card.ability.extra.hands_remaining } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local left = G and tonumber(G.hands) or -1
+            if left >= card.ability.extra.hands_remaining
+                and left < card.ability.extra.hands_remaining + 1 then
+                return {
+                    e_chips = card.ability.extra.Echips,
+                    e_mult = card.ability.extra.Emult,
+                }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Facile: ^3 Mult if the played cards were scored 10 or fewer times.
+-- PORT NOTE: PC counts in the individual context (every scored card
+-- trigger, retriggers included); the fork's individual pass is the
+-- card_played pipeline, counted the same way.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "facile",
+    loc_txt = {
+        name = "Facile",
+        text = {
+            "{X:mult,C:white}^#1#{} Mult if",
+            "played cards are scored",
+            "{C:attention}#2#{} or fewer times",
+        },
+    },
+    config = { extra = { Emult = 3, check = 10 }, immutable = { check2 = 0 } },
+    rarity = "exotic",
+    cost = 50,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "facile.png",
+    negative_sprite = "facile_negative.png",
+    soul_sprite = "facile_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.Emult, card.ability.extra.check } }
+    end,
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play then
+            card.ability.immutable.check2 = card.ability.immutable.check2 + 1
+        end
+        if context.joker_main then
+            local pay = card.ability.immutable.check2 <= card.ability.extra.check
+            card.ability.immutable.check2 = 0
+            if pay then
+                return { e_mult = card.ability.extra.Emult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Primus: gains ^0.17 Mult whenever every card in the played hand is
+-- an Ace, 2, 3, 5 or 7; pays its stored ^Mult.
+-- PORT NOTE: PC checks context.full_hand (all played cards, scored
+-- or not), as here; the floating-sprite changes are dropped.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "primus",
+    loc_txt = {
+        name = "Primus",
+        text = {
+            "This Joker gains {X:mult,C:white} ^#1# {} Mult",
+            "if all cards in played hand are",
+            "{C:attention}Aces{}, {C:attention}2s{}, {C:attention}3s{}, {C:attention}5s{}, or {C:attention}7s{}",
+            "{C:inactive}(Currently {X:mult,C:white} ^#2# {C:inactive} Mult)",
+        },
+    },
+    config = { extra = { Emult = 1.01, Emult_mod = 0.17 } },
+    rarity = "exotic",
+    cost = 53,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "primus.png",
+    negative_sprite = "primus_negative.png",
+    soul_sprite = "primus_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.Emult_mod, card.ability.extra.Emult } }
+    end,
+    calculate = function(self, card, context)
+        if context.before and not context.blueprint and context.scoring_hand then
+            local prime = { [2] = true, [3] = true, [5] = true, [7] = true, [14] = true }
+            local check = true
+            for _, c in ipairs(context.full_hand or {}) do
+                if not prime[c:get_id() or -1] then
+                    check = false
+                    break
+                end
+            end
+            if check then
+                card.ability.extra.Emult = card.ability.extra.Emult
+                    + card.ability.extra.Emult_mod
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and card.ability.extra.Emult > 1 then
+            return { e_mult = card.ability.extra.Emult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Stella Mortis: at the end of the shop, destroy a random Planet
+-- card to gain ^0.4 Mult.
+-- PORT NOTE: PC picks among non-eternal Planet consumables; the
+-- fork's consumable instances carry kind = "planet" and the same
+-- eternal flag, and removal is G:remove_consumable_at (the Cut
+-- pattern).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "stella_mortis",
+    loc_txt = {
+        name = "Stella Mortis",
+        text = {
+            "This Joker destroys a",
+            "random {C:planet}Planet{} card",
+            "to gain {X:mult,C:white} ^#1# {} Mult",
+            "at the end of the {C:attention}shop{}",
+            "{C:inactive}(Currently {X:mult,C:white} ^#2# {C:inactive} Mult)",
+        },
+    },
+    config = { extra = { Emult = 1, Emult_mod = 0.4 } },
+    rarity = "exotic",
+    cost = 50,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "stella_mortis.png",
+    negative_sprite = "stella_mortis_negative.png",
+    soul_sprite = "stella_mortis_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.Emult_mod, card.ability.extra.Emult } }
+    end,
+    calculate = function(self, card, context)
+        if context.ending_shop and not context.blueprint then
+            local targets = {}
+            for i, c in ipairs((G and G.consumables) or {}) do
+                if tostring(c.kind or ""):lower() == "planet" and not c.eternal then
+                    targets[#targets + 1] = i
+                end
+            end
+            if #targets > 0 then
+                local idx = targets[SMODS.pseudorandom("cryp_stella_mortis", 1, #targets)]
+                G:remove_consumable_at(idx)
+                card.ability.extra.Emult = card.ability.extra.Emult
+                    + card.ability.extra.Emult_mod
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and card.ability.extra.Emult > 1 then
+            return { e_mult = card.ability.extra.Emult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Happy House: ^4 Mult, but only after 114 hands have been played
+-- with it held.
+-- PORT NOTE: PC counts in the before context (non-Blueprint) and
+-- pays in joker_main once the count passes the trigger; the
+-- ante-cutoff achievement check is dropped with the unlock system.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "happyhouse",
+    loc_txt = {
+        name = "Happy House",
+        text = {
+            "{X:mult,C:white}^#1#{} Mult only after",
+            "playing {C:attention}#3#{} hands",
+            "{C:inactive}(Currently #2#/#3#){}",
+            "{C:inactive,s:0.8}There is no place like home!{}",
+        },
+    },
+    config = { immutable = { mult = 4, trigger = 114, check = 0 } },
+    rarity = 2,
+    cost = 2,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "happyhouse.png",
+    negative_sprite = "happyhouse_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            card.ability.immutable.mult,
+            card.ability.immutable.check,
+            card.ability.immutable.trigger,
+        } }
+    end,
+    calculate = function(self, card, context)
+        if context.before and not context.blueprint and not context.retrigger_joker then
+            card.ability.immutable.check = card.ability.immutable.check + 1
+            if card.ability.immutable.check < card.ability.immutable.trigger then
+                return { message = card.ability.immutable.check
+                    .. "/" .. card.ability.immutable.trigger }
+            end
+        end
+        if context.joker_main and card.ability.immutable.check > card.ability.immutable.trigger then
+            return { e_mult = card.ability.immutable.mult }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Night: ^3 Mult on the final hand of the round, then self-destructs
+-- on the final hand of the round.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "night",
+    loc_txt = {
+        name = "Night",
+        text = {
+            "{X:mult,C:white}^#1#{} Mult on final",
+            "hand of round",
+            "{E:2,C:red}self destructs{} on",
+            "final hand of round",
+        },
+    },
+    config = { extra = { mult = 3 } },
+    rarity = 3,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "night.png",
+    negative_sprite = "night_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
+    end,
+    calculate = function(self, card, context)
+        local final = G and (tonumber(G.hands) or 1) <= 0
+        if context.joker_main and final and card.ability.extra.mult > 1 then
+            return { e_mult = card.ability.extra.mult }
+        end
+        if context.after and final and not context.blueprint
+            and not context.retrigger_joker then
+            if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+            return { message = "Extinct!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Jimbo-tron 9000: ^Mult equal to 1 + 1 per default Joker held.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "jtron",
+    loc_txt = {
+        name = "Jimbo-tron 9000",
+        text = {
+            "This Joker gains {X:mult,C:white} ^#1# {} Mult",
+            "for each default {C:attention}Joker{}",
+            "{C:inactive}(Currently {X:mult,C:white}^#2#{C:inactive} Mult)",
+        },
+    },
+    config = { extra = { bonus = 1 } },
+    rarity = "epic",
+    cost = 14,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "jtron.png",
+    negative_sprite = "jtron_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local count = 0
+        for _, j in ipairs(crypT_held_jokers()) do
+            if crypT_joker_id(j) == "j_joker" then count = count + 1 end
+        end
+        return { vars = { card.ability.extra.bonus,
+            1 + card.ability.extra.bonus * count } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local count = 0
+            for _, j in ipairs(crypT_held_jokers()) do
+                if crypT_joker_id(j) == "j_joker" then count = count + 1 end
+            end
+            local current = 1 + card.ability.extra.bonus * count
+            if current > 1 then
+                return { e_mult = current }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Starfruit: ^2 Mult, loses ^0.2 Mult per shop reroll; eaten when it
+-- decays to ^1.
+-- PORT NOTE: PC keeps its numbers at the ability top level; the port
+-- normalizes them into extra like every other def in this pack. The
+-- reroll decay has no Blueprint guard on PC and has none here.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "starfruit",
+    loc_txt = {
+        name = "Starfruit",
+        text = {
+            "{X:mult,C:white}^#1#{} Mult,",
+            "loses {X:mult,C:white}^#2#{} Mult per",
+            "{C:attention}reroll{} in the shop",
+        },
+    },
+    config = { extra = { emult = 2, emult_mod = 0.2 } },
+    rarity = "epic",
+    cost = 14,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "starfruit.png",
+    negative_sprite = "starfruit_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.emult, card.ability.extra.emult_mod } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { e_mult = card.ability.extra.emult }
+        end
+        if context.reroll_shop then
+            card.ability.extra.emult = card.ability.extra.emult
+                - card.ability.extra.emult_mod
+            if card.ability.extra.emult <= 1.00000001 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Eaten!" }
+            end
+            return { message = "-^" .. card.ability.extra.emult_mod .. " Mult" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Googol Play Card: 1 in 8 chance for X10^100 Mult.
+-- PORT NOTE: 1e100 is a plain finite double in the fork and the hand
+-- totals promote to big numbers on their own, so the googol is kept
+-- exact. PC's unlock (score 1e100 Chips in one hand) is dropped,
+-- like Code Joker's unlock gate.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "googol_play",
+    loc_txt = {
+        name = "Googol Play Card",
+        text = {
+            "{C:green}#1# in #2#{} chance for",
+            "{X:red,C:white} X#3# {} Mult",
+        },
+    },
+    config = { extra = { Xmult = 1e100, odds = 8 } },
+    rarity = "epic",
+    cost = 10,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "googol_play.png",
+    negative_sprite = "googol_play_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local num, den = SMODS.get_probability_vars(card, 1,
+            card.ability.extra.odds, "cryp_googol_play")
+        return { vars = { num, den, card.ability.extra.Xmult } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local hit = SMODS.pseudorandom_probability(card,
+                "cryp_googol_play", 1, card.ability.extra.odds,
+                "cryp_googol_play")
+            if hit then
+                return { xmult = card.ability.extra.Xmult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Formidiulosus: ^Mult = 1 + ^0.01 per Candy Joker held; creates 3
+-- Negative Candy Jokers at the end of the shop; destroys Cursed
+-- Jokers as they are bought.
+-- PORT NOTE: PC creates the Candies with SMODS.add_card by rarity;
+-- the port rolls the pack's Candy rarity pool (the Trick-or-Treat
+-- pattern, shared as crypT_spawn_rarity). The bought-Cursed branch
+-- reads the fork's offer fields (context.port.offer_id) and finds
+-- the new Joker in the held list, as Monopoly Money does.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "formidiulosus",
+    loc_txt = {
+        name = "Formidiulosus",
+        text = {
+            "When a {C:purple}Cursed{} Joker is obtained, destroy it",
+            "Creates {C:attention}#1#{} {C:dark_edition}Negative {C:purple}Candies{} at end of shop",
+            "Gains {X:mult,C:white}^#2#{} Mult for each {C:purple}Candy{} in possession",
+            "{C:inactive}(Currently {X:mult,C:white}^#3#{C:inactive} Mult)",
+        },
+    },
+    config = { extra = { Emult_mod = 0.01 }, immutable = { num_candies = 3 } },
+    rarity = "exotic",
+    cost = 50,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "formidiulosus.png",
+    negative_sprite = "formidiulosus_negative.png",
+    soul_sprite = "formidiulosus_soul.png",
+    loc_vars = function(self, info_queue, card)
+        local entry = SMODS.Rarities and SMODS.Rarities["cryp_candy"]
+        local count = 0
+        if entry then
+            for _, j in ipairs(crypT_held_jokers()) do
+                if j.def and tonumber(j.def.rarity) == entry.index then
+                    count = count + 1
+                end
+            end
+        end
+        return { vars = {
+            card.ability.immutable.num_candies,
+            card.ability.extra.Emult_mod,
+            1 + card.ability.extra.Emult_mod * count,
+        } }
+    end,
+    calculate = function(self, card, context)
+        if context.buying_card and not context.blueprint
+            and not context.retrigger_joker and context.port then
+            local oid = context.port.offer_id
+            local own_id = card.def and card.def.id
+            if context.port.offer_kind == "joker" and oid and oid ~= own_id then
+                local cursed = SMODS.Rarities and SMODS.Rarities["cryp_cursed"]
+                for _, j in ipairs(crypT_held_jokers()) do
+                    if j ~= card and crypT_joker_id(j) == oid and cursed
+                        and j.def and tonumber(j.def.rarity) == cursed.index then
+                        if SMODS.destroy_joker then SMODS.destroy_joker(j) end
+                        return { message = "Nope!" }
+                    end
+                end
+            end
+        end
+        if context.ending_shop then
+            for _ = 1, card.ability.immutable.num_candies do
+                crypT_spawn_rarity("cryp_candy", "cryp_formidiulosus", "negative")
+            end
+            return { message = "+ Joker!" }
+        end
+        if context.joker_main then
+            local entry = SMODS.Rarities and SMODS.Rarities["cryp_candy"]
+            local count = 0
+            if entry then
+                for _, j in ipairs(crypT_held_jokers()) do
+                    if j.def and tonumber(j.def.rarity) == entry.index then
+                        count = count + 1
+                    end
+                end
+            end
+            local emult = 1 + card.ability.extra.Emult_mod * count
+            if emult > 1 then
+                return { e_mult = emult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Tredecim (PC key mprime): each Jolly Joker or M Joker gives
+-- ^1.05 Mult; the amount grows by ^0.04 when a Jolly Joker is sold;
+-- creates a random M Joker at end of round.
+-- PORT NOTE: PC's Jolly test (Card:is_jolly) is the vanilla Jolly
+-- Joker, Jolly Joker?, or a Joker carrying the Jolly (M) edition;
+-- the M test is the pools.M set, which the port enumerates
+-- (CRYPT_M_POOL). PC excludes Tredecim itself from the sell scaling
+-- ("Tredecim excluded"); the port skips the sold card being itself.
+-- The end-of-round creation rolls the same M pool (PC's
+-- create_card("M")) and respects Joker room through SMODS.add_card.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "mprime",
+    loc_txt = {
+        name = "Tredecim",
+        text = {
+            "Create an {C:legendary}M Joker{} at end of round",
+            "Each {C:attention}Jolly Joker{} or {C:legendary}M Joker",
+            "gives {X:mult,C:white}^#1#{} Mult",
+            "Increase amount by {X:mult,C:white}^#2#{}",
+            "when a {C:attention}Jolly Joker{} is {C:attention}sold",
+            "{C:inactive,s:0.8}(Tredecim excluded)",
+        },
+    },
+    config = { extra = { mult = 1.05, bonus = 0.04 } },
+    rarity = "exotic",
+    cost = 50,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "mprime.png",
+    negative_sprite = "mprime_negative.png",
+    soul_sprite = "mprime_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult, card.ability.extra.bonus } }
+    end,
+    calculate = function(self, card, context)
+        if context.selling_card and not context.blueprint
+            and not context.retrigger_joker then
+            local sold = context.card
+            if sold and sold ~= card and crypT_is_jolly(sold) then
+                card.ability.extra.mult = card.ability.extra.mult
+                    + card.ability.extra.bonus
+                return { message = "M!" }
+            end
+        end
+        if context.end_of_round and not context.individual
+            and not context.repetition and not context.retrigger_joker then
+            local pool = {}
+            for _, id in ipairs(crypT_m_pool_ids()) do
+                if (JOKER_DEFS or {})[id] then pool[#pool + 1] = id end
+            end
+            if #pool > 0 then
+                local created = SMODS.add_card { set = "Joker",
+                    key = pool[SMODS.pseudorandom("cryp_mprime", 1, #pool)] }
+                if created then return { message = "M!" } end
+            end
+        end
+        if context.post_trigger and context.other_card
+            and context.other_card ~= card then
+            local other = context.other_card
+            if crypT_is_jolly(other) or crypT_is_m(other) then
+                return { e_mult = card.ability.extra.mult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Universe: other Astral cards each give ^1.2 Mult.
+-- PORT NOTE: PC reads the Astral edition off other Jokers
+-- (post-trigger), scored cards and held cards; the port checks the
+-- same places -- a Joker instance's edition, and a playing card's
+-- edition via crypH_card_edition (card_data.edition /
+-- card_data.modifier.edition). Astral itself is a registered marker
+-- edition here (see the Tier 3 registrations): its own ^1.1 Mult
+-- does not apply, but every Astral carrier still feeds Universe.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "universe",
+    loc_txt = {
+        name = "Universe",
+        text = {
+            "Other {C:dark_edition}Astral{} cards",
+            "each give {X:mult,C:white}^#1#{} Mult",
+        },
+    },
+    config = { extra = { emult = 1.2 } },
+    rarity = 3,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "universe.png",
+    negative_sprite = "universe_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.emult } }
+    end,
+    calculate = function(self, card, context)
+        if context.post_trigger and context.other_card
+            and context.other_card ~= card
+            and context.other_card.edition == "cry_astral" then
+            return { e_mult = card.ability.extra.emult }
+        end
+        if context.individual and context.other_card
+            and (context.cardarea == G.play or context.cardarea == G.hand) then
+            local data = context.other_card.card_data
+            if data and crypH_card_edition(data) == "cry_astral" then
+                return { e_mult = card.ability.extra.emult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Astral in a Bottle: when sold, apply Astral and Perishable to a
+-- random other Joker.
+-- PORT NOTE: this is PC's base-gameset behaviour and text (the
+-- exp_mainline variant splits Astral and Perishable across two
+-- different Jokers; gamesets are dropped pack-wide). Candidates are
+-- other held Jokers with no edition, as on PC; Perishable is the
+-- fork Joker's perishable flag with its standard 5-round counter.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "astral_bottle",
+    loc_txt = {
+        name = "Astral in a Bottle",
+        text = {
+            "When sold, apply {C:dark_edition}Astral{}",
+            "and {C:attention}Perishable{} to",
+            "a random {C:attention}Joker{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "astral_bottle.png",
+    negative_sprite = "astral_bottle_negative.png",
+    calculate = function(self, card, context)
+        if context.selling_self and not context.blueprint
+            and not context.retrigger_joker then
+            local pool = {}
+            for _, j in ipairs(crypT_held_jokers()) do
+                local ed = j.edition
+                if j ~= card and not j.debuff
+                    and (ed == nil or ed == "base" or ed == "") then
+                    pool[#pool + 1] = j
+                end
+            end
+            if #pool == 0 then return { message = "Nope!" } end
+            local chosen = pool[SMODS.pseudorandom("cryp_astral_bottle", 1, #pool)]
+            chosen.edition = "cry_astral"
+            chosen.perishable = true
+            if chosen.perishable_counter ~= nil then
+                chosen.perishable_counter = 5
+            end
+            return { message = "Duplicated!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- ...Like Antennas to Heaven: gains X0.1 Chips per scored 7 or 4;
+-- pays its stored XChips.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "antennatoheaven",
+    loc_txt = {
+        name = "...Like Antennas to Heaven",
+        text = {
+            "This Joker gains",
+            "{X:chips,C:white} X#1# {} Chips when each",
+            "played {C:attention}7{} or {C:attention}4{} is scored",
+            "{C:inactive}(Currently {X:chips,C:white}X#2# {C:inactive} Chips)",
+        },
+    },
+    config = { extra = { x_chips = 1, Xchipmod = 0.1 } },
+    rarity = 3,
+    cost = 7,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "antennatoheaven.png",
+    negative_sprite = "antennatoheaven_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.Xchipmod, card.ability.extra.x_chips } }
+    end,
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play and context.other_card then
+            local id = context.other_card:get_id()
+            if id == 4 or id == 7 then
+                card.ability.extra.x_chips = card.ability.extra.x_chips
+                    + card.ability.extra.Xchipmod
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and card.ability.extra.x_chips > 1 then
+            return { x_chips = card.ability.extra.x_chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Big Cube: X6 Chips. Only enters the pool while Cube is held (PC's
+-- in_pool), which is also the joke.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "big_cube",
+    loc_txt = {
+        name = "Big Cube",
+        text = {
+            "{X:chips,C:white} X#1# {} Chips",
+        },
+    },
+    config = { extra = { x_chips = 6 } },
+    rarity = 1,
+    cost = 27,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "big_cube.png",
+    negative_sprite = "big_cube_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.x_chips } }
+    end,
+    in_pool = function(self, args)
+        for _, j in ipairs(crypT_held_jokers()) do
+            if crypT_joker_id(j) == "j_cryp_cube" then return true end
+        end
+        return false
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { x_chips = card.ability.extra.x_chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Celestial Globe: gains X0.2 Chips whenever the played hand is its
+-- target hand, then the target changes; pays its stored XChips.
+-- PORT NOTE: PC's set_ability rolls the target from the visible
+-- poker hands (the fork's set_ability hook and hand-stats visibility
+-- are the same shape); the re-roll after a hit excludes the current
+-- target, as on PC.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "spaceglobe",
+    loc_txt = {
+        name = "Celestial Globe",
+        text = {
+            "This Joker gains {X:chips,C:white}X#2#{} Chips",
+            "if {C:attention}poker hand{} is a {C:attention}#3#{},",
+            "Hand changes after increase",
+            "{C:inactive}(Currently{} {X:chips,C:white}X#1#{} {C:inactive}Chips){}",
+        },
+    },
+    config = { extra = { x_chips = 1, Xchipmod = 0.2, type = "High Card" } },
+    rarity = 3,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "spaceglobe.png",
+    negative_sprite = "spaceglobe_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            card.ability.extra.x_chips,
+            card.ability.extra.Xchipmod,
+            card.ability.extra.type,
+        } }
+    end,
+    set_ability = function(self, card, initial)
+        if not (G and G.handlist) then return end
+        local visible = {}
+        for i, name in ipairs(G.handlist) do
+            if not G.is_hand_stats_visible or G:is_hand_stats_visible(i) then
+                visible[#visible + 1] = name
+            end
+        end
+        if #visible > 0 then
+            card.ability.extra.type = visible[SMODS.pseudorandom("cryp_spaceglobe", 1, #visible)]
+        end
+    end,
+    calculate = function(self, card, context)
+        if context.before and not context.blueprint
+            and context.scoring_name == card.ability.extra.type then
+            card.ability.extra.x_chips = card.ability.extra.x_chips
+                + card.ability.extra.Xchipmod
+            if G and G.handlist then
+                local others = {}
+                for i, name in ipairs(G.handlist) do
+                    if name ~= card.ability.extra.type
+                        and (not G.is_hand_stats_visible
+                            or G:is_hand_stats_visible(i)) then
+                        others[#others + 1] = name
+                    end
+                end
+                if #others > 0 then
+                    card.ability.extra.type = others[SMODS.pseudorandom("cryp_spaceglobe", 1, #others)]
+                end
+            end
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and card.ability.extra.x_chips > 1 then
+            return { x_chips = card.ability.extra.x_chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Pirate Dagger: when a Blind is selected, destroy the Joker to the
+-- right and gain one-fourth of its sell value as XChips.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "pirate_dagger",
+    loc_txt = {
+        name = "Pirate Dagger",
+        text = {
+            "When {C:attention}Blind{} is selected,",
+            "destroy Joker to the right",
+            "and gain {C:attention}one-fourth{} of",
+            "its sell value as {X:chips,C:white} XChips {}",
+            "{C:inactive}(Currently {X:chips,C:white} X#1# {C:inactive} Chips)",
+        },
+    },
+    config = { extra = { x_chips = 1 } },
+    rarity = 2,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "pirate_dagger.png",
+    negative_sprite = "pirate_dagger_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.x_chips } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main and card.ability.extra.x_chips > 1 then
+            return { x_chips = card.ability.extra.x_chips }
+        end
+        if context.setting_blind and not context.blueprint
+            and not context.retrigger_joker then
+            local jokers = crypT_held_jokers()
+            local my_pos
+            for i, j in ipairs(jokers) do
+                if j == card then my_pos = i break end
+            end
+            local victim = my_pos and jokers[my_pos + 1]
+            if victim and not victim.eternal and SMODS.destroy_joker
+                and SMODS.destroy_joker(victim) then
+                card.ability.extra.x_chips = card.ability.extra.x_chips
+                    + 0.25 * (tonumber(victim.sell_cost) or 0)
+                return { message = "Upgrade!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Supercell: +15 Chips, +15 Mult, X2 Chips, X2 Mult; $3 at end of
+-- round.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "supercell",
+    loc_txt = {
+        name = "Supercell",
+        text = {
+            "{C:chips}+#1#{} Chips, {C:mult}+#1#{} Mult,",
+            "{X:chips,C:white}X#2#{} Chips, {X:mult,C:white}X#2#{} Mult",
+            "Earn {C:money}$#3#{} at",
+            "end of round",
+        },
+    },
+    config = { extra = { stat1 = 15, stat2 = 2, money = 3 } },
+    rarity = "epic",
+    cost = 14,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "supercell.png",
+    negative_sprite = "supercell_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            card.ability.extra.stat1,
+            card.ability.extra.stat2,
+            card.ability.extra.money,
+        } }
+    end,
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return {
+                chips = card.ability.extra.stat1,
+                mult = card.ability.extra.stat1,
+                x_chips = card.ability.extra.stat2,
+                x_mult = card.ability.extra.stat2,
+            }
+        end
+    end,
+    calc_dollar_bonus = function(self, card)
+        if card.ability.extra.money > 0 then
+            return card.ability.extra.money
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Sync Catalyst: balances Chips and Mult (the Plasma Deck return).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "sync_catalyst",
+    loc_txt = {
+        name = "Sync Catalyst",
+        text = {
+            "Balances {C:chips}Chips{} and {C:mult}Mult{}",
+            "{C:inactive,s:0.8}Hey! I've seen this one before!{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = "epic",
+    cost = 12,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "sync_catalyst.png",
+    negative_sprite = "sync_catalyst_negative.png",
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { balance = true }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Arsonist: if the played hand contains a Full House, destroy all
+-- played cards after scoring.
+-- PORT NOTE: PC answers the destroying_card context per played card
+-- (the played hand evaluates to a Full House). The fork's
+-- destroying_card is a veto-only gate on the game's own destruction
+-- path and carries no hand, so the port destroys at context.after:
+-- if the hand contained a Full House, every played card is destroyed
+-- with SMODS.destroy_card. PC spares Eternal cards; fork playing
+-- cards have no eternal sticker, so nothing is spared.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "arsonist",
+    loc_txt = {
+        name = "Arsonist",
+        text = {
+            "If played hand",
+            "contains a {C:attention}Full House{},",
+            "{C:red}destroy{} all cards",
+            "after scoring",
+        },
+    },
+    config = { extra = {} },
+    rarity = 3,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "arsonist.png",
+    negative_sprite = "arsonist_negative.png",
+    calculate = function(self, card, context)
+        if context.after and context.poker_hands
+            and next(context.poker_hands["Full House"]) then
+            local burned = false
+            for _, view in ipairs(context.full_hand or {}) do
+                if SMODS.destroy_card and SMODS.destroy_card(view) then
+                    burned = true
+                end
+            end
+            if burned then return { message = "Burned!" } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Queen's Gambit: on a Royal Flush, destroy the scored Queen and
+-- create a Negative Rare Joker.
+-- PORT NOTE: PC answers destroying_card for the Queen while the
+-- current hand's name is "Royal Flush". The fork names that hand
+-- "Straight Flush" (a royal is its Ace-high form), so the port
+-- checks at context.after for a Straight Flush whose scored cards
+-- are exactly 10, J, Q, K, A, then destroys the played Queen and
+-- creates the Joker. PC creates the Joker even when the Queen is
+-- Eternal (only the removal is skipped); fork playing cards have
+-- no eternal sticker, so the Queen is always destroyed.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "queens_gambit",
+    loc_txt = {
+        name = "Queen's Gambit",
+        text = {
+            "If {C:attention}poker hand{} is a",
+            "{C:attention}Royal Flush{}, destroy scored",
+            "{C:attention}Queen{} and create a",
+            "{C:dark_edition}Negative {C:red}Rare{} Joker{}",
+        },
+    },
+    config = { extra = { type = "Straight Flush" } },
+    rarity = 1,
+    cost = 7,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "queens_gambit.png",
+    negative_sprite = "queens_gambit_negative.png",
+    calculate = function(self, card, context)
+        if context.after and not context.blueprint
+            and context.scoring_name == card.ability.extra.type then
+            local royal = { [10] = true, [11] = true, [12] = true,
+                [13] = true, [14] = true }
+            local seen = {}
+            for _, view in ipairs(context.scoring_hand or {}) do
+                local id = view:get_id()
+                if not royal[id or -1] then return end
+                seen[id] = true
+            end
+            local count = 0
+            for _ in pairs(seen) do count = count + 1 end
+            if count ~= 5 then return end
+            local queen
+            for _, view in ipairs(context.full_hand or {}) do
+                if view:get_id() == 12 then queen = view break end
+            end
+            if not queen then return end
+            local created
+            local pool = {}
+            for id, def in pairs(JOKER_DEFS or {}) do
+                if type(def) == "table" and tonumber(def.rarity) == 3 then
+                    pool[#pool + 1] = id
+                end
+            end
+            if #pool > 0 then
+                created = SMODS.add_card { set = "Joker",
+                    key = pool[SMODS.pseudorandom("cryp_gambit", 1, #pool)],
+                    edition = "negative" }
+            end
+            if SMODS.destroy_card then SMODS.destroy_card(queen) end
+            if created then return { message = "+ Joker!" } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Hunting Season: if the played hand contains exactly 3 cards,
+-- destroy the center card after scoring.
+-- PORT NOTE: PC answers destroy_card for full_hand[2]; the fork's
+-- destruction contexts cannot target a played card mid-resolution,
+-- so the port destroys the middle played card at context.after
+-- with SMODS.destroy_card.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "huntingseason",
+    loc_txt = {
+        name = "Hunting Season",
+        text = {
+            "If played hand contains exactly {C:attention}3{} cards,",
+            "{C:red}destroy{} the {C:attention}center{} card after scoring",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 7,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "huntingseason.png",
+    negative_sprite = "huntingseason_negative.png",
+    calculate = function(self, card, context)
+        if context.after and not context.blueprint
+            and not context.retrigger_joker
+            and context.full_hand and #context.full_hand == 3 then
+            if SMODS.destroy_card
+                and SMODS.destroy_card(context.full_hand[2]) then
+                return { message = "Destroyed!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Tiny (PC key smallestm): create a Double M Tag if the played
+-- poker hand is a Pair.
+-- PORT NOTE: PC adds the tag in the before context and also flags
+-- it shiny (a Cryptid tag cosmetic with no fork meaning); the tag
+-- itself is the pack's registered cry_double_m.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "smallestm",
+    loc_txt = {
+        name = "Tiny",
+        text = {
+            "Create a {C:attention}Double M{}",
+            "tag if {C:attention}poker hand{}",
+            "is a {C:attention}#1#{}",
+            "{C:inactive,s:0.8}ok so basically i'm very smol",
+        },
+    },
+    config = { extra = { type = "Pair" } },
+    rarity = "epic",
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "smallestm.png",
+    negative_sprite = "smallestm_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.type } }
+    end,
+    calculate = function(self, card, context)
+        if context.before and context.scoring_name == card.ability.extra.type then
+            if G and G.addTag then
+                G:addTag("cry_double_m")
+                return { message = "M!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Energia: when a Tag is acquired, create up to #1# copies of it
+-- (held-tag cap 40); the copy count grows by 1 per trigger.
+-- PORT NOTE: PC flags its copies (tag.from_energia) so they do not
+-- re-trigger Energia; the fork raises tag_added from inside
+-- G:addTag, before the copy exists to be flagged, so the port uses
+-- a file-local busy flag with the same effect. Copies keep the
+-- source tag's ability (and its Orbital hand), as PC's copy_table
+-- does. As on PC, the count grows even when the cap leaves no room.
+--------------------------------------------------------------------------------
+
+local crypT_energia_busy = false
+
+SMODS.Joker {
+    key = "energia",
+    loc_txt = {
+        name = "Energia",
+        text = {
+            "When a {C:attention}Tag{} is acquired,",
+            "create up to {C:attention}#1#{} copies of it",
+            "and {C:attention}increase{} the number of",
+            "copies by {C:attention}#2#",
+        },
+    },
+    config = { extra = { tags = 1, tag_mod = 1 }, immutable = { max_tags = 40 } },
+    rarity = "exotic",
+    cost = 50,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "energia.png",
+    negative_sprite = "energia_negative.png",
+    soul_sprite = "energia_soul.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            math.min(card.ability.extra.tags, card.ability.immutable.max_tags),
+            card.ability.extra.tag_mod,
+        } }
+    end,
+    calculate = function(self, card, context)
+        if context.tag_added and context.tag_added
+            and not crypT_energia_busy then
+            local src = context.tag_added
+            local held = (G and G.tags) and #G.tags or 0
+            local copies = math.max(math.min(
+                card.ability.immutable.max_tags - held,
+                card.ability.extra.tags), 0)
+            if copies > 0 and G and G.addTag then
+                crypT_energia_busy = true
+                for _ = 1, copies do
+                    if src.orbital_hand_index then
+                        G:addTag(src.type,
+                            { orbital_hand_index = src.orbital_hand_index })
+                    else
+                        G:addTag(src.type)
+                    end
+                    local newest = G.tags and G.tags[#G.tags]
+                    if newest and src.ability then
+                        newest.ability = crypT_copy(src.ability)
+                    end
+                end
+                crypT_energia_busy = false
+            end
+            card.ability.extra.tags = card.ability.extra.tags
+                + card.ability.extra.tag_mod
+            return { message = "Upgrade!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Pickle: when a Blind is skipped, create 3 random Tags; the count
+-- drops by 1 whenever a Blind is selected, and the Pickle is eaten
+-- at 0.
+-- PORT NOTE: PC rolls Cryptid.get_next_tag_key over the whole tag
+-- pool and special-cases the Orbital Tag's hand; the port rolls the
+-- fork's vanilla tag types plus registered polling tags
+-- (crypT_random_tag_type), skipping the Boss Tag as PC does, and
+-- passes a rolled orbital hand for an Orbital Tag the same way the
+-- game's own skip grants do.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "pickle",
+    loc_txt = {
+        name = "Pickle",
+        text = {
+            "When {C:attention}Blind{} is skipped, create",
+            "{C:attention}#1#{} Tags, reduced by",
+            "{C:red}#2#{} when {C:attention}Blind{} is selected",
+        },
+    },
+    config = { extra = { tags = 3, tags_mod = 1 },
+        immutable = { max_tags = 20 } },
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "pickle.png",
+    negative_sprite = "pickle_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            math.min(card.ability.extra.tags, card.ability.immutable.max_tags),
+            card.ability.extra.tags_mod,
+        } }
+    end,
+    calculate = function(self, card, context)
+        if context.skip_blind then
+            local n = math.min(card.ability.extra.tags,
+                card.ability.immutable.max_tags)
+            local made = false
+            for _ = 1, n do
+                if crypT_add_random_tag({ boss = true }) then made = true end
+            end
+            if made then return { message = "+ Tags!" } end
+        end
+        if context.setting_blind and not context.blueprint then
+            card.ability.extra.tags = card.ability.extra.tags
+                - card.ability.extra.tags_mod
+            if card.ability.extra.tags <= 0 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Eaten!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Pity Prize: on skipping a Booster Pack, gain a random Tag.
+-- PORT NOTE: PC excludes the Boss Tag and the Gambler's Tag from
+-- its roll; the fork has no Gambler's Tag, so only the Boss Tag is
+-- excluded here.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "pity_prize",
+    loc_txt = {
+        name = "Pity Prize",
+        text = {
+            "On skipping a {C:attention}Booster Pack{},",
+            "gain a random {C:attention}Tag{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 1,
+    cost = 2,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "pity_prize.png",
+    negative_sprite = "pity_prize_negative.png",
+    calculate = function(self, card, context)
+        if context.skipping_booster then
+            if crypT_add_random_tag({ boss = true }) then
+                return { message = "+ Tag!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Yarn Ball: add the highest held Cat Tag's level to all listed
+-- probabilities. Only enters the pool while a Cat Tag is held.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "yarnball",
+    loc_txt = {
+        name = "Yarn Ball",
+        text = {
+            "Add the level of the highest level {C:attention}Cat Tag{}",
+            "to all {C:green}listed probabilities",
+        },
+    },
+    config = { extra = {} },
+    rarity = 3,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "yarnball.png",
+    negative_sprite = "yarnball_negative.png",
+    in_pool = function(self, args)
+        for _, t in ipairs((G and G.tags) or {}) do
+            if t.type == "cry_cat" then return true end
+        end
+        return false
+    end,
+    calculate = function(self, card, context)
+        if context.mod_probability and not context.blueprint then
+            local highest = 0
+            for _, t in ipairs((G and G.tags) or {}) do
+                if t.type == "cry_cat" then
+                    local lvl = (t.ability and tonumber(t.ability.level)) or 1
+                    if lvl > highest then highest = lvl end
+                end
+            end
+            if highest > 0 then
+                return { numerator = (tonumber(context.numerator) or 0) + highest }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Source: apply the Green Seal to 1 selected card in hand.
+-- PORT NOTE: PC applies the seal through Card:set_seal; the fork's
+-- node setter (Card:set_seal) is the canonical setter -- it writes
+-- card_data.seal and raises setting_ability -- so the port calls
+-- it, with a direct write fallback for bare card_data tables.
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    key = "source",
+    set = "Spectral",
+    loc_txt = {
+        name = "Source",
+        text = {
+            "Apply a {C:green}Green Seal{}",
+            "to {C:attention}1{} selected",
+            "card in your hand",
+        },
+    },
+    config = { max_highlighted = 1 },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "source.png",
+    negative_sprite = "source_negative.png",
+    can_use = function(self, card)
+        return #((G and G.hand and G.hand.highlighted) or {}) == 1
+    end,
+    use = function(self, card, area, copier)
+        local hl = (G and G.hand and G.hand.highlighted) or {}
+        local target = hl[1]
+        if not target then return end
+        if target.set_seal then
+            target:set_seal("cry_green")
+        elseif target.card_data then
+            target.card_data.seal = "cry_green"
+            crypH_sync(target.card_data)
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Typhoon: apply the Azure Seal to 1 selected card in hand.
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    key = "typhoon",
+    set = "Spectral",
+    loc_txt = {
+        name = "Typhoon",
+        text = {
+            "Apply a {C:blue}Azure Seal{}",
+            "to {C:attention}1{} selected",
+            "card in your hand",
+        },
+    },
+    config = { max_highlighted = 1 },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "typhoon.png",
+    negative_sprite = "typhoon_negative.png",
+    can_use = function(self, card)
+        return #((G and G.hand and G.hand.highlighted) or {}) == 1
+    end,
+    use = function(self, card, area, copier)
+        local hl = (G and G.hand and G.hand.highlighted) or {}
+        local target = hl[1]
+        if not target then return end
+        if target.set_seal then
+            target:set_seal("cry_azure")
+        elseif target.card_data then
+            target.card_data.seal = "cry_azure"
+            crypH_sync(target.card_data)
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Ritual: add a random edition to 1 selected card in hand --
+-- Astral (1/6), Mosaic (1/3), Negative (1/2).
+-- PORT NOTE: PC polls editions with those weights and requires the
+-- target to have no edition; the port rolls a d12 against the same
+-- thresholds and writes the edition through the pack's edition
+-- helpers (card_data.edition / card_data.modifier.edition).
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    key = "ritual",
+    set = "Spectral",
+    loc_txt = {
+        name = "Ritual",
+        text = {
+            "Add a random {C:dark_edition}edition{}",
+            "to {C:attention}1{} selected card",
+            "in your hand",
+        },
+    },
+    config = { max_highlighted = 1 },
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    sprite = "ritual.png",
+    negative_sprite = "ritual_negative.png",
+    can_use = function(self, card)
+        local hl = (G and G.hand and G.hand.highlighted) or {}
+        if #hl ~= 1 then return false end
+        local data = hl[1] and hl[1].card_data
+        if not data then return false end
+        local ed = crypH_card_edition(data)
+        return ed == nil or ed == "" or ed == "base"
+    end,
+    use = function(self, card, area, copier)
+        local hl = (G and G.hand and G.hand.highlighted) or {}
+        local target = hl[1]
+        if not target or not target.card_data then return end
+        local roll = SMODS.pseudorandom("cryp_ritual", 1, 12)
+        local edition = "negative"
+        if roll >= 11 then
+            edition = "cry_astral"
+        elseif roll >= 7 then
+            edition = "cry_mosaic"
+        end
+        crypH_set_card_edition(target.card_data, edition)
+        crypH_sync(target.card_data)
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- ://COMMIT: destroy a target Joker and create a new random Joker
+-- of the same rarity.
+-- PORT NOTE: PC also refuses targets whose (string) rarity is at or
+-- above 5; on PC that guard passes every custom rarity because the
+-- comparison is numeric-vs-string. In the fork custom rarities are
+-- indices (5 and up), so applying the guard literally would ban
+-- exactly the rarities PC allows -- it is skipped, and any
+-- non-Eternal Joker may be targeted, as PC does in practice.
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    key = "commit",
+    set = "Code",
+    loc_txt = {
+        name = "://COMMIT",
+        text = {
+            "Destroy a selected {C:attention}Joker{},",
+            "create a new random {C:attention}Joker{}",
+            "of the same {C:attention}rarity",
+        },
+    },
+    config = { cryp = true },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    target_joker = true,
+    sprite = "commit.png",
+    negative_sprite = "commit_negative.png",
+    can_use = function(self, card, target)
+        return target ~= nil and not target.eternal
+    end,
+    use = function(self, card, area, copier, target)
+        if not target then return end
+        local rarity = target.def and tonumber(target.def.rarity) or nil
+        if SMODS.destroy_joker then SMODS.destroy_joker(target) end
+        if rarity then
+            crypT_spawn_rarity_index(rarity, "cryp_commit")
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- ://REWORK: destroy a target Joker; the next Joker offered in the
+-- shop is that Joker with the next edition up the ladder.
+-- PORT NOTE: PC refuses Ascended-rarity targets and any target
+-- named "cry-meteor"; the name test is a Lua bug on PC
+-- (key ~= ("cry-meteor" or ...) compares against only the first
+-- operand), so in practice only the Meteor is refused -- the port
+-- refuses only j_cryp_meteor. The pending rework rides the Rework
+-- Tag's per-instance ability (rework_key / rework_edition), which
+-- PC stores on its tag the same way. The edition ladder follows
+-- PC's G.P_CENTER_POOLS.Edition order: vanilla editions first, then
+-- custom editions in registration order, wrapping around.
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    key = "rework",
+    set = "Code",
+    loc_txt = {
+        name = "://REWORK",
+        text = {
+            "Destroy a selected {C:attention}Joker{}",
+            "Next {C:attention}Joker{} in the shop is",
+            "that {C:attention}Joker{} with the next",
+            "{C:dark_edition}Edition{}",
+        },
+    },
+    config = { cryp = true },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    target_joker = true,
+    sprite = "rework.png",
+    negative_sprite = "rework_negative.png",
+    can_use = function(self, card, target)
+        if not target or target.eternal then return false end
+        local id = crypT_joker_id(target)
+        return id ~= "j_cryp_meteor"
+    end,
+    use = function(self, card, area, copier, target)
+        if not target then return end
+        local id = crypT_joker_id(target)
+        if not id then return end
+        local next_edition = crypT_next_edition(target.edition)
+        if G and G.addTag then
+            G:addTag("cry_rework")
+            local newest = G.tags and G.tags[#G.tags]
+            if newest then
+                newest.ability = newest.ability or {}
+                newest.ability.rework_key = id
+                newest.ability.rework_edition = next_edition
+            end
+        end
+        if SMODS.destroy_joker then SMODS.destroy_joker(target) end
     end,
 }

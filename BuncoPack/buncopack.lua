@@ -2799,3 +2799,142 @@ SMODS.Joker {
         end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- v1.2.0: Tier 3 top-ups. The Fluorescent edition + Neon (setting_ability),
+-- and Bounty Hunter (money_altered). Everything below needs the fork's
+-- Tier 3 API.
+--------------------------------------------------------------------------------
+
+-- Fluorescent edition (PC SMODS.Edition key "fluorescent", in_shop = true,
+-- weight 18 on PC's scale, where Foil weighs 20). The fork's edition poll
+-- weights are percents of a roll (Foil 4, Holo 2, Polychrome 0.6), so 3.5
+-- keeps roughly PC's relative rarity. PC Fluorescent has NO stats: its
+-- whole effect is immunities -- it cannot be flipped, debuffed or forced
+-- to be selected, enforced on PC by Lovely patches on set_debuff and card
+-- selection. The fork's editions are config-only, with no calculate and no
+-- hooks, so those immunities are NOT implemented here: the edition
+-- registers with an empty config, carries no sprite (PC's look is a
+-- shader; there is no overlay art to port, and the engine draws the card
+-- plainly), and its tooltip says the immunities are missing. What DOES
+-- port exactly is Neon's grant of it, below.
+if SMODS.Edition then
+    SMODS.Edition {
+        key = "fluorescent",
+        loc_txt = {
+            name = "Fluorescent",
+            text = {
+                "Cannot be flipped, debuffed",
+                "or forced to be selected",
+                "{C:inactive}(Those immunities are not",
+                "{C:inactive}implemented on 3DS; no stats){}",
+            },
+        },
+        config = {},
+        weight = 3.5,
+    }
+end
+
+--------------------------------------------------------------------------------
+-- Neon: playing cards gain the Fluorescent edition when enhanced.
+-- PC hooks Bunco's own enhance_card context (a Lovely patch on
+-- Card:set_ability that fires when a card's center changes to a DIFFERENT
+-- Enhanced center, not on the initial set). The fork's equivalent is the
+-- Tier 3 setting_ability context, raised by the canonical setters
+-- (Card:set_enhancement / set_seal): the changed card arrives as
+-- context.other_card, the kind ("enhancement"/"seal") rides the raw event,
+-- and `unchanged` marks a re-set to the same value. The grant itself
+-- writes the edition the way the pack's own edition writers do
+-- (buncp_set_card_edition on the card's node data, the Juggalo / Puzzle
+-- Board precedent: playing-card editions have no node setter).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "neon",
+    loc_txt = {
+        name = "Neon Joker",
+        text = {
+            "Playing cards gain",
+            "{C:dark_edition}Fluorescent{} edition",
+            "when {C:attention}enhanced{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "neon.png",
+    negative_sprite = "neon_negative.png",
+    calculate = function(self, card, context)
+        if context.setting_ability and not context.blueprint
+            and not context.unchanged
+            and context.port and context.port.ability_kind == "enhancement"
+            and context.other_card then
+            if SMODS.EditionByValue and SMODS.EditionByValue.fluorescent
+                and buncp_card_editionless(context.other_card) then
+                buncp_set_card_edition(context.other_card, "fluorescent")
+                return { message = "Fluorescent!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Bounty Hunter: every positive money gain is taxed $1, and this Joker
+-- permanently gains +1 Mult per taxed gain.
+-- PC implements this inside Bunco's ease_dollars wrapper (funcs.ease_dollars
+-- + the get_money calculate): before a positive gain lands, each held
+-- Bounty Hunter takes $1 off it and grows. The fork's Tier 3 money_altered
+-- context fires for the same gains (Joker dollars, shop, selling, payouts,
+-- interest) with context.amount, and a dollars return applies the tax.
+-- Two honest differences, both cosmetic-to-edge: the gain lands in full
+-- first and the tax follows as its own -$1 money event (which is
+-- non-positive, so it cannot re-trigger), rather than shrinking the gain
+-- before it lands -- final totals and Mult growth match PC. And where
+-- PC's wrapper taxes a shrinking remainder (a second copy stands down on
+-- a $1 gain), each fork copy sees the same original event, so several
+-- copies each tax a tiny gain once. Blueprint copies do neither, as on
+-- PC (the get_money growth is blueprint-guarded there, and the wrapper
+-- only visits real Bounty Hunter cards).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "bounty_hunter",
+    loc_txt = {
+        name = "Bounty Hunter",
+        text = {
+            "All sources of money",
+            "give {C:money}$1{} less and this Joker",
+            "gains {C:mult}+#1#{} Mult each time",
+            "you earn money",
+            "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult){}",
+        },
+    },
+    config = { extra = { bonus = 1, mult = 0 } },
+    rarity = 1,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    sprite = "bounty_hunter.png",
+    negative_sprite = "bounty_hunter_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.bonus, card.ability.extra.mult } }
+    end,
+    calculate = function(self, card, context)
+        if context.money_altered and not context.blueprint
+            and (tonumber(context.amount) or 0) > 0 then
+            card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.bonus
+            return { dollars = -1, message = "Robbed!" }
+        end
+        if context.joker_main and card.ability.extra.mult ~= 0 then
+            return { mult = card.ability.extra.mult }
+        end
+    end,
+}

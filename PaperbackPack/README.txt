@@ -1,16 +1,19 @@
-Paperback Pack (3DS Port) v1.0.0
-224 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
-Spectrum-family poker hands, and 33 of the 56 Minor Arcana
-consumables, from Paperback (PC, by Nether and contributors, MIT
-License) ported to Balatro3DS.
+Paperback Pack (3DS Port) v1.1.0
+269 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
+Spectrum-family poker hands, 44 of the 56 Minor Arcana consumables,
+Paperback's eight custom enhancements, five of its custom tags and
+its Dichrome edition, from Paperback (PC, by Nether and
+contributors, MIT License) ported to Balatro3DS.
 
-REQUIRES THE BALATRO3DS FORK (v1.0.0)
-This pack creates and destroys cards, registers custom suits, poker
-hands and a consumable type, and grants tags through APIs the stock
-game's mod API does not have. It needs the fork build and its Tier 1
-+ Tier 2 mod APIs (SMODS.add_card / SMODS.destroy_joker /
+REQUIRES THE BALATRO3DS FORK (v1.1.0)
+This pack creates and destroys cards, registers custom suits,
+poker hands, a consumable type, enhancements, tags, boosters and
+an edition, and grants tags through APIs the stock game's mod API
+does not have. It needs the fork build and its Tier 1 + Tier 2 +
+Tier 3 mod APIs (SMODS.add_card / SMODS.destroy_joker /
 SMODS.destroy_card, SMODS.Suit, SMODS.PokerHand,
-SMODS.ConsumableType):
+SMODS.ConsumableType, SMODS.Enhancement, SMODS.Tag, SMODS.Booster,
+SMODS.Edition):
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack will not load
 correctly; use the fork build.
@@ -36,27 +39,51 @@ hands are registered with Paperback's own values: Spectrum (50/6),
 Straight Spectrum (120/10), Spectrum House (150/15) and Spectrum
 Five (180/18), all hidden until scored.
 
-MINOR ARCANA (33 of 56)
-The minor_arcana consumable type is registered (shop rate 3; on PC
-the rate is 0 and the cards arrive in boosters, which the fork
-cannot register - the one structural deviation of the set). All
-cards cost $3: Ace of Pentacles, Ace of Swords, Two of Cups, Four
-of Cups, Seven of Cups, Eight of Cups, Nine of Cups, Ten of Cups,
-Knight of Cups, King of Cups, Six of Cups, Two of Wands, Three of
-Wands, Five of Wands, Eight of Wands, Ten of Wands, King of Wands,
-Four of Swords, Five of Swords, Nine of Swords, Ten of Swords,
-Knight of Swords, Queen of Swords, King of Swords, Two of
-Pentacles, Three of Pentacles, Four of Pentacles, Six of
-Pentacles, Eight of Pentacles, Ten of Pentacles, Queen of
-Pentacles, Knight of Pentacles, King of Pentacles.
-Joker-targeting Arcana act on the leftmost eligible held Joker
-(the fork has no Joker-highlight targeting). The 23 unported
-Arcana are listed under NOT PORTED below.
+MINOR ARCANA (44 of 56)
+The minor_arcana consumable type is registered with shop rate 0,
+as on PC: the cards arrive in Minor Arcana booster packs (normal
+3 cards / choose 1 for $4, jumbo 5/1 for $6, mega 5/2 for $8,
+registered with the fork's SMODS.Booster) and from Joker effects.
+All cards cost $3: Ace of Pentacles, Ace of Swords, Two of Cups,
+Four of Cups, Five of Cups, Seven of Cups, Eight of Cups, Nine of
+Cups, Ten of Cups, Knight of Cups, King of Cups, Six of Cups, Two
+of Wands, Three of Wands, Five of Wands, Eight of Wands, Ten of
+Wands, Knight of Wands, King of Wands, Four of Swords, Five of
+Swords, Seven of Wands, Nine of Swords, Ten of Swords, Knight of
+Swords, Queen of Wands, Queen of Swords, King of Swords, Two of
+Pentacles, Three of Pentacles, Four of Pentacles, Five of
+Pentacles, Six of Pentacles, Eight of Pentacles, Nine of Wands,
+Ten of Pentacles, Queen of Cups, Queen of Pentacles, Knight of
+Pentacles, King of Pentacles, Page of Pentacles, Page of Swords,
+Six of Wands, Three of Swords.
+Joker-targeting Arcana (Nine of Cups, Nine of Swords, King of
+Swords, Two of Pentacles) now use the fork's Joker highlighting:
+pick the Joker, then use the card on it, as on PC. The 12
+unported Arcana are listed under NOT PORTED below.
 
-INCLUDED JOKERS (224 of 316)
+CUSTOM ENHANCEMENTS, TAGS AND EDITION (Tier 3 additions)
+Paperback's eight custom enhancements are registered: Soaked,
+Sleeved, Bandaged, Wrapped, Ceramic, Domino, Stained and Antique.
+On PC they are source-gated (created by specific Jokers and
+Arcana, never by random polls), so they are registered with poll
+weight 0 here too. Five custom tags are registered: Angel
+Investment (gain 20% of your money, up to $100), Breaking (skip
+the Boss Blind), High Risk (defeat the Boss for $25 - see PORT
+NOTES), Dichrome (the next Joker bought in the shop is free and
+Dichrome) and Divination (open a free Mega Minor Arcana pack).
+The Dichrome edition is registered; its +1 Hand and +1 Discard
+effect cannot be expressed (the fork has no edition calculate),
+so Dichrome Jokers are cosmetic here beyond their free price
+from the Dichrome Tag and Queen of Wands. The custom
+enhancements, tags, boosters and the edition ship without
+sprites: the PC snapshot this port is built from contains only
+the Jokers and Minor Arcana atlases, so those registrations use
+the fork's fallback art.
+
+INCLUDED JOKERS (269 of 316)
 
 
-Common (82):
+Common (96):
 - & ($3): If scored hand contains both dark and light suits, retrigger the first of each time
 - A Balatro Movie ($4): If played hand is the same as the previous hand, earn $ (Last played: )
 - Apple ($1): When buying a Consumable, has a in chance to create a Negative copy and a in chance to self-destruct
@@ -140,7 +167,22 @@ Common (82):
 - Yacht ($5): This Joker gains + Chips if hand contains a scoring or (Currently + Chips)
 - Zealous Joker ($3): + Mult if played hand contains a
 
-Uncommon (81):
+- Angel Investor ($4): Create an Angel Investment Tag when a Blind is skipped or a Boss Blind is defeated
+- Coin Collection ($6): Earn $1 whenever you earn money
+- Cream Liqueur ($4): Earn $5 when you gain a Tag. Consumed in 3 rounds
+- Frutiger Aero ($6): +100 Chips. Loses 2 Chips for every $1 spent in the shop. Resets after a Boss Blind (Currently + Chips)
+- Gauze ($4): When your last discard is a single card, it becomes Bandaged
+- Greeting Card ($4): Scored Wrapped cards add $2 of sell value to this Joker
+- Jimbo Adventure ($4): Create a random Tag when a Blind is skipped
+- Mexican Train ($6): Scored Domino cards earn $1 for each Domino card in the scoring hand
+- Nachos ($6): X1.5 Chips. Loses X0.05 Chips for each discarded card; eaten when it would fall to X1 (Currently X Chips)
+- Pinot Noir ($5): Stained cards held in hand lose 1 remaining trigger (starts at 10); destroyed at 0
+- Plastic Wrap ($4): When a Sleeved card is destroyed, up to 2 random unenhanced cards in your deck become Sleeved
+- Stella Octangula ($6): The first scored Stars card each round gives X2 Chips
+- Teapot ($5): This Joker gains +5 Chips for each scored Ceramic card (Currently + Chips)
+- Unholy Alliance ($6): This Joker gains +12 Chips for each card or Joker destroyed (Currently + Chips)
+
+Uncommon (99):
 - 56 Leaf Clover ($6): If the winning hand of a Boss Blind scores only Clubs, create a Negative Tag
 - Alert ($4): If played hand is a single face card, destroy it (/)
 - Aurora Borealis ($6): This Joker gains X0.5 Mult for each editioned Joker card held (Negatives are excluded) (Currently X Mult)
@@ -223,7 +265,26 @@ Uncommon (81):
 - Wheat Field ($6): give X Mult when scored. Increases by X Mult for each consecutively scored (Resets after each hand played)
 - Wish You Were Here ($6): Gives +Mult equal to X the sell value of this card. Gains $ of sell value at end of round (Currently + Mult)
 
-Rare (58):
+- Chocolate Joker ($8): X Chips equal to 1 + X0.2 for each Joker held (Currently X Chips)
+- Collector ($7): Earn $1 at end of round for each Sleeved card in your full deck
+- Crispy Taco ($6): X3 Chips. 1 in 6 chance this card is eaten at end of round
+- Cross ($6): Playing cards cannot be destroyed while this Joker is held (see PORT NOTES)
+- Deck of Cards ($7): If the played hand is a single Antique card, it gains X0.25 Chips and is destroyed
+- Festive Joker ($6): Scored Wrapped cards have a 1 in 5 chance to create a random Consumable (Must have room)
+- Happy Accident ($7): Antique cards held in hand give X Chips at halved scaling (X1.5 becomes X1.25)
+- J&J's ($6): The next Spectrum-family hand played creates 2 random Tags. Self-destructs after 3 rounds
+- Kintsugi Joker ($7): This Joker gains +2 Chips for each Ceramic card destroyed (Max of +10) (Currently + Chips)
+- One With Nothing ($5): When Play is pressed, destroy all cards held in hand that were not played (see PORT NOTES)
+- Oracle ($6): X Chips for each unique Minor Arcana used this run (Currently X Chips)
+- Quartz ($7): Scored Stars give X Chips for each other Stars card in the played hand
+- Sommelier ($6): The first Stained card discarded each round gains a random seal
+- Spotty Joker ($3): This Joker gains X0.1 Mult for each Domino card in the scoring hand (Currently X Mult)
+- Spirit Box ($7): If played hand is this Joker's chosen hand, create a random Tag. Chosen hand changes each round
+- The Wonder of You ($9): Create 2 random Tags when a Boss Blind is selected
+- Watercolor Joker ($7): Scored Soaked cards give X1.5 Chips
+- Watermelon ($6): This Joker gains X0.1 Mult when a card's enhancement changes, and loses X0.1 Mult for each card destroyed. Destroyed below X1 (Currently X Mult)
+
+Rare (68):
 - 21st Century Joker ($10): When Big Blind or Boss Blind is cleared, destroy Joker to the left and create a new Joker of equal or higher rarity (Cannot upgrade to Legendary Jokers)
 - 57 Leaf Clover ($7): + to all listed probabilities (Currently +)
 - Attacking Vertical ($8): Scored 9s and 5s give X Mult Gains +X0.25 Mult when a Boss Blind is defeated
@@ -283,10 +344,14 @@ Rare (58):
 - Yacht Dice ($8): This Joker gains X Mult for each unique hand type played this run (Currently X Mult)
 - You Are a Fool! ($8): If scored hand contains or more face cards, convert all cards held in hand to the leftmost scored card self-destructs
 
-Legendary (3):
+Legendary (6):
 - L'angely ($20): Earn half the sell value of all Jokers when defeating a Big Blind Earn the full sell value when defeating a Boss Blind
-- OFF Switch ($13): When a playing card is destroyed, attempt to destroy leftmost destructible Joker and this Joker gains X Mult if successful (Currently X Mult)
+- OFF Switch ($13): Creates Eternal Alpha, Epsilon and Omega when obtained. When a playing card is destroyed, destroy the leftmost non-Eternal Joker and this Joker gains X Mult (Currently X Mult)
 - Pedrillo ($20): First scored Queen creates a Planet card for played poker hand (Must have room)
+
+- Alpha ($1): Gains +13 Chips for each Joker destroyed (Currently + Chips) (Created by OFF Switch only)
+- Epsilon ($1): Earn $13 for each Joker destroyed (Created by OFF Switch only)
+- Omega ($1): Gains +13 Mult for each Joker destroyed (Currently + Mult) (Created by OFF Switch only)
 
 PORT NOTES (deviations from PC, beyond the structural ones above)
 The expansion Jokers follow Paperback's code, not always its
@@ -296,13 +361,13 @@ Jokers that destroy cards do so in the hand's before/after passes,
 the slots the port raises, because the fork never raises PC's
 destroy_card context. Per-Joker deviations are marked with
 PORT NOTE comments in paperbackpack.lua; the largest classes:
-- Destruction reactions: a Joker cannot see another Joker being
-  destroyed (no such event), so Black Forest Cake and Cardboard
+- Destruction reactions ported in v1.0.0 predate the fork's
+  joker_type_destroyed event: Black Forest Cake and Cardboard
   Box scale only on playing-card destruction, and Sacrificial
-  Lamb keeps only its playing-card half.
-- OFF Switch's eternal addon Jokers (Alpha/Epsilon/Omega) are
-  themselves unportable; it creates The Batter uneternal instead,
-  and only when that def is registered. Red Key creates a random
+  Lamb keeps only its playing-card half. The v1.1.0 ports
+  (Unholy Alliance, OFF Switch's addons) use the event.
+- OFF Switch now creates its real addons: Alpha, Epsilon and
+  Omega are created Eternal, as on PC. Red Key creates a random
   Rare (the fork has no Ultra Secret rarity). Freezer creates a
   random Negative Common/Uncommon Joker (no Food pool exists).
 - Permanent per-card bonuses ride the fields the fork's scoring
@@ -312,81 +377,117 @@ PORT NOTE comments in paperbackpack.lua; the largest classes:
 - Showdown and The Normal Joker follow the PC defs where the
   audit data disagreed with them (Showdown's chance gate;
   The Normal Joker is Rare $8 as its def says).
+Tier 3 (v1.1.0) deviations, also marked PORT NOTE in the code:
+- Soaked pays the total Chip value of cards held in hand when it
+  scores; the fork has no per-card held scoring pass, so its
+  PC discard-a-card-to-destroy-a-scored-card half is unported.
+  Sleeved is registered with its values only: a boss debuffing
+  it on PC is a Blind predicate, and the fork gives enhancements
+  no way to block destruction. Bandaged is likewise inert: the
+  fork never asks an enhancement for repetitions or destruction
+  vetoes, so its +1 repetition cannot fire (Gauze still applies
+  it, and Medic stays unported below). Wrapped's plain $2
+  scores; its no-rank / no-suit / always-scores traits cannot be
+  expressed. Ceramic pays its random dollars; its
+  shatter-into-two-copies half is unported (no such hook).
+  Domino counts distinct ranks among the scoring cards; PC
+  counts ranks played or discarded all round, tracked by a hook
+  this snapshot does not contain. Antique grows and pays in its
+  one scoring moment (PC grows in the before step).
+- High Risk Tag pays only its $25: doubling the Boss Blind's
+  score target has no handle at a tag moment. Cream Liqueur
+  pays when a Tag is gained; PC pays when a Tag is activated,
+  an event the fork does not raise (Stereoscopic Specs tracks
+  gains the same way). Book of Life and Joker's 11 translate
+  PC's end_of_round-plus-individual-hand combination, which the
+  fork never raises, to the round-end and skip moments.
+- One With Nothing destroys the unplayed held cards; PC
+  discards them, and the fork has no discard-from-hand API.
+- Da Capo and Jester of Nihil hold their debuffs as persistent
+  per-card flags refreshed at blind selection and after each
+  hand, instead of PC's continuous Blind predicates.
+- Cross vetoes every playing-card destruction through the
+  fork's destroying_card pass; PC also protects Jokers and
+  consumables by name, which has no equivalent pass here.
+  Unholy Alliance's 666-Chips revive is unported (no game_over
+  context / saved run). Deck of Cards destroys its Antique card
+  directly instead of through PC's destroy query. Ready to Fly
+  reads the adjacent Jokers' XChips through the fork's
+  post_trigger pass, without PC's context filtering.
 
-NOT PORTED (92 Jokers, each on its named blocker)
-- Custom enhancements (16): Blood Rain, Collector, Festive Joker,
-  Gauze, Greeting Card, Happy Accident, Kintsugi Joker, Medic,
-  Mexican Train, Pink Joker, Pinot Noir, Plastic Wrap, Sommelier,
-  Spotty Joker, Teapot, Watercolor Joker. Paperback's eight custom
-  enhancements (Soaked, Sleeved, Bandaged, Wrapped, Ceramic,
-  Domino, Stained, Antique) cannot be registered; a consumable
-  naming one would load-error the whole mod.
-- XChips / permanent X (14): Bergentrucking, Blue Star, Chocolate
-  Joker, Crispy Taco, Deck of Cards, Freedom of Choice, Grenadine,
-  Nachos, Nigori, Oracle, Quartz, Ready to Fly, Shinzaemon,
-  Stella Octangula. The fork has no x_chips return and no scoring
-  reader for perma_x_mult / perma_x_chips.
-- Tags (9): Angel Investor (Paperback's custom Angel Investment
-  Tag), Book of Life, J and Js, Jimbo Adventure, Jokers 11,
-  Shopkeep, Spirit Box, Stereoscopic Specs, The Wonder of You.
-  Only vanilla tags can be granted (G:addTag); Paperback's custom
-  tags cannot be registered, and copying/polling a player's tags
-  has no API. (56 Leaf Clover, Ghost Cola and ShadowMantle create
-  the vanilla Negative Tag and ARE ported.)
+NOT PORTED (47 Jokers, each on its named blocker)
+- Paperclips (4): Chip Clip, Clippy, Clothespin, Manilla Folder.
+  On PC a paperclip is per-card state stored on the playing card
+  itself (card.ability.paperback_<color>_clip), with eleven clip
+  colors each running its own calculate at clip-specific
+  contexts, plus run/round clip counters in G.GAME.paperback.
+  The fork gives a card exactly one calculate-bearing modifier
+  slot family (its enhancement or seal center); a clip would
+  displace the card's enhancement, several clip contexts are
+  never raised, and the counters have no persistence route.
+- E.G.O Gifts (4): Arayashiki, Fodder, Grimoire, The Strongest.
+  On PC these are not consumables: a gift is a held object with
+  a passive calculation that fires while it sits in the
+  consumable area, a sin affinity, the Corroded sticker system,
+  its own booster packs and a custom sold_gift context. The
+  fork's consumables only have can_use/use - no held passive,
+  no stickers, no gift type.
 - Custom rank Apostle (6): As Above So Below, In Case I Make It,
   One Sin and Hundreds of Good Deeds, Penumbra Phantasm, Plague
-  Doctor, White Night. Custom ranks cannot be registered.
-- E.G.O Gifts (4): Arayashiki, Fodder, Grimoire, The Strongest.
-  Paperback's custom consumable type with its own packs; only its
-  Minor Arcana type was in scope for the fork's ConsumableType.
-- Paperclips (4): Chip Clip, Clippy, Clothespin, Manilla Folder.
-  The paperclip system does not exist in the fork.
+  Doctor, White Night. The fork still has no rank registrar.
+- Permanent X / dollar card fields (8): Bergentrucking,
+  Freedom of Choice, Grenadine, Nigori and Shinzaemon grow
+  perma_x_mult / perma_x_chips on scored cards; Aperol and Pink
+  Joker grant perma_p_dollars; Sacred Heart grants
+  perma_repetitions. The fork's scoring reads none of these
+  fields. (Shinzaemon is also Legendary on PC.)
+- Enhancement-gated (2): Blood Rain (its PC def has no
+  calculate at all - the effect lives in global hooks absent
+  from this snapshot - and it replaces a scored card's Chips
+  with its Mult), Medic (its only effect maintains the
+  bandaged_inc counter feeding Bandaged repetitions, which the
+  fork never queries).
+- Partial balance (2): Milk Tea, Stardrop. PC applies
+  Paperback's plasma effect partially (50%, or 2% per scored
+  Stars card); the fork's balance return is the full 100%
+  effect only. (Let it Happen, the true full balance, IS
+  ported.)
 - Shop / pool manipulation (9): Backpack, Membership Card,
   NormalJKR, Protocol, Shopping Center, Touch Tone Joker,
-  Ouija Board (shop rates), plus Chaplin and Everything Must Go
-  (granting/redeeming Vouchers mid-run).
+  Ouija Board (no shop price/rate APIs), plus Chaplin and
+  Everything Must Go (no voucher grant/redeem API).
 - Copy effects (3): Forgery, Master Plan, Photocopy (they ride
   SMODS.blueprint_effect, which the fork does not provide).
-- Balance mechanic (3): Let It Happen, Milk Tea, Stardrop.
-- Missing contexts (10): Coin Collection and Frutiger Aero
-  (money_altered), Cream Liqueur (tag activation), Off Alpha /
-  Off Epsilon / Off Omega (joker_type_destroyed), One With
-  Nothing (press_play), The Sun Rises (modify_scoring_hand),
-  Watermelon (setting_ability), Weather Radio (blind_disabled).
-- Other single blockers: Aperol (perma_p_dollars has no scoring
-  reader), Burning Pact (draws cards; no draw API), Cross and
-  Unholy Alliance (react to destructions they did not order),
-  Da Capo and Jester of Nihil (debuff manipulation), Ddakji and
-  Vacation Juice and The World (card/Joker state systems),
-  Determination (prevents death), Jimbocards (global inflation),
-  Lager (permanent probability modification), Nichola (scores
-  held cards; no held-card scoring pass), Sacred Heart
-  (permanent retrigger grant).
-NOT PORTED - MINOR ARCANA (23 of 56)
+- Other single blockers: Burning Pact (draws cards; no
+  draw-cards API), Determination (prevents death; no game_over
+  context), Jimbocards (writes the run's global inflation
+  directly), Lager (grants a permanent per-card odds bonus with
+  no reader; the fork's probability modifier is Joker-scoped
+  and cannot outlive it), Nichola (scores held cards; no
+  held-card scoring pass), The Sun Rises (modify_scoring_hand
+  is still never raised), Ddakji and Vacation Juice (read and
+  write G.GAME.paperback state systems), The World (hooks
+  Card:calculate_joker and Blind:stay_flipped globally).
+NOT PORTED - MINOR ARCANA (12 of 56)
 - Paperclip Arcana (11): Ace of Cups, Ace of Wands, Three of
   Cups, Four of Wands, Page of Wands, Page of Cups, Six of
   Swords, Seven of Swords, Seven of Pentacles, Eight of Swords,
-  Nine of Pentacles.
-- Custom-enhancement conversions (8): Five of Cups (Soaked),
-  Five of Pentacles (Antique), Nine of Wands (Bandaged), Page
-  of Pentacles (Sleeved), Page of Swords (Domino), Queen of
-  Cups (Ceramic), Six of Wands (Wrapped), Three of Swords
-  (Stained).
-- Custom Paperback systems (4): Knight of Wands (High Risk
-  Tag), Seven of Wands (Breaking Tag), Queen of Wands (Dichrome
-  edition), Two of Swords (needs last-scored-suit state the fork
-  does not track).
+  Nine of Pentacles. Each applies a paperclip to selected
+  cards; see the paperclip blocker above.
+- Two of Swords: creates a copy of the last scored card; last
+  scored-suit state is not tracked by the fork.
 
 VALIDATION
 Loaded through the real ModLoader and exercised in Balatro3DS's
 own headless harness: main suite 41/41 (the original 36 Jokers'
 behavior, the suits, the Spectrum hands through the game's own
-classifier, the exotic gate), arcana suite 34/34 (type
-registration, all 33 cards, one behavior test each), expansion
-suite 57/57 (registration, names, rarities, costs and clean
-tooltips for all 224 Jokers, plus 57 behavior tests across the
-188 expansion Jokers), and the fork's own mod suite still green
-at 54/54. Hardware testing is the remaining step.
+classifier, the exotic gate), arcana suite 43/43 (type
+registration, all 44 cards, the enhancement conversions, the
+tag-granting cards, the boosters, Joker targeting), expansion
+suite 97/97 (registration, names, rarities, costs and clean
+tooltips for all 269 Jokers, plus behavior tests across the
+expansion Jokers, including all 45 Tier 3 additions). Hardware
+testing is the remaining step.
 
 CREDITS
 - Nether and contributors - Paperback, its Joker designs, text
@@ -395,5 +496,5 @@ CREDITS
   2025; the full license text ships in LICENSE.txt.
   https://github.com/Balatro-Paperback/paperback
 - idkhan / Gazpacho - Balatro3DS and its mod API.
-- sen2008 - the Balatro3DS fork (Tier 1/Tier 2 mod APIs).
+- sen2008 - the Balatro3DS fork (Tier 1/Tier 2/Tier 3 mod APIs).
 - LocalThunk - Balatro.

@@ -38,6 +38,27 @@ INCLUDED JOKERS
 - Loose Tooth (Common, $5) [NEW, fork only]: create a Tarot if the played hand has a non-scoring Ace (must have room).
 - Scapegoat (Uncommon, $6) [NEW, fork only]: if the first discard of the round is 1 card, destroy it and add its Chip value to a random card in hand.
 
+NOT PORTED (rechecked against the fork's Tier 3 API, 2026-10-23)
+Four KCVanilla Jokers remain blocked; no PC source is available
+locally for this mod, so nothing was ported from memory - only the
+blocker wording was refreshed where Tier 3 changed the facts:
+- Five-Day Forecast: needs a hook on the rank-change path. The
+  fork's MODDING.md still lists change_rank (and change_suit) among
+  the contexts not raised: rank/suit changes are direct writes with
+  no setter to hang a context on.
+- Rakugo: booster-pack internals. Tier 3 landed SMODS.Booster
+  registration and the open_booster / skipping_booster contexts, but
+  a registered pack deals from fixed pools and the open context
+  fires before the pack's cards exist; there is still no route to
+  read or alter a live pack's contents, which Rakugo needs.
+- Squid: needs live hands-left and the projected score mid-round.
+  MODDING.md exposes neither: there is no projected-score API and
+  no hands-left field on the contexts a mod receives.
+- Luck of the Irish: needs to know which card made a vanilla
+  probability roll. MODDING.md now documents that
+  context.trigger_obj is what a mod passed, and nil for the game's
+  own rolls, so a mod still cannot tell which card rolled.
+
 Validated headlessly against the Balatro3DS fork source (loader +
 per-Joker tests incl. create/destroy behavior, 9/9; the fork's own mod
 suite stays 43/43) on 2026-10-22. Not yet tested on real hardware.

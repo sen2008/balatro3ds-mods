@@ -63,6 +63,10 @@ local function install_pack()
         "four_of_pentacles", "six_of_cups", "six_of_pentacles",
         "eight_of_pentacles", "ten_of_pentacles", "queen_of_pentacles",
         "knight_of_pentacles", "king_of_pentacles",
+        "five_of_cups", "five_of_pentacles", "queen_of_cups",
+        "nine_of_wands", "knight_of_wands", "seven_of_wands",
+        "queen_of_wands", "page_of_pentacles", "page_of_swords",
+        "six_of_wands", "three_of_swords",
     }) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
@@ -118,6 +122,25 @@ local function install_pack()
         "twenty_first_century", "ultra_rare", "war_without_reason", "wheat_field",
         "whitebeard", "wild_plus_four", "wild_prize", "wish_you_were_here",
         "yacht", "yacht_dice", "you_are_a_fool", "zealous_joker",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
+    -- Dummy sprites for the Tier 3 (v1.1.0) Jokers.
+    for _, n in ipairs({
+        "collector", "festive_joker", "greeting_card", "happy_accident",
+        "kintsugi_joker", "mexican_train", "plastic_wrap", "sommelier",
+        "spotty_joker", "teapot", "watercolor_joker", "pinot_noir",
+        "gauze", "blue_star", "chocolate_joker", "crispy_taco",
+        "deck_of_cards", "nachos", "oracle", "quartz",
+        "ready_to_fly", "stella_octangula", "angel_investor", "book_of_life",
+        "j_and_js", "jimbo_adventure", "jokers_11", "shopkeep",
+        "spirit_box", "stereoscopic_specs", "the_wonder_of_you", "let_it_happen",
+        "coin_collection", "frutiger_aero", "cream_liqueur", "off_alpha",
+        "off_epsilon", "off_omega", "one_with_nothing", "watermelon",
+        "weather_radio", "da_capo", "jester_of_nihil", "cross",
+        "unholy_alliance", "jimbo_adventure_soul", "off_alpha_soul", "off_epsilon_soul",
+        "off_omega_soul",
     }) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
@@ -205,11 +228,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 224 Paperback Jokers", function()
+suite.test("pack loads and registers all 269 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 224)
+    T.assert_eq(#mod.registered.jokers, 269)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },

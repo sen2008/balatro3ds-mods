@@ -43,7 +43,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/PokermonPack.json", [[{
         "id": "PokermonPack", "name": "Pokermon (3DS port)", "prefix": "pokep",
-        "main_file": "pokermonpack.lua", "version": "1.2.0",
+        "main_file": "pokermonpack.lua", "version": "1.3.0",
         "author": ["InertSteak", "3DS port"]
     }]])
     love.filesystem.write(base .. "/pokermonpack.lua", main)
@@ -636,7 +636,8 @@ suite.test("evolved forms work standalone: raichu, gyarados line, kingler, arcan
 end)
 
 --------------------------------------------------------------------------------
--- Evolution stones (fork SMODS.ConsumableType, pack v1.2.0)
+-- Evolution stones (fork SMODS.ConsumableType, pack v1.2.0; Tier 3
+-- Joker targeting + Item Pack booster, pack v1.3.0)
 --------------------------------------------------------------------------------
 
 local STONE_IDS = {
@@ -672,6 +673,7 @@ suite.test("stones register under the pack's own poke_item type", function()
         T.assert_true(def ~= nil, id .. " registered")
         T.assert_eq(def.kind, "poke_item", id .. " carries the type's kind")
         T.assert_eq(def.cost, 4, id .. " costs $4, as on PC")
+        T.assert_true(def.target_joker == true, id .. " targets a chosen Joker (Tier 3)")
         local lines = SMODS.tooltip_lines(id, def)
         T.assert_true(type(lines) == "table" and #lines >= 1, id .. " tooltip has lines")
     end
@@ -706,41 +708,39 @@ suite.test("stones appear in the shop roll at their type's rate", function()
 end)
 
 suite.test("each stone evolves its own line and refuses the others", function()
-    -- Thunder Stone: Pikachu -> Raichu.
+    -- Thunder Stone: Pikachu -> Raichu, via the CHOSEN target.
     local game = stone_setup()
     local pika = add(game, "j_pokep_pikachu")
     local slot = hold_stone(game, "c_pokep_thunderstone")
-    T.assert_true(game:consumable_use_enabled(slot), "a held Pikachu makes the stone usable")
-    T.assert_true(game:use_consumable(slot))
+    T.assert_false(game:consumable_use_enabled(slot),
+        "an eligible Joker alone is not enough: one must be chosen")
+    T.assert_true(game:use_consumable(slot, pika), "the chosen Pikachu is a valid target")
     T.assert_eq(#game.consumables, 0, "the stone is spent")
     T.assert_eq(only_joker(game).def.id, "j_pokep_raichu", "Pikachu evolved into Raichu")
     wipe_mods()
 
     -- Fire Stone refuses Pikachu (wrong stone for the line).
     game = stone_setup()
-    add(game, "j_pokep_pikachu")
+    pika = add(game, "j_pokep_pikachu")
     slot = hold_stone(game, "c_pokep_firestone")
-    T.assert_false(game:consumable_use_enabled(slot), "Fire Stone has no target in a lone Pikachu")
-    T.assert_false(game:use_consumable(slot), "and cannot be used")
+    T.assert_false(game:use_consumable(slot, pika), "choosing Pikachu does not help the Fire Stone")
     T.assert_eq(#game.consumables, 1, "the refused stone stays held")
     T.assert_eq(only_joker(game).def.id, "j_pokep_pikachu", "nothing evolved")
     wipe_mods()
 
     -- Fire Stone: Growlithe -> Arcanine.
     game = stone_setup()
-    add(game, "j_pokep_growlithe")
+    local growl = add(game, "j_pokep_growlithe")
     slot = hold_stone(game, "c_pokep_firestone")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, growl))
     T.assert_eq(only_joker(game).def.id, "j_pokep_arcanine", "Growlithe evolved into Arcanine")
     wipe_mods()
 
     -- Water Stone: Shellder -> Cloyster.
     game = stone_setup()
-    add(game, "j_pokep_shellder")
+    local shell = add(game, "j_pokep_shellder")
     slot = hold_stone(game, "c_pokep_waterstone")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, shell))
     local cloy = only_joker(game)
     T.assert_eq(cloy.def.id, "j_pokep_cloyster", "Shellder evolved into Cloyster")
     T.assert_eq(cloy.ability.extra.dem, 2, "Cloyster's own 1-in-2, not Shellder's 1-in-3")
@@ -748,18 +748,16 @@ suite.test("each stone evolves its own line and refuses the others", function()
 
     -- Moon Stone covers both of its lines.
     game = stone_setup()
-    add(game, "j_pokep_clefairy")
+    local clef = add(game, "j_pokep_clefairy")
     slot = hold_stone(game, "c_pokep_moonstone")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, clef))
     T.assert_eq(only_joker(game).def.id, "j_pokep_clefable", "Clefairy evolved into Clefable")
     wipe_mods()
 
     game = stone_setup()
-    add(game, "j_pokep_jigglypuff")
+    local jig = add(game, "j_pokep_jigglypuff")
     slot = hold_stone(game, "c_pokep_moonstone")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, jig))
     T.assert_eq(only_joker(game).def.id, "j_pokep_wigglytuff", "Jigglypuff evolved into Wigglytuff")
     wipe_mods()
 end)
@@ -769,58 +767,79 @@ suite.test("stones need a valid target: none held, wrong line, debuffed, Magneto
     local game = stone_setup()
     local slot = hold_stone(game, "c_pokep_thunderstone")
     T.assert_false(game:consumable_use_enabled(slot), "no Jokers: not usable")
+    T.assert_false(game:use_consumable(slot), "and no target can be forced")
     wipe_mods()
 
-    -- A Joker no stone evolves.
+    -- A Joker no stone evolves, even when it is the chosen one.
     game = stone_setup()
-    add(game, "j_pokep_caterpie")
+    local cat = add(game, "j_pokep_caterpie")
     slot = hold_stone(game, "c_pokep_moonstone")
     T.assert_false(game:consumable_use_enabled(slot), "Caterpie is not a Moon Stone target")
+    T.assert_false(game:use_consumable(slot, cat), "choosing Caterpie is refused")
+    T.assert_eq(#game.consumables, 1, "the refused stone stays held")
     wipe_mods()
 
     -- Magneton is not a Thunder Stone target in this pack (its PC
     -- evolution, Magnezone, is not in the pack).
     game = stone_setup()
-    add(game, "j_pokep_magneton")
+    local mag = add(game, "j_pokep_magneton")
     slot = hold_stone(game, "c_pokep_thunderstone")
     T.assert_false(game:consumable_use_enabled(slot), "Magneton refuses the Thunder Stone here")
-    T.assert_false(game:use_consumable(slot))
+    T.assert_false(game:use_consumable(slot, mag), "even chosen, Magneton is refused")
     T.assert_eq(only_joker(game).def.id, "j_pokep_magneton", "Magneton stays Magneton")
     wipe_mods()
 
     -- The evolved form is not a target either (already evolved).
     game = stone_setup()
-    add(game, "j_pokep_raichu")
+    local rai = add(game, "j_pokep_raichu")
     slot = hold_stone(game, "c_pokep_thunderstone")
     T.assert_false(game:consumable_use_enabled(slot), "Raichu cannot evolve further")
+    T.assert_false(game:use_consumable(slot, rai))
     wipe_mods()
 
-    -- A debuffed target is skipped, as on PC.
+    -- A debuffed target is refused, as on PC, even when chosen.
     game = stone_setup()
     local growl = add(game, "j_pokep_growlithe")
     growl.debuff = true
     slot = hold_stone(game, "c_pokep_firestone")
     T.assert_false(game:consumable_use_enabled(slot), "a debuffed Growlithe is not a target")
+    T.assert_false(game:use_consumable(slot, growl), "choosing it is refused too")
+    T.assert_eq(only_joker(game).def.id, "j_pokep_growlithe", "nothing evolved")
     wipe_mods()
 end)
 
-suite.test("a stone evolves the leftmost eligible Joker", function()
+suite.test("a stone evolves the CHOSEN Joker, not the leftmost", function()
+    -- Two eligible pre-forms of the same line: pick the second one.
     local game = stone_setup()
-    add(game, "j_pokep_jigglypuff")
+    add(game, "j_pokep_clefairy")
     add(game, "j_pokep_clefairy")
     local slot = hold_stone(game, "c_pokep_moonstone")
-    T.assert_true(game:use_consumable(slot))
-    -- The destroy+create swap puts the evolved form in the last slot,
-    -- so the list reads {Clefairy, Wigglytuff}: it was the leftmost
-    -- target (Jigglypuff) that evolved, not Clefairy.
+    T.assert_false(game:use_consumable(slot),
+        "with eligible Jokers held but none chosen, the stone refuses")
+    T.assert_eq(#game.consumables, 1, "the refused stone stays held")
+    T.assert_true(game:use_consumable(slot, game.jokers[2]),
+        "the non-leftmost Clefairy is chosen")
     T.assert_eq(game.jokers[1].def.id, "j_pokep_clefairy",
-        "Clefairy is untouched: the leftmost target was Jigglypuff")
-    T.assert_eq(game.jokers[2].def.id, "j_pokep_wigglytuff",
-        "Jigglypuff (the leftmost eligible Joker) evolved")
-    slot = hold_stone(game, "c_pokep_moonstone")
-    T.assert_true(game:use_consumable(slot))
+        "the leftmost Clefairy is untouched")
     T.assert_eq(game.jokers[2].def.id, "j_pokep_clefable",
-        "a second Moon Stone evolves the remaining Clefairy")
+        "the chosen Clefairy evolved (destroy+create lands it last)")
+    wipe_mods()
+
+    -- Two eligible pre-forms of DIFFERENT Moon lines: pick Clefairy
+    -- over the leftmost Jigglypuff, then evolve Jigglypuff too.
+    game = stone_setup()
+    add(game, "j_pokep_jigglypuff")
+    add(game, "j_pokep_clefairy")
+    slot = hold_stone(game, "c_pokep_moonstone")
+    T.assert_true(game:use_consumable(slot, game.jokers[2]))
+    T.assert_eq(game.jokers[1].def.id, "j_pokep_jigglypuff",
+        "Jigglypuff is untouched: the chosen target was Clefairy")
+    T.assert_eq(game.jokers[2].def.id, "j_pokep_clefable",
+        "Clefairy (the chosen, non-leftmost target) evolved")
+    slot = hold_stone(game, "c_pokep_moonstone")
+    T.assert_true(game:use_consumable(slot, game.jokers[1]))
+    T.assert_eq(game.jokers[2].def.id, "j_pokep_wigglytuff",
+        "a second Moon Stone evolves the remaining Jigglypuff")
     wipe_mods()
 end)
 
@@ -831,7 +850,7 @@ suite.test("stone evolution preserves the edition and grown scaling", function()
     local pika = game.jokers[#game.jokers]
     T.assert_eq(pika.edition, "foil")
     local slot = hold_stone(game, "c_pokep_thunderstone")
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, pika))
     local rai = only_joker(game)
     T.assert_eq(rai.def.id, "j_pokep_raichu")
     T.assert_eq(rai.edition, "foil", "foil carries through the stone evolution")
@@ -847,12 +866,41 @@ suite.test("stone evolution preserves the edition and grown scaling", function()
     jig.ability.extra.chips = 45
     jig.ability.extra.chip_mod = 5
     slot = hold_stone(game, "c_pokep_moonstone")
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, jig))
     local tuff = only_joker(game)
     T.assert_eq(tuff.def.id, "j_pokep_wigglytuff")
     T.assert_eq(tuff.ability.extra.chips, 45,
         "grown Chips carry (45 > Wigglytuff's base 30)")
     T.assert_eq(tuff.ability.extra.mult, 2, "ungrown values take the new form's config")
+    wipe_mods()
+end)
+
+suite.test("stones also deal from the pack's Item Pack booster", function()
+    local game = stone_setup()
+    local mod = ModLoader.by_id.PokermonPack
+    T.assert_eq(#mod.registered.boosters, 1, "one booster registers")
+    local entry = SMODS.Boosters["pokep_itempack"]
+    T.assert_true(entry ~= nil, "the Item Pack registers under its full id")
+    T.assert_eq(entry.pool_kind, "consumable")
+    T.assert_eq(entry.consumable_kind, "poke_item", "the pool is the pack's own kind")
+    T.assert_eq(entry.card_count, 3)
+    T.assert_eq(entry.picks, 1)
+    T.assert_eq(entry.cost, 4)
+    T.assert_eq(entry.sprite, nil,
+        "no pack-wrapper art exists, so no sprite: the fallback panel draws")
+    local in_pool = false
+    for _, p in ipairs(SMODS.booster_profile_entries()) do
+        if p.key == "pokep_itempack" then in_pool = true end
+    end
+    T.assert_true(in_pool, "the Item Pack joins the shop booster pool")
+    -- Dealing the pack yields only stones.
+    local choices = game:_booster_build_choices({ pack = "itempack", card_count = 3 })
+    T.assert_eq(#choices, 3, "the pack deals its card count")
+    for _, ch in ipairs(choices) do
+        T.assert_eq(ch.kind, "poke_item", "a dealt choice is an Item")
+        T.assert_true(STONE_IDS[ch.consumable_def.id] == true,
+            "a dealt choice is a stone: " .. tostring(ch.consumable_def.id))
+    end
     wipe_mods()
 end)
 

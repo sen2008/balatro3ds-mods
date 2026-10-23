@@ -30,8 +30,8 @@
 --   * Calling Card and Attacking Vertical scale when a Boss Blind is
 --     defeated (Paperback's extra debuff-trigger scale paths are dropped).
 --   * Park Postcard resets on deck add/remove, as on PC.
---   * Minor Arcana have shop_rate 3 here; on PC their rate is 0
---     (booster-delivered) and the fork cannot register boosters.
+--   * Minor Arcana arrive through the registered Minor Arcana booster
+--     packs, as on PC, so the type's shop_rate is PC's 0 (v1.1.0).
 --   * Sub-effect deviations in the expansion sections are marked
 --     with PORT NOTE comments at each Joker.
 
@@ -1374,34 +1374,32 @@ end
 -- Minor Arcana (Paperback consumable set, ported 2026-10-22)
 --
 -- PC registers this set at shop_rate 0 because the cards arrive through
--- Minor Arcana booster packs; the fork cannot register booster packs at
--- all, so the type is registered at shop_rate 3 (just under Tarot and
--- Planet at 4) as a deliberate port deviation that keeps the set
--- obtainable through the shop.
+-- Minor Arcana booster packs; since v1.1.0 the fork registers booster
+-- packs, so the packs are registered in the Tier 3 section at the end of
+-- this file and the type keeps PC's rate of 0.
 --
 -- BLOCKED, not ported:
 --   * The 11 paperclip arcana (ace_of_cups, ace_of_wands, three_of_cups,
 --     four_of_wands, page_of_wands, page_of_cups, six_of_swords,
 --     seven_of_swords, seven_of_pentacles, eight_of_swords,
---     nine_of_pentacles): the paperclip system does not exist in the fork.
---   * The 8 mod_conv arcana whose target is a Paperback-only enhancement
---     (five_of_cups/soaked, five_of_pentacles/antique, nine_of_wands/
---     bandaged, page_of_pentacles/sleeved, page_of_swords/domino,
---     queen_of_cups/ceramic, six_of_wands/wrapped, three_of_swords/
---     stained): the fork has no enhancement registry, its ENHANCEMENT
---     table holds only the 8 vanilla enhancements, and SMODS.Consumable
---     load-errors on any other mod_conv value.
---   * knight_of_wands and seven_of_wands grant Paperback-only Tags
---     (High Risk / Breaking); queen_of_wands grants the Paperback-only
---     Dichrome edition; two_of_swords converts to the last scored suit,
---     which the fork does not track anywhere.
+--     nine_of_pentacles): clip state lives on playing-card instances as
+--     a second modifier beside the enhancement, with its own calculate
+--     contexts; the fork gives a card exactly one center calculate slot
+--     family (enhancement / seal) and no card-modifier registry, so a
+--     clip has nowhere to live. See the Tier 3 section header.
+--   * two_of_swords converts to the last scored suit, which the fork
+--     does not track anywhere.
+--
+-- Ported in the Tier 3 section (v1.1.0): the 8 enhancement-conversion
+-- arcana (five_of_cups, five_of_pentacles, nine_of_wands,
+-- page_of_pentacles, page_of_swords, queen_of_cups, six_of_wands,
+-- three_of_swords), knight_of_wands, seven_of_wands and queen_of_wands.
 --
 -- Port deviations inside the ported set:
 --   * Joker-targeting arcana (nine_of_cups, nine_of_swords,
---     two_of_pentacles, king_of_swords): the fork has no Joker-selection
---     path for consumables (selection is hand cards only), so, following
---     the PokermonPack stone precedent, they act on the leftmost
---     eligible held Joker instead of a selected one.
+--     two_of_pentacles, king_of_swords) use the fork's target_joker
+--     consumable path since v1.1.0: the player picks the Joker, as on
+--     PC. (In v1.0.0 they acted on the leftmost eligible held Joker.)
 --   * nine_of_swords cannot ban the destroyed Joker for the rest of the
 --     run (no run-ban API); the destroy and the $5 are as on PC.
 --   * Random-enhancement rolls (seven_of_cups, five_of_swords) draw from
@@ -1421,7 +1419,7 @@ if not (SMODS.ConsumableKinds and SMODS.ConsumableKinds["minor_arcana"]) then
     SMODS.ConsumableType {
         key = "minor_arcana",
         loc_txt = { name = "Minor Arcana" },
-        shop_rate = 3,
+        shop_rate = 0,
     }
 end
 
@@ -1717,24 +1715,24 @@ SMODS.Consumable {
 SMODS.Consumable {
     set = "minor_arcana", key = "nine_of_cups", cost = 3,
     loc_txt = { name = "Nine of Cups", text = {
-        "Destroy the {C:attention}leftmost{} non-Eternal {C:attention}Joker{} and",
+        "Destroy selected {C:attention}Joker{} and",
         "create a new {C:attention}Joker{} of higher",
         "{C:attention}rarity{} if possible, otherwise",
         "create one of equal rarity",
-        "{C:inactive}(Cannot upgrade to Legendary)",
+        "{C:inactive}(Cannot upgrade to {C:legendary}Legendary{C:inactive})",
     } },
     config = { extra = { max_jokers = 1 } },
+    target_joker = true,
     sprite = "nine_of_cups.png",
     negative_sprite = "nine_of_cups_negative.png",
     loc_vars = function(self, info_queue, card)
         return { vars = { (pba_cfg(card).extra or {}).max_jokers } }
     end,
-    can_use = function(self, card)
-        return pba_first_joker(function(j) return not j.eternal end) ~= nil
+    can_use = function(self, card, target)
+        return target ~= nil and not target.eternal
     end,
-    use = function(self, card, area, copier)
+    use = function(self, card, area, copier, target)
         local g = pba_game()
-        local target = pba_first_joker(function(j) return not j.eternal end)
         if not target or not g then return end
         local rarity = 1
         local def = target.def and JOKER_DEFS and JOKER_DEFS[target.def.id]
@@ -1745,6 +1743,10 @@ SMODS.Consumable {
             edition = nil
         end
         local new_rarity = rarity < 3 and (rarity + 1) or rarity
+        -- PC rarity override: OFF Switch counts as Rare for this card.
+        if target.def and target.def.id == "j_pbp_off_switch" then
+            new_rarity = 3
+        end
         SMODS.destroy_joker(target)
         local id = g.random_joker_def_id_by_rarity
             and g:random_joker_def_id_by_rarity(new_rarity, "nine_of_cups")
@@ -2079,21 +2081,21 @@ SMODS.Consumable {
 SMODS.Consumable {
     set = "minor_arcana", key = "nine_of_swords", cost = 3,
     loc_txt = { name = "Nine of Swords", text = {
-        "Destroy the {C:attention}leftmost{} Joker and earn {C:money}$#2#{}",
+        "Destroy selected Joker and earn {C:money}$#2#{}",
         "{C:inactive}(Can destroy Eternals)",
     } },
     config = { extra = { max_jokers = 1, money = 5 } },
+    target_joker = true,
     sprite = "nine_of_swords.png",
     negative_sprite = "nine_of_swords_negative.png",
     loc_vars = function(self, info_queue, card)
         local extra = pba_cfg(card).extra or {}
         return { vars = { extra.max_jokers, extra.money } }
     end,
-    can_use = function(self, card)
-        return pba_first_joker() ~= nil
+    can_use = function(self, card, target)
+        return target ~= nil
     end,
-    use = function(self, card, area, copier)
-        local target = pba_first_joker()
+    use = function(self, card, area, copier, target)
         if not target then return end
         if SMODS.destroy_joker(target) then
             ease_dollars((pba_cfg(card).extra or {}).money or 5)
@@ -2224,19 +2226,17 @@ SMODS.Consumable {
     set = "minor_arcana", key = "king_of_swords", cost = 3,
     loc_txt = { name = "King of Swords", text = {
         "Remove {C:money}Rental{} and {C:purple}Perishable",
-        "from the {C:attention}leftmost{} Joker that has them",
+        "from selected Joker",
     } },
+    target_joker = true,
     sprite = "king_of_swords.png",
     negative_sprite = "king_of_swords_negative.png",
-    can_use = function(self, card)
-        return pba_first_joker(function(j)
-            return j.rental or j.perishable
-        end) ~= nil
+    can_use = function(self, card, target)
+        return target ~= nil
+            and (target.rental or target.perishable) and true or false
     end,
-    use = function(self, card, area, copier)
-        local j = pba_first_joker(function(x)
-            return x.rental or x.perishable
-        end)
+    use = function(self, card, area, copier, target)
+        local j = target
         if not j then return end
         j.rental = nil
         j.perishable = nil
@@ -2251,16 +2251,17 @@ SMODS.Consumable {
 SMODS.Consumable {
     set = "minor_arcana", key = "two_of_pentacles", cost = 3,
     loc_txt = { name = "Two of Pentacles", text = {
-        "The {C:attention}leftmost{} Joker gains",
+        "Selected Joker gains",
         "or loses {C:purple}Eternal{}",
     } },
+    target_joker = true,
     sprite = "two_of_pentacles.png",
     negative_sprite = "two_of_pentacles_negative.png",
-    can_use = function(self, card)
-        return pba_first_joker() ~= nil
+    can_use = function(self, card, target)
+        return target ~= nil
     end,
-    use = function(self, card, area, copier)
-        local j = pba_first_joker()
+    use = function(self, card, area, copier, target)
+        local j = target
         if not j then return end
         if j.eternal then
             j.eternal = false
@@ -7050,12 +7051,13 @@ SMODS.Joker {
 }
 
 -- off_switch
--- PORT NOTE: the eternal addon Jokers (off_alpha/epsilon/omega) are
--- unregistered in the fork; on add, a single uneternal The Batter is
--- created instead, and only when that def is registered (the fork has
--- no sticker API, so no eternal/temporary marking exists). Joker
--- destruction by other effects is unobservable in the fork, so the
--- XMult gain is credited for the destructions OFF Switch itself orders.
+-- The addon Jokers (off_alpha/epsilon/omega) are registered in the Tier 3
+-- section at the end of this file. PC applies their Eternal sticker at
+-- creation; the fork's sticker channel is the Joker's `eternal` field,
+-- set on the Joker SMODS.add_card returns (the same write card_sleeve's
+-- port makes). The XMult gain rides the joker_type_destroyed context,
+-- which also hears the destructions this Joker itself orders, as PC's
+-- is_joker_destroyed check does.
 SMODS.Joker {
     key = "off_switch",
     name = "OFF Switch",
@@ -7078,32 +7080,52 @@ SMODS.Joker {
     add_to_deck = function(self, card, from_debuff)
         G = rawget(_G, "G") or G
         if from_debuff then return end
-        if JOKER_DEFS and JOKER_DEFS["j_pbp_the_batter"] and SMODS.add_card then
-            SMODS.add_card { set = "Joker", key = "j_pbp_the_batter" }
+        if not SMODS.add_card then return end
+        for _, key in ipairs({ "j_pbp_off_alpha", "j_pbp_off_omega",
+            "j_pbp_off_epsilon" }) do
+            if JOKER_DEFS and JOKER_DEFS[key] then
+                local j = SMODS.add_card { set = "Joker", key = key }
+                if j then j.eternal = true end
+            end
         end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        G = rawget(_G, "G") or G
+        if from_debuff then return end
+        if not SMODS.destroy_joker then return end
+        local addons = { j_pbp_off_alpha = true, j_pbp_off_omega = true,
+            j_pbp_off_epsilon = true }
+        local targets = {}
+        for _, j in ipairs(pb3_jokers()) do
+            if j ~= card and j.def and addons[j.def.id] then
+                targets[#targets + 1] = j
+            end
+        end
+        for _, j in ipairs(targets) do SMODS.destroy_joker(j) end
     end,
     calculate = function(self, card, context)
         G = rawget(_G, "G") or G
         if context.remove_playing_cards and context.port
             and context.port.destroyed_cards
             and #context.port.destroyed_cards > 0 and SMODS.destroy_joker then
-            local gained = 0
+            local triggered = false
             for _ = 1, #context.port.destroyed_cards do
                 local target = nil
                 for _, j in ipairs(pb3_jokers()) do
-                    if j ~= card then target = j break end
+                    if j ~= card and not j.eternal then target = j break end
                 end
                 if target and SMODS.destroy_joker(target) then
-                    gained = gained + 1
+                    triggered = true
                 else
                     break
                 end
             end
-            if gained > 0 then
-                card.ability.extra.x_mult = pb3_round2(card.ability.extra.x_mult
-                    + card.ability.extra.a_xmult * gained)
-                return { message = "OFF!" }
-            end
+            if triggered then return { message = "OFF!" } end
+        end
+        if context.joker_type_destroyed then
+            card.ability.extra.x_mult = pb3_round2(card.ability.extra.x_mult
+                + card.ability.extra.a_xmult)
+            return { message = "Upgrade!" }
         end
         if context.joker_main and card.ability.extra.x_mult > 1 then
             return { xmult = card.ability.extra.x_mult }
@@ -10507,3 +10529,2467 @@ SMODS.Joker {
     end,
 }
 end
+
+--------------------------------------------------------------------------------
+-- Tier 3 expansion (v1.1.0): enhancements, tags, boosters, Dichrome edition
+-- and the Jokers / Minor Arcana they unblock.
+-- Ported from Paperback's MIT-licensed sources against the fork's Tier 3
+-- API (SMODS.Enhancement / Tag / Booster / Edition, target_joker
+-- consumables, and the joker_type_destroyed / money_altered / press_play /
+-- blind_disabled / setting_ability / destroying_card / tag_added
+-- contexts). Sub-effect deviations are marked with PORT NOTE comments.
+--------------------------------------------------------------------------------
+do
+
+local function pb5_game() return rawget(_G, "G") end
+
+local function pb5_jokers()
+    local g = pb5_game()
+    if not g then return {} end
+    if g.jokers and g.jokers.cards then return g.jokers.cards end
+    return g.jokers or {}
+end
+
+local function pb5_round2(x) return math.floor(x * 100 + 0.5) / 100 end
+
+local function pb5_enh(view)
+    local d = view and view.card_data
+    if d and d.enhancement then return d.enhancement end
+    return view and view.enhancement or nil
+end
+
+local function pb5_suit(view)
+    local d = view and view.card_data
+    if d and d.suit then return d.suit end
+    return view and view.suit or nil
+end
+
+local function pb5_rank(view)
+    local d = view and view.card_data
+    local r = tonumber(d and d.rank)
+    if r then return r end
+    return tonumber(view and view.rank)
+end
+
+local PB5_RANK_CHIPS = { [11] = 10, [12] = 10, [13] = 10, [14] = 11 }
+local function pb5_chip_value(view)
+    local data = (view and view.card_data) or {}
+    local base = tonumber(data.chips)
+    if not base then
+        base = PB5_RANK_CHIPS[tonumber(data.rank) or 0]
+            or tonumber(data.rank) or 0
+    end
+    if data.enhancement == "bonus" then base = base + 30 end
+    base = base + (tonumber(data.Bonus) or tonumber(data.bonus) or 0)
+    return base
+end
+
+-- Nodes of the hand currently being scored: the play area when the engine
+-- moved the cards there, else the hand nodes flagged as scoring.
+local function pb5_scoring_nodes()
+    local g = pb5_game()
+    if not g then return {} end
+    if g.play and type(g.play.card_nodes) == "table"
+        and #g.play.card_nodes > 0 then
+        return g.play.card_nodes
+    end
+    local out = {}
+    if g.hand and type(g.hand.card_nodes) == "table" then
+        for _, n in ipairs(g.hand.card_nodes) do
+            if n.counts_for_play_score then out[#out + 1] = n end
+        end
+    end
+    return out
+end
+
+-- Nodes still held in hand while a hand scores.
+local function pb5_held_nodes()
+    local g = pb5_game()
+    local out = {}
+    if not g or not g.hand or type(g.hand.card_nodes) ~= "table" then
+        return out
+    end
+    local in_play = g.play and type(g.play.card_nodes) == "table"
+        and #g.play.card_nodes > 0
+    for _, n in ipairs(g.hand.card_nodes) do
+        if in_play or not n.counts_for_play_score then out[#out + 1] = n end
+    end
+    return out
+end
+
+local function pb5_full_deck_data()
+    local g = pb5_game()
+    local out = {}
+    if g and g.count_cards_in_full_deck then
+        g:count_cards_in_full_deck(function(d)
+            out[#out + 1] = d
+            return false
+        end)
+    end
+    return out
+end
+
+local function pb5_boss(context)
+    local idx = context and context.port and context.port.blind_index
+    if not idx then
+        local g = pb5_game()
+        idx = g and g.current_blind_index
+    end
+    return idx == 3
+end
+
+-- The fork's context translation marks both individual passes with
+-- context.individual and tells them apart by cardarea (play area vs
+-- hand), never with an individual_hand flag.
+local function pb5_play_area(context)
+    if not context.individual then return false end
+    local g = pb5_game()
+    if g and g.hand and context.cardarea == g.hand then return false end
+    return true
+end
+
+local function pb5_hand_area(context)
+    if not context.individual then return false end
+    local g = pb5_game()
+    return g and g.hand and context.cardarea == g.hand or false
+end
+
+local function pb5_add_tag(type_name)
+    local g = pb5_game()
+    if g and g.addTag and type_name then g:addTag(type_name) end
+end
+
+-- The pool PB_UTIL.poll_tag draws from on PC: every vanilla tag plus the
+-- Paperback tags that appear in polls. Angel Investment and High Risk
+-- carry in_pool = false on PC and are excluded.
+local PB5_TAG_POOL = {
+    "uncommon", "rare", "negative", "foil", "holo", "polychrome",
+    "investment", "voucher", "boss", "standard", "charm", "meteor",
+    "buffoon", "handy", "garbage", "ethereal", "coupon", "double",
+    "juggle", "d6", "topup", "speed", "orbital", "economy",
+    "breaking", "dichrome", "divination",
+}
+
+local function pb5_random_tag(seed)
+    return PB5_TAG_POOL[SMODS.pseudorandom(seed, 1, #PB5_TAG_POOL)]
+end
+
+-- Kintsugi Joker's running total, summed over held copies: PC keeps it in
+-- a G.GAME counter the Ceramic enhancement reads; the port reads the
+-- Jokers directly, which is the same number.
+local function pb5_ceramic_inc()
+    local total = 0
+    for _, j in ipairs(pb5_jokers()) do
+        if j.def and j.def.id == "j_pbp_kintsugi_joker" then
+            total = total + (tonumber(j.ability.extra.total) or 0)
+        end
+    end
+    return total
+end
+
+--------------------------------------------------------------------------------
+-- The 8 Paperback enhancements. All register at weight 0: on PC they are
+-- source-gated (conversions and specific effects only) and never enter
+-- the random enhancement polls.
+--------------------------------------------------------------------------------
+
+if SMODS.Enhancement then
+
+-- PORT NOTE (Soaked): PC scores every held card in full (its own
+-- enhancement, seal, edition and Joker-on-held effects) through
+-- SMODS.score_card; the fork raises no per-card scoring pass for held
+-- cards, so only each held card's Chip value is credited. The 1-in-2
+-- destroy-on-discard half is unported: enhancement calculate is never
+-- raised on discard in the fork.
+SMODS.Enhancement {
+    key = "soaked",
+    loc_txt = { name = "Soaked Card", text = {
+        "When scored, cards {C:attention}held in hand{}",
+        "score their {C:chips}Chip value{}",
+        "{C:green}#1# in #2#{} chance to",
+        "{C:red}destroy{} card on {C:red}discard",
+    } },
+    config = { extra = { odds = 2 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 1, self.config.extra.odds } }
+    end,
+    calculate = function(self, card, context)
+        if context.card_played then
+            local total = 0
+            for _, node in ipairs(pb5_held_nodes()) do
+                total = total + pb5_chip_value(node)
+            end
+            if total > 0 then return { chips = total } end
+        end
+    end,
+}
+
+-- PORT NOTE (Sleeved): neither half has a hook in the fork. Boss debuffs
+-- are Blind predicates, not applications a center can refuse, and no
+-- center calculate is raised when a card is destroyed. It registers so
+-- conversions can apply it and the gated Jokers can count it.
+SMODS.Enhancement {
+    key = "sleeved",
+    loc_txt = { name = "Sleeved Card", text = {
+        "Cannot be {C:attention}debuffed{} or",
+        "{C:attention}flipped{} face down",
+        "Earn {C:money}$#1#{} if destroyed",
+    } },
+    config = { extra = { money = 5 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { self.config.extra.money } }
+    end,
+}
+
+-- PORT NOTE (Bandaged): registered but inert. PC's effect answers a
+-- repetition query from the scoring card beside it and a destroy query
+-- when it is scored; the fork asks repetition and destruction questions
+-- of seals and Jokers only, never of enhancements, so there is no
+-- calculate moment this effect could live in.
+SMODS.Enhancement {
+    key = "bandaged",
+    loc_txt = { name = "Bandaged Card", text = {
+        "Retrigger {C:attention}adjacent{} cards",
+        "{C:green}#1# in #2#{} chance to",
+        "{C:red}break{} when scored",
+    } },
+    config = { extra = { odds = 5 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 1, self.config.extra.odds } }
+    end,
+}
+
+-- PORT NOTE (Wrapped): PC's no_rank / no_suit / always_scores flags have
+-- no counterpart in the fork's enhancement registration; the card keeps
+-- its rank and suit and scores normally. The $2 on score is exact.
+SMODS.Enhancement {
+    key = "wrapped",
+    loc_txt = { name = "Wrapped Card", text = {
+        "Earn {C:money}$#1#{} when scored",
+        "no rank or suit",
+    } },
+    config = { extra = { money = 2 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { self.config.extra.money } }
+    end,
+    calculate = function(self, card, context)
+        if context.card_played then
+            return { dollars = self.config.extra.money }
+        end
+    end,
+}
+
+-- PORT NOTE (Ceramic): the shatter half is unported. PC decides it in a
+-- destroy query answered after the final scoring step; the fork raises
+-- neither moment for enhancement centers.
+SMODS.Enhancement {
+    key = "ceramic",
+    loc_txt = { name = "Ceramic Card", text = {
+        "Earn between {C:money}$#1#{}",
+        "and {C:money}$#2#{} when scored",
+        "{C:red}Shatters{} if {C:mult}Mult{} ended up",
+        "{C:attention}greater{} than {C:chips}Chips{}",
+        "while played or held",
+    } },
+    config = { extra = { a_money_low = 1, a_money_high = 5 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        local inc = pb5_ceramic_inc()
+        return { vars = { self.config.extra.a_money_low + inc,
+            self.config.extra.a_money_high + inc } }
+    end,
+    calculate = function(self, card, context)
+        if context.card_played then
+            local inc = pb5_ceramic_inc()
+            return { dollars = SMODS.pseudorandom("ceramic",
+                self.config.extra.a_money_low + inc,
+                self.config.extra.a_money_high + inc) }
+        end
+    end,
+}
+
+-- PORT NOTE (Domino): PC counts every distinct rank played or discarded
+-- so far this round, tracked by a hook outside the def; the fork raises
+-- no discard moment for centers and keeps no such tally, so the port
+-- counts the distinct ranks of the hand being scored.
+SMODS.Enhancement {
+    key = "domino",
+    loc_txt = { name = "Domino Card", text = {
+        "{C:mult}+#1#{} Mult for every played",
+        "or discarded rank this round",
+        "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
+    } },
+    config = { extra = { scaling = 1 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        local seen = {}
+        for _, node in ipairs(pb5_scoring_nodes()) do
+            local r = pb5_rank(node)
+            if r then seen[r] = true end
+        end
+        local n = 0
+        for _ in pairs(seen) do n = n + 1 end
+        return { vars = { self.config.extra.scaling,
+            self.config.extra.scaling * n } }
+    end,
+    calculate = function(self, card, context)
+        if context.card_played then
+            local seen = {}
+            for _, node in ipairs(pb5_scoring_nodes()) do
+                local r = pb5_rank(node)
+                if r then seen[r] = true end
+            end
+            local n = 0
+            for _ in pairs(seen) do n = n + 1 end
+            if n > 0 then return { mult = self.config.extra.scaling * n } end
+        end
+    end,
+}
+
+SMODS.Enhancement {
+    key = "stained",
+    loc_txt = { name = "Stained Card", text = {
+        "If {C:attention}held in hand{} after a",
+        "hand is played, scored cards",
+        "permanently gain {C:mult}+#1#{} Mult",
+    } },
+    config = { extra = { mult_mod = 1 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { self.config.extra.mult_mod } }
+    end,
+    calculate = function(self, card, context)
+        if context.held_in_hand and context.port
+            and type(context.port.played_cards) == "table" then
+            -- Pinot Noir raises the gain by 1 per copy while it lasts;
+            -- PC keeps that in a G.GAME counter, the port scans for it.
+            local bonus = self.config.extra.mult_mod
+            for _, j in ipairs(pb5_jokers()) do
+                if j.def and j.def.id == "j_pbp_pinot_noir"
+                    and (tonumber(j.ability.extra.remaining) or 0) > 0 then
+                    bonus = bonus + (tonumber(j.ability.extra.extra_mult) or 1)
+                end
+            end
+            local hit = false
+            for _, node in ipairs(context.port.played_cards) do
+                local d = node.card_data
+                if d then
+                    d.mult_bonus = (tonumber(d.mult_bonus) or 0) + bonus
+                    hit = true
+                end
+            end
+            if hit then return { message = "Upgrade!" } end
+        end
+    end,
+}
+
+SMODS.Enhancement {
+    key = "antique",
+    loc_txt = { name = "Antique Card", text = {
+        "{X:chips,C:white}X#1#{} Chips,",
+        "increases by {X:chips,C:white}X#2#{} when",
+        "played in scoring hand",
+    } },
+    config = { extra = { xchips = 1, xchips_mod = 0.1 } },
+    weight = 0,
+    loc_vars = function(self, info_queue, card)
+        local d = card and card.card_data
+        return { vars = { (d and tonumber(d.pb_antique_x)) or 1, 0.1 } }
+    end,
+    calculate = function(self, card, context)
+        if context.card_played and card and card.card_data then
+            local d = card.card_data
+            -- PC grows the value in the `before` step and returns it at
+            -- scoring; the fork raises one moment, so it grows and pays
+            -- in the same step, the same total.
+            d.pb_antique_x = pb5_round2(
+                (tonumber(d.pb_antique_x) or 1) + self.config.extra.xchips_mod)
+            return { x_chips = d.pb_antique_x }
+        end
+    end,
+}
+
+end -- SMODS.Enhancement
+
+--------------------------------------------------------------------------------
+-- Dichrome edition. PORT NOTE: PC's effect (+1 Hand or Discard, whichever
+-- is lower, when a Blind is selected / the card is drawn) lives in an
+-- edition calculate; the fork's edition registration takes config only
+-- (chips / mult / x_mult / joker_slots) and raises no calculate for
+-- editions, so the edition registers with no effect of its own. It is
+-- kept out of the edition polls (weight 0; PC weighs it 3 in shop) so an
+-- inert edition is never sold as a working one; Queen of Wands applies
+-- it directly. Cost matches PC's extra_cost 5.
+--------------------------------------------------------------------------------
+
+if SMODS.Edition then
+SMODS.Edition {
+    key = "dichrome",
+    loc_txt = { name = "Dichrome", text = {
+        "When {C:attention}Blind{} is selected,",
+        "gain {C:attention}+#1#{C:blue} Hand{} or {C:red}Discard",
+        "{C:inactive}(Whichever is lower)",
+    } },
+    config = {},
+    weight = 0,
+    cost = 5,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 1 } }
+    end,
+}
+end
+
+--------------------------------------------------------------------------------
+-- Paperback tags. (Divination included: its apply opens the registered
+-- Mega Minor Arcana Pack through the same begin_booster_session the
+-- vanilla pack tags use.)
+--------------------------------------------------------------------------------
+
+if SMODS.Tag then
+
+SMODS.Tag {
+    key = "angel_investment",
+    loc_txt = { name = "Angel Investment Tag", text = {
+        "Earn {C:money}$#1#{} per {C:money}$#2#{} you have",
+        "{C:inactive}(Max of {C:money}$#3#{C:inactive})",
+        "{C:inactive}(Will give {C:money}$#4#{C:inactive})",
+    } },
+    config = { type = "immediate", money = 1, every = 5, max = 100 },
+    weight = 0,
+    loc_vars = function(self, tag)
+        local g = pb5_game()
+        local money = tonumber(g and g.money) or 0
+        local gain = math.min(self.config.max,
+            math.floor(money / self.config.every) * self.config.money)
+        return { vars = { self.config.money, self.config.every,
+            self.config.max, gain } }
+    end,
+    apply = function(self, tag, context)
+        local g = pb5_game()
+        if not g then return false end
+        local gain = math.min(tag.ability.max,
+            math.floor((tonumber(g.money) or 0) / tag.ability.every)
+                * tag.ability.money)
+        if gain > 0 then
+            if g.ease_dollars then g:ease_dollars(gain)
+            else g.money = (tonumber(g.money) or 0) + gain end
+        end
+        return true
+    end,
+}
+
+SMODS.Tag {
+    key = "breaking",
+    loc_txt = { name = "Breaking Tag", text = {
+        "Disables the",
+        "{C:attention}Boss Blind",
+    } },
+    config = { type = "round_start_bonus" },
+    apply = function(self, tag, context)
+        local g = pb5_game()
+        if g and g.current_blind_index == 3 and g.disable_boss_blind then
+            g:disable_boss_blind()
+            return true
+        end
+        return false
+    end,
+}
+
+-- PORT NOTE (High Risk): PC also doubles the Boss Blind's score
+-- requirement; a tag apply gets no blind-target handle in the fork, so
+-- only the $25 lands. The requirement half stays with the Blind.
+SMODS.Tag {
+    key = "high_risk",
+    loc_txt = { name = "High Risk Tag", text = {
+        "When selecting {C:attention}Boss",
+        "{C:attention}Blind{}, {C:attention}double{} its",
+        "score requirement",
+        "and gain {C:money}$#1#",
+    } },
+    config = { type = "round_start_bonus", money = 25 },
+    weight = 0,
+    loc_vars = function(self, tag)
+        return { vars = { self.config.money } }
+    end,
+    apply = function(self, tag, context)
+        local g = pb5_game()
+        if g and g.current_blind_index == 3 then
+            if g.ease_dollars then g:ease_dollars(tag.ability.money)
+            else g.money = (tonumber(g.money) or 0) + tag.ability.money end
+            return true
+        end
+        return false
+    end,
+}
+
+SMODS.Tag {
+    key = "dichrome",
+    loc_txt = { name = "Dichrome Tag", text = {
+        "Next base edition shop",
+        "Joker is free and",
+        "becomes {C:dark_edition}Dichrome",
+    } },
+    config = { type = "store_joker_modify" },
+    apply = function(self, tag, context)
+        local offer = context.card
+        if type(offer) == "table" and type(offer.id) == "string"
+            and offer.id:sub(1, 2) == "j_"
+            and (offer.edition == nil or offer.edition == "base") then
+            offer.edition = "dichrome"
+            offer.price = 0
+            return true
+        end
+        return false
+    end,
+}
+
+SMODS.Tag {
+    key = "divination",
+    loc_txt = { name = "Divination Tag", text = {
+        "Gives a free",
+        "{C:paperback_minor_arcana}Mega Minor Arcana Pack",
+    } },
+    config = { type = "new_blind_choice" },
+    apply = function(self, tag, context)
+        local g = pb5_game()
+        if g and g.begin_booster_session then
+            g:begin_booster_session({
+                kind = "booster",
+                pack = "minor_arcana_mega",
+                price = 0,
+                name = "Mega Minor Arcana Pack",
+                card_count = 5,
+                picks_granted = 2,
+            })
+            return true
+        end
+        return false
+    end,
+}
+
+end -- SMODS.Tag
+
+--------------------------------------------------------------------------------
+-- Minor Arcana booster packs: how PC delivers the set (its shop_rate is
+-- 0 there for this reason). One registration per size; PC's extra
+-- variants differ only in wrapper art, which this snapshot's Boosters
+-- atlas does not survive to port, so the packs register without a
+-- sprite and draw the fork's fallback panel.
+--------------------------------------------------------------------------------
+
+if SMODS.Booster then
+
+SMODS.Booster {
+    key = "minor_arcana_normal",
+    loc_txt = { name = "Minor Arcana Pack", text = {
+        "Choose {C:attention}1{} of up to {C:attention}3{}",
+        "{C:paperback_minor_arcana}Minor Arcana{} cards",
+        "to be used immediately",
+    } },
+    pool = { consumable = "minor_arcana" },
+    card_count = 3, picks = 1, cost = 4, weight = 100,
+    colour = { 0.55, 0.45, 0.85 },
+}
+
+SMODS.Booster {
+    key = "minor_arcana_jumbo",
+    loc_txt = { name = "Jumbo Minor Arcana Pack", text = {
+        "Choose {C:attention}1{} of up to {C:attention}5{}",
+        "{C:paperback_minor_arcana}Minor Arcana{} cards",
+        "to be used immediately",
+    } },
+    pool = { consumable = "minor_arcana" },
+    card_count = 5, picks = 1, cost = 6, weight = 100,
+    colour = { 0.55, 0.45, 0.85 },
+}
+
+SMODS.Booster {
+    key = "minor_arcana_mega",
+    loc_txt = { name = "Mega Minor Arcana Pack", text = {
+        "Choose {C:attention}2{} of up to {C:attention}5{}",
+        "{C:paperback_minor_arcana}Minor Arcana{} cards",
+        "to be used immediately",
+    } },
+    pool = { consumable = "minor_arcana" },
+    card_count = 5, picks = 2, cost = 8, weight = 25,
+    colour = { 0.55, 0.45, 0.85 },
+}
+
+end -- SMODS.Booster
+
+--------------------------------------------------------------------------------
+-- Jokers gated on the enhancements
+--------------------------------------------------------------------------------
+
+if SMODS.Joker then
+
+-- collector
+SMODS.Joker {
+    key = "collector",
+    name = "Collector",
+    rarity = 2,
+    cost = 7,
+    sprite = "collector.png",
+    negative_sprite = "collector_negative.png",
+    config = { extra = { money = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local g = pb5_game()
+        local n = 0
+        if g and g.count_cards_in_full_deck then
+            n = g:count_cards_in_full_deck(function(d)
+                return d.enhancement == "sleeved"
+            end)
+        end
+        return { vars = { card.ability.extra.money, "Sleeved Card",
+            card.ability.extra.money * n } }
+    end,
+    loc_txt = { name = "Collector", text = {
+        "Earn {C:money}$#1#{} at end of round",
+        "for each {C:attention}#2#{}",
+        "in your full deck",
+        "{C:inactive}(Currently {C:money}$#3#{C:inactive})",
+    } },
+    calc_dollar_bonus = function(self, card)
+        local g = pb5_game()
+        if not g or not g.count_cards_in_full_deck then return nil end
+        local n = g:count_cards_in_full_deck(function(d)
+            return d.enhancement == "sleeved"
+        end)
+        if n > 0 then return n * card.ability.extra.money end
+        return nil
+    end,
+}
+
+-- festive_joker
+SMODS.Joker {
+    key = "festive_joker",
+    name = "Festive Joker",
+    rarity = 2,
+    cost = 6,
+    sprite = "festive_joker.png",
+    negative_sprite = "festive_joker_negative.png",
+    config = { extra = { odds = 5, enhancement = "wrapped" } },
+    loc_vars = function(self, info_queue, card)
+        local num, den = 1, card.ability.extra.odds
+        if SMODS.get_probability_vars then
+            num, den = SMODS.get_probability_vars(card, num, den,
+                "paperback_festive_joker")
+        end
+        return { vars = { "Wrapped Card", num, den } }
+    end,
+    loc_txt = { name = "Festive Joker", text = {
+        "{C:attention}#1#s{} have a {C:green}#2# in #3#",
+        "chance to create a random",
+        "{C:attention}Consumable{} when scored",
+        "{C:inactive}(Must have room)",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) == card.ability.extra.enhancement
+            and SMODS.pseudorandom_probability(card, "festive_joker",
+                1, card.ability.extra.odds, "paperback_festive_joker") then
+            local g = pb5_game()
+            if g and g.random_consumable_id_of_kind
+                and (not g.can_add_consumable or g:can_add_consumable()) then
+                local kinds = { "tarot", "planet", "spectral", "minor_arcana" }
+                local kind = kinds[SMODS.pseudorandom(
+                    "festive_joker_type", 1, #kinds)]
+                local id = g:random_consumable_id_of_kind(kind)
+                if id then
+                    local set = kind == "minor_arcana" and "minor_arcana"
+                        or (kind:sub(1, 1):upper() .. kind:sub(2))
+                    SMODS.add_card { set = set, key = id }
+                    return { message = "+Consumable!" }
+                end
+            end
+        end
+    end,
+}
+
+-- greeting_card
+SMODS.Joker {
+    key = "greeting_card",
+    name = "Greeting Card",
+    rarity = 1,
+    cost = 4,
+    sprite = "greeting_card.png",
+    negative_sprite = "greeting_card_negative.png",
+    config = { extra = { enhancement = "wrapped", a_value = 2 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.a_value, "Wrapped Card" } }
+    end,
+    loc_txt = { name = "Greeting Card", text = {
+        "Gains {C:money}$#1#{} of {C:attention}sell value{} if a",
+        "played {C:attention}#2#{} is {C:attention}scored",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) == card.ability.extra.enhancement then
+            card.sell_cost = (tonumber(card.sell_cost) or 0)
+                + card.ability.extra.a_value
+            return { message = "Value Up!" }
+        end
+    end,
+}
+
+-- happy_accident
+SMODS.Joker {
+    key = "happy_accident",
+    name = "Happy Accident",
+    rarity = 2,
+    cost = 7,
+    sprite = "happy_accident.png",
+    negative_sprite = "happy_accident_negative.png",
+    config = { extra = { enhancement = "antique" } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Antique Card" } }
+    end,
+    loc_txt = { name = "Happy Accident", text = {
+        "Each {C:attention}#1#{}",
+        "held in hand",
+        "gives {X:chips,C:white}XChips{}",
+        "at {C:attention}halved{} scaling",
+        "{X:chips,C:white}X1.5{C:inactive} -> {X:chips,C:white}X1.25{}",
+    } },
+    calculate = function(self, card, context)
+        if pb5_hand_area(context) and context.other_card
+            and pb5_enh(context.other_card) == card.ability.extra.enhancement then
+            local d = context.other_card.card_data or {}
+            local x = tonumber(d.pb_antique_x) or 1
+            return { x_chips = ((x - 1) / 2) + 1 }
+        end
+    end,
+}
+
+-- kintsugi_joker
+SMODS.Joker {
+    key = "kintsugi_joker",
+    name = "Kintsugi Joker",
+    rarity = 2,
+    cost = 7,
+    sprite = "kintsugi_joker.png",
+    negative_sprite = "kintsugi_joker_negative.png",
+    config = { extra = { increase = 2, total = 0,
+        enhancement = "ceramic", max = 10 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.increase, "Ceramic Card", e.total, e.max } }
+    end,
+    loc_txt = { name = "Kintsugi Joker", text = {
+        "Increases the payout of",
+        "{C:attention}#2#s{} by {C:money}$#1#{} up to {C:money}$#4#{}",
+        "when a {C:attention}#2#{} is destroyed",
+        "{C:inactive}(Currently increased by {C:money}$#3#{C:inactive})",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.remove_playing_cards and context.port
+            and context.port.destroyed_cards and e.total < e.max then
+            local inc = 0
+            for _, view in ipairs(context.port.destroyed_cards) do
+                if pb5_enh(view) == e.enhancement then inc = inc + 1 end
+            end
+            if inc > 0 then
+                e.total = math.min(e.max, e.total + e.increase * inc)
+                return { message = "Upgrade!" }
+            end
+        end
+    end,
+}
+
+-- mexican_train
+SMODS.Joker {
+    key = "mexican_train",
+    name = "Mexican Train",
+    rarity = 1,
+    cost = 6,
+    sprite = "mexican_train.png",
+    negative_sprite = "mexican_train_negative.png",
+    config = { extra = { dollars = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local n = 0
+        for _, node in ipairs(pb5_scoring_nodes()) do
+            if pb5_enh(node) == "domino" then n = n + 1 end
+        end
+        return { vars = { "Domino Card", card.ability.extra.dollars,
+            card.ability.extra.dollars * n } }
+    end,
+    loc_txt = { name = "Mexican Train", text = {
+        "Scored {C:attention}#1#s{} give {C:money}$#2#",
+        "for every played {C:attention}#1#{}",
+        "{C:inactive}(Currently {C:money}$#3#{C:inactive})",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) == "domino" then
+            local n = 0
+            for _, node in ipairs(pb5_scoring_nodes()) do
+                if pb5_enh(node) == "domino" then n = n + 1 end
+            end
+            if n > 0 then
+                return { dollars = card.ability.extra.dollars * n }
+            end
+        end
+    end,
+}
+
+-- plastic_wrap
+-- PORT NOTE: PC converts through set_ability on full-deck card objects;
+-- the port writes the same card_data directly, except for cards sitting
+-- in hand, whose node setter is used so the change announces itself the
+-- canonical way (setting_ability fires, the face resyncs).
+SMODS.Joker {
+    key = "plastic_wrap",
+    name = "Plastic Wrap",
+    rarity = 1,
+    cost = 4,
+    sprite = "plastic_wrap.png",
+    negative_sprite = "plastic_wrap_negative.png",
+    config = { extra = { amount = 2, enhancement = "sleeved" } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.amount, "Sleeved Card" } }
+    end,
+    loc_txt = { name = "Plastic Wrap", text = {
+        "When a {C:attention}#2#{} is",
+        "{C:attention}destroyed{}, enhance {C:attention}#1#{}",
+        "{C:attention}unenhanced{} cards in your",
+        "full deck to {C:attention}#2#s{}",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.remove_playing_cards and context.port
+            and context.port.destroyed_cards then
+            local hit = false
+            for _, view in ipairs(context.port.destroyed_cards) do
+                if pb5_enh(view) == e.enhancement then hit = true break end
+            end
+            if not hit then return end
+            local targets = {}
+            for _, d in ipairs(pb5_full_deck_data()) do
+                if not d.enhancement then targets[#targets + 1] = d end
+            end
+            local g = pb5_game()
+            local converted = 0
+            while converted < e.amount and #targets > 0 do
+                local idx = SMODS.pseudorandom("plastic_wrap", 1, #targets)
+                local d = table.remove(targets, idx)
+                local node = nil
+                if g and g.hand and type(g.hand.card_nodes) == "table" then
+                    for _, n in ipairs(g.hand.card_nodes) do
+                        if n.card_data == d then node = n break end
+                    end
+                end
+                if node and node.set_enhancement then
+                    node:set_enhancement(e.enhancement)
+                else
+                    d.enhancement = e.enhancement
+                end
+                converted = converted + 1
+            end
+            if converted > 0 then return { message = "Enhanced!" } end
+        end
+    end,
+}
+
+-- sommelier
+SMODS.Joker {
+    key = "sommelier",
+    name = "Sommelier",
+    rarity = 2,
+    cost = 6,
+    sprite = "sommelier.png",
+    negative_sprite = "sommelier_negative.png",
+    config = { extra = { active = true } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Stained Card" } }
+    end,
+    loc_txt = { name = "Sommelier", text = {
+        "If {C:attention}first discard{} of round",
+        "contains a {C:attention}#1#{},",
+        "the first discarded {C:attention}#1#{}",
+        "gets a random {C:attention}seal",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.pre_discard and e.active then
+            local nodes = (context.port and context.port.discarded_nodes)
+                or context.full_hand
+            if type(nodes) == "table" then
+                for _, node in ipairs(nodes) do
+                    if pb5_enh(node) == "stained" then
+                        local seal = ({ "gold", "red", "blue", "purple" })[
+                            SMODS.pseudorandom("sommelier_seal", 1, 4)]
+                        if node.set_seal then
+                            node:set_seal(seal)
+                        elseif node.card_data then
+                            node.card_data.seal = seal
+                        end
+                        e.active = false
+                        return { message = "Sealed!" }
+                    end
+                end
+            end
+        end
+        if context.end_of_round or context.setting_blind then
+            e.active = true
+        end
+    end,
+}
+
+-- spotty_joker
+SMODS.Joker {
+    key = "spotty_joker",
+    name = "Spotty Joker",
+    rarity = 2,
+    cost = 3,
+    sprite = "spotty_joker.png",
+    negative_sprite = "spotty_joker_negative.png",
+    config = { extra = { xmult_mod = 0.1, xmult = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.xmult_mod, "Domino Card", e.xmult } }
+    end,
+    loc_txt = { name = "Spotty Joker", text = {
+        "This Joker gains {X:mult,C:white}X#1#{} Mult",
+        "for every {C:attention}#2#{}",
+        "in {C:attention}scoring hand{}",
+        "{C:inactive}(Currently {X:mult,C:white}X#3#{}{C:inactive} Mult)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.before and context.scoring_hand then
+            local n = 0
+            for _, view in ipairs(context.scoring_hand) do
+                if pb5_enh(view) == "domino" then n = n + 1 end
+            end
+            if n > 0 then
+                e.xmult = pb5_round2(e.xmult + e.xmult_mod * n)
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and e.xmult ~= 1 then
+            return { xmult = e.xmult }
+        end
+    end,
+}
+
+-- teapot
+SMODS.Joker {
+    key = "teapot",
+    name = "Teapot",
+    rarity = 1,
+    cost = 5,
+    sprite = "teapot.png",
+    negative_sprite = "teapot_negative.png",
+    config = { extra = { enhancement = "ceramic", a_chips = 5, chips = 0 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.a_chips, "Ceramic Card", e.chips } }
+    end,
+    loc_txt = { name = "Teapot", text = {
+        "This Joker gains {C:blue}+#1#{} Chips whenever",
+        "a {C:attention}#2#{} is {C:attention}scored",
+        "{C:inactive}(Currently {C:blue}+#3#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) == e.enhancement then
+            e.chips = e.chips + e.a_chips
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and e.chips > 0 then
+            return { chips = e.chips }
+        end
+    end,
+}
+
+-- watercolor_joker
+SMODS.Joker {
+    key = "watercolor_joker",
+    name = "Watercolor Joker",
+    rarity = 2,
+    cost = 7,
+    sprite = "watercolor_joker.png",
+    negative_sprite = "watercolor_joker_negative.png",
+    config = { extra = { enhancement = "soaked", xChips = 1.5 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Soaked Card", card.ability.extra.xChips } }
+    end,
+    loc_txt = { name = "Watercolor Joker", text = {
+        "{C:attention}#1#s{} give",
+        "{X:chips,C:white}X#2#{} Chips when scored",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) == card.ability.extra.enhancement then
+            return { x_chips = card.ability.extra.xChips }
+        end
+    end,
+}
+
+-- pinot_noir
+SMODS.Joker {
+    key = "pinot_noir",
+    name = "Pinot Noir",
+    rarity = 1,
+    cost = 5,
+    sprite = "pinot_noir.png",
+    negative_sprite = "pinot_noir_negative.png",
+    config = { extra = { remaining = 10, extra_mult = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.remaining, "Stained Card", e.extra_mult } }
+    end,
+    loc_txt = { name = "Pinot Noir", text = {
+        "The next {C:attention}#1#{} times a",
+        "{C:attention}#2#{} triggers, it",
+        "gives {C:mult}+#3#{} more permanent Mult",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if pb5_hand_area(context) and context.other_card
+            and pb5_enh(context.other_card) == "stained"
+            and e.remaining > 0 then
+            e.remaining = e.remaining - 1
+            if e.remaining < 1 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Consumed!" }
+            end
+        end
+    end,
+}
+
+-- gauze
+-- PORT NOTE: the Bandaged card it creates carries an enhancement whose
+-- own effect the fork cannot run (see the Bandaged registration note);
+-- the conversion itself is exact.
+SMODS.Joker {
+    key = "gauze",
+    name = "Gauze",
+    rarity = 1,
+    cost = 4,
+    sprite = "gauze.png",
+    negative_sprite = "gauze_negative.png",
+    config = { extra = { enhancement = "bandaged" } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Bandaged Card" } }
+    end,
+    loc_txt = { name = "Gauze", text = {
+        "If last discard of round is a single card,",
+        "it becomes a {C:attention}#1#{}",
+    } },
+    calculate = function(self, card, context)
+        if context.pre_discard then
+            local g = pb5_game()
+            local left = g and tonumber(g.discards)
+            if left ~= nil and left ~= 1 then return end
+            local nodes = (context.port and context.port.discarded_nodes)
+                or context.full_hand
+            if type(nodes) == "table" and #nodes == 1 then
+                local node = nodes[1]
+                if node.set_enhancement then
+                    node:set_enhancement(card.ability.extra.enhancement)
+                elseif node.card_data then
+                    node.card_data.enhancement = card.ability.extra.enhancement
+                end
+                return { message = "Bandaged!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- XChips class
+--------------------------------------------------------------------------------
+
+local function pb5_is_suit(view, suit)
+    local d = view and view.card_data or {}
+    if d.enhancement == "wild" then return true end
+    return pb5_suit(view) == suit
+end
+
+-- blue_star
+SMODS.Joker {
+    key = "blue_star",
+    name = "Blue Star",
+    rarity = 3,
+    cost = 8,
+    sprite = "blue_star.png",
+    negative_sprite = "blue_star_negative.png",
+    config = { extra = { x_chips = 1,
+        good = { suit = "Stars", a_xchips = 0.05 },
+        bad = { suit = "Clubs", a_xchips = 0.2 } } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.good.a_xchips, e.good.suit, e.bad.a_xchips,
+            e.bad.suit, e.x_chips } }
+    end,
+    loc_txt = { name = "Blue Star", text = {
+        "Gains {X:chips,C:white}X#1#{} Chips when a {V:1}#2#{} scores",
+        "Loses {X:chips,C:white}X#3#{} Chips when a {V:2}#4#{} scores",
+        "{C:inactive}(Currently {X:chips,C:white}X#5#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.individual and pb5_play_area(context)
+            and context.other_card then
+            if pb5_is_suit(context.other_card, e.good.suit) then
+                e.x_chips = pb5_round2(e.x_chips + e.good.a_xchips)
+                return { message = "Upgrade!" }
+            elseif pb5_is_suit(context.other_card, e.bad.suit) then
+                e.x_chips = math.max(0, pb5_round2(e.x_chips - e.bad.a_xchips))
+                return { message = "Downgrade!" }
+            end
+        end
+        if context.joker_main then
+            return { x_chips = e.x_chips }
+        end
+    end,
+}
+
+-- chocolate_joker
+SMODS.Joker {
+    key = "chocolate_joker",
+    name = "Chocolate Joker",
+    rarity = 2,
+    cost = 8,
+    sprite = "chocolate_joker.png",
+    negative_sprite = "chocolate_joker_negative.png",
+    config = { extra = { a_xchips = 0.2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.a_xchips,
+            1 + #pb5_jokers() * e.a_xchips } }
+    end,
+    loc_txt = { name = "Chocolate Joker", text = {
+        "This Joker gains {X:chips,C:white}X#1#{} Chips",
+        "for each {C:attention}Joker{} card",
+        "{C:inactive}(Currently {X:chips,C:white}X#2#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return { x_chips = 1
+                + #pb5_jokers() * card.ability.extra.a_xchips }
+        end
+    end,
+}
+
+-- crispy_taco
+SMODS.Joker {
+    key = "crispy_taco",
+    name = "Crispy Taco",
+    rarity = 2,
+    cost = 6,
+    sprite = "crispy_taco.png",
+    negative_sprite = "crispy_taco_negative.png",
+    config = { extra = { x_chips = 3, odds = 6 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        local num, den = 1, e.odds
+        if SMODS.get_probability_vars then
+            num, den = SMODS.get_probability_vars(card, num, den,
+                "paperback_crispy_taco")
+        end
+        return { vars = { e.x_chips, num, den } }
+    end,
+    loc_txt = { name = "Crispy Taco", text = {
+        "{X:chips,C:white}X#1#{} Chips",
+        "{C:green}#2# in #3#{} chance this card",
+        "is eaten at end of round",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main then
+            return { x_chips = e.x_chips }
+        end
+        if context.end_of_round then
+            if SMODS.pseudorandom_probability(card, "crispy_taco",
+                1, e.odds, "paperback_crispy_taco") then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Eaten!" }
+            end
+            return { message = "Safe!" }
+        end
+    end,
+}
+
+-- deck_of_cards
+-- PORT NOTE: PC arms itself in `before` and destroys the Antique card
+-- through the destroy_card query; the port destroys it directly in
+-- `before`, the same card at the same point of the hand.
+SMODS.Joker {
+    key = "deck_of_cards",
+    name = "Deck of Cards",
+    rarity = 2,
+    cost = 7,
+    sprite = "deck_of_cards.png",
+    negative_sprite = "deck_of_cards_negative.png",
+    config = { extra = { Xchips_mod = 0.25, x_chips = 1,
+        enhancement = "antique" } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { "Antique Card", e.Xchips_mod, e.x_chips } }
+    end,
+    loc_txt = { name = "Deck of Cards", text = {
+        "If played hand is a single {C:attention}#1#{},",
+        "this Joker gains {X:chips,C:white}X#2#{} Chips and destroys it",
+        "{C:inactive}(Currently {X:chips,C:white}X#3#{} {C:inactive}Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.before and context.full_hand
+            and #context.full_hand == 1 and context.scoring_hand
+            and context.scoring_hand[1]
+            and pb5_enh(context.scoring_hand[1]) == e.enhancement then
+            e.x_chips = pb5_round2(e.x_chips + e.Xchips_mod)
+            if SMODS.destroy_card then
+                SMODS.destroy_card(context.scoring_hand[1])
+            end
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main then
+            return { x_chips = e.x_chips }
+        end
+    end,
+}
+
+-- nachos
+SMODS.Joker {
+    key = "nachos",
+    name = "Nachos",
+    rarity = 1,
+    cost = 6,
+    sprite = "nachos.png",
+    negative_sprite = "nachos_negative.png",
+    config = { extra = { X_chips = 2, reduction_amount = 0.05 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.X_chips, e.reduction_amount } }
+    end,
+    loc_txt = { name = "Nachos", text = {
+        "{X:chips,C:white}X#1#{} Chips,",
+        "loses {X:chips,C:white}X#2#{} Chips",
+        "per {C:attention}card{} discarded",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main then
+            return { x_chips = e.X_chips }
+        end
+        if context.discard and context.other_card and e.X_chips > 1 then
+            if e.X_chips - e.reduction_amount <= 1 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Eaten!" }
+            end
+            e.X_chips = pb5_round2(e.X_chips - e.reduction_amount)
+            return { message = "Downgrade!" }
+        end
+    end,
+}
+
+-- oracle
+SMODS.Joker {
+    key = "oracle",
+    name = "Oracle",
+    rarity = 2,
+    cost = 6,
+    sprite = "oracle.png",
+    negative_sprite = "oracle_negative.png",
+    config = { extra = { Xchip_mod = 0.1, Xchip = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.Xchip_mod, e.Xchip, "Minor Arcana" } }
+    end,
+    loc_txt = { name = "Oracle", text = {
+        "This Joker gains {X:chips,C:white}X#1#",
+        "Chips for every {C:attention}unique",
+        "{C:paperback_minor_arcana}#3#{} card used",
+        "{C:inactive}(Currently {X:chips,C:white}X#2#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main then
+            local g = pb5_game()
+            local n = 0
+            if g and type(g.consumable_usage) == "table" then
+                for _, u in pairs(g.consumable_usage) do
+                    if type(u) == "table" and u.kind == "minor_arcana" then
+                        n = n + 1
+                    end
+                end
+            end
+            e.Xchip = pb5_round2(1 + n * e.Xchip_mod)
+            return { x_chips = e.Xchip }
+        end
+    end,
+}
+
+-- quartz
+SMODS.Joker {
+    key = "quartz",
+    name = "Quartz",
+    rarity = 2,
+    cost = 7,
+    sprite = "quartz.png",
+    negative_sprite = "quartz_negative.png",
+    config = { extra = { x_chips = 0.2 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.x_chips } }
+    end,
+    loc_txt = { name = "Quartz", text = {
+        "Scored {C:paperback_stars}Stars{} give {X:chips,C:white}X1{} Chips,",
+        "{X:chips,C:white}+X#1#{} for each other played {C:paperback_stars}Star",
+    } },
+    calculate = function(self, card, context)
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_is_suit(context.other_card, "Stars")
+            and type(context.full_hand) == "table" then
+            local stars = 0
+            for _, view in ipairs(context.full_hand) do
+                if view ~= context.other_card
+                    and pb5_is_suit(view, "Stars") then
+                    stars = stars + 1
+                end
+            end
+            if stars > 0 then
+                return { x_chips = 1
+                    + card.ability.extra.x_chips * stars }
+            end
+        end
+    end,
+}
+
+-- ready_to_fly
+-- PORT NOTE: PC also skips a list of message-less contexts (its
+-- ignored_contexts refinement reads the triggered Joker's return); the
+-- fork's post_trigger carries no return table, so every adjacent
+-- trigger counts.
+SMODS.Joker {
+    key = "ready_to_fly",
+    name = "Ready to Fly",
+    rarity = 3,
+    cost = 6,
+    sprite = "ready_to_fly.png",
+    negative_sprite = "ready_to_fly_negative.png",
+    config = { extra = { xchips = 1, scaling = 0.02 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.xchips, e.scaling } }
+    end,
+    loc_txt = { name = "Ready to Fly", text = {
+        "This Joker gains {X:chips,C:white}X#2#{} Chips",
+        "whenever an adjacent Joker {C:attention}triggers",
+        "{C:inactive}(Currently {X:chips,C:white}X#1#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.post_trigger and context.other_card
+            and context.other_card ~= card then
+            local list = pb5_jokers()
+            for i, j in ipairs(list) do
+                if j == card then
+                    if list[i - 1] == context.other_card
+                        or list[i + 1] == context.other_card then
+                        e.xchips = pb5_round2(e.xchips + e.scaling)
+                        return { message = "Upgrade!" }
+                    end
+                    break
+                end
+            end
+        end
+        if context.joker_main then
+            return { x_chips = e.xchips }
+        end
+    end,
+}
+
+-- stella_octangula
+-- PORT NOTE: PC arms on initial_scoring_step, a context the fork never
+-- raises; `before` (on_hand_played) is the same point of the hand for
+-- this purpose.
+SMODS.Joker {
+    key = "stella_octangula",
+    name = "Stella Octangula",
+    rarity = 1,
+    cost = 6,
+    sprite = "stella_octangula.png",
+    negative_sprite = "stella_octangula_negative.png",
+    config = { extra = { xc = 2, active = true, used = false } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.xc, "Stars" } }
+    end,
+    loc_txt = { name = "Stella Octangula", text = {
+        "The first played {V:1}#2#{} each round",
+        "gives {X:chips,C:white} X#1# {} Chips",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.before and context.scoring_hand and not e.used then
+            e.first_star = nil
+            for _, view in ipairs(context.scoring_hand) do
+                if pb5_is_suit(view, "Stars") then
+                    e.first_star = view
+                    break
+                end
+            end
+        end
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and e.first_star and context.other_card == e.first_star
+            and not e.used then
+            e.used = true
+            return { x_chips = e.xc }
+        end
+        if context.end_of_round then
+            e.used = false
+            e.first_star = nil
+        end
+    end,
+}
+
+end -- SMODS.Joker (enhancement-gated + XChips)
+
+--------------------------------------------------------------------------------
+-- Tag Jokers
+--------------------------------------------------------------------------------
+
+if SMODS.Joker then
+
+-- angel_investor
+SMODS.Joker {
+    key = "angel_investor",
+    name = "Angel Investor",
+    rarity = 1,
+    cost = 4,
+    sprite = "angel_investor.png",
+    negative_sprite = "angel_investor_negative.png",
+    config = { extra = { tags = 1 } },
+    loc_txt = { name = "Angel Investor", text = {
+        "Skipping a {C:attention}Blind{} or defeating",
+        "a {C:attention}Boss Blind{} gives",
+        "an {C:money}Angel Investment Tag",
+    } },
+    calculate = function(self, card, context)
+        if context.skip_blind
+            or (context.end_of_round and pb5_boss(context)) then
+            pb5_add_tag("angel_investment")
+            return { message = "+Tag!" }
+        end
+    end,
+}
+
+-- book_of_life
+-- The blind's Tag is read from the fork's own skip rewards: G.skips
+-- holds each blind's reward id and Game:tag_type_for_id resolves it,
+-- the same pair the skip tooltip uses.
+SMODS.Joker {
+    key = "book_of_life",
+    name = "Book of Life",
+    rarity = 3,
+    cost = 8,
+    sprite = "book_of_life.png",
+    negative_sprite = "book_of_life_negative.png",
+    config = { extra = { odds = 2 } },
+    loc_vars = function(self, info_queue, card)
+        local num, den = 1, card.ability.extra.odds
+        if SMODS.get_probability_vars then
+            num, den = SMODS.get_probability_vars(card, num, den,
+                "paperback_book_of_life")
+        end
+        return { vars = { num, den } }
+    end,
+    loc_txt = { name = "Book of Life", text = {
+        "After skipping or clearing",
+        "a {C:attention}Blind{}, {C:green}#1# in #2#{} chance to",
+        "create a {C:attention}copy{} of its {C:attention}Tag{}",
+    } },
+    calculate = function(self, card, context)
+        local idx = nil
+        if context.end_of_round then
+            local g = pb5_game()
+            idx = g and g.current_blind_index
+        elseif context.skip_blind then
+            idx = context.port and context.port.blind_index
+        end
+        if not idx then return end
+        local g = pb5_game()
+        if not g or type(g.skips) ~= "table" or not g.tag_type_for_id then
+            return
+        end
+        local type_name = g:tag_type_for_id(g.skips[idx])
+        if type_name and SMODS.pseudorandom_probability(card,
+            "book_of_life", 1, card.ability.extra.odds,
+            "paperback_book_of_life") then
+            pb5_add_tag(type_name)
+            return { message = "+Tag!" }
+        end
+    end,
+}
+
+-- j_and_js
+SMODS.Joker {
+    key = "j_and_js",
+    name = "J&J's",
+    rarity = 2,
+    cost = 6,
+    sprite = "j_and_js.png",
+    negative_sprite = "j_and_js_negative.png",
+    config = { extra = { tags = 2, rounds = 3, rounds_reset = 3 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.tags, e.rounds } }
+    end,
+    loc_txt = { name = "J&J's", text = {
+        "If played hand contains a",
+        "{C:attention}Spectrum{}, create {C:attention}#1#{} random {C:attention}Tags",
+        "Consumed in {C:attention}#2#{} rounds",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.before and context.poker_hands
+            and context.poker_hands["Spectrum"]
+            and next(context.poker_hands["Spectrum"]) then
+            for _ = 1, e.tags do
+                pb5_add_tag(pb5_random_tag("j_and_js"))
+            end
+            return { message = "+Tags!" }
+        end
+        if context.end_of_round then
+            e.rounds = e.rounds - 1
+            if e.rounds <= 0 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Consumed!" }
+            end
+            return { message = e.rounds .. " Rounds Left" }
+        end
+    end,
+}
+
+-- jimbo_adventure
+SMODS.Joker {
+    key = "jimbo_adventure",
+    name = "Jimbo Adventure",
+    rarity = 1,
+    cost = 4,
+    sprite = "jimbo_adventure.png",
+    negative_sprite = "jimbo_adventure_negative.png",
+    soul_sprite = "jimbo_adventure_soul.png",
+    loc_txt = { name = "Jimbo Adventure", text = {
+        "Skipping a {C:attention}Blind{} creates",
+        "a random {C:attention}Tag{}",
+    } },
+    calculate = function(self, card, context)
+        if context.skip_blind then
+            pb5_add_tag(pb5_random_tag("jimbo_adventure"))
+            return { message = "+Tag!" }
+        end
+    end,
+}
+
+-- jokers_11
+-- PORT NOTE: PC fires per Ace on an end_of_round + individual + hand
+-- context combination; the fork never raises that combination, so the
+-- port counts the Aces held in hand when the Boss round ends, one Tag
+-- per Ace, the same total.
+SMODS.Joker {
+    key = "jokers_11",
+    name = "Joker's 11",
+    rarity = 3,
+    cost = 8,
+    sprite = "jokers_11.png",
+    negative_sprite = "jokers_11_negative.png",
+    config = { extra = { rank = "Ace" } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.rank } }
+    end,
+    loc_txt = { name = "Joker's 11", text = {
+        "{C:attention}#1#s{} held in hand after",
+        "defeating a {C:attention}Boss Blind{}",
+        "create a random {C:attention}Tag{}",
+    } },
+    calculate = function(self, card, context)
+        if context.end_of_round and pb5_boss(context) then
+            local g = pb5_game()
+            local n = 0
+            if g and g.hand and type(g.hand.card_nodes) == "table" then
+                for _, node in ipairs(g.hand.card_nodes) do
+                    if pb5_rank(node) == 14 then n = n + 1 end
+                end
+            end
+            for _ = 1, n do
+                pb5_add_tag(pb5_random_tag("jokers_11"))
+            end
+            if n > 0 then return { message = "+Tags!" } end
+        end
+    end,
+}
+
+-- shopkeep
+SMODS.Joker {
+    key = "shopkeep",
+    name = "Shopkeep",
+    rarity = 3,
+    cost = 10,
+    sprite = "shopkeep.png",
+    negative_sprite = "shopkeep_negative.png",
+    config = { extra = { count = 0, coupon_blinds_needed = 2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.coupon_blinds_needed,
+            e.count % e.coupon_blinds_needed, "Coupon Tag", "Voucher Tag" } }
+    end,
+    loc_txt = { name = "Shopkeep", text = {
+        "Get a {C:attention}#3#{} every",
+        "{C:attention}#1#{} {C:attention}Blinds{} defeated {C:inactive}(#2#/#1#){}",
+        "Get a {C:attention}#4#{} when",
+        "{C:attention}Boss Blind{} is defeated",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.end_of_round then
+            e.count = e.count + 1
+            local made = false
+            if e.count % e.coupon_blinds_needed == 0 then
+                pb5_add_tag("coupon")
+                made = true
+            end
+            if pb5_boss(context) then
+                pb5_add_tag("voucher")
+                made = true
+            end
+            if made then return { message = "+Tag!" } end
+        end
+    end,
+}
+
+-- spirit_box
+-- PORT NOTE: on PC the target hand is the mod-wide
+-- G.GAME.paperback.weather_radio_hand, shared with Weather Radio and
+-- re-rolled each round by a hook outside the defs; the port keeps its
+-- own target hand per Joker, re-rolled at each blind select.
+SMODS.Joker {
+    key = "spirit_box",
+    name = "Spirit Box",
+    rarity = 2,
+    cost = 7,
+    sprite = "spirit_box.png",
+    negative_sprite = "spirit_box_negative.png",
+    config = { extra = { active = true } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.hand or "Pair" } }
+    end,
+    loc_txt = { name = "Spirit Box", text = {
+        "Create a random {C:attention}Tag{} if",
+        "played hand contains a {C:attention}#1#{}",
+        "{C:inactive}(Once per round)",
+        "{s:0.75}poker hand changes at end of round",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.setting_blind or (context.end_of_round and not e.hand) then
+            local g = pb5_game()
+            if g and type(g.handlist) == "table" and #g.handlist > 0 then
+                e.hand = g.handlist[SMODS.pseudorandom(
+                    "spirit_box_hand", 1, #g.handlist)]
+            end
+        end
+        if context.before and e.active and e.hand and context.poker_hands
+            and context.poker_hands[e.hand]
+            and next(context.poker_hands[e.hand]) then
+            e.active = false
+            pb5_add_tag(pb5_random_tag("spirit_box"))
+            return { message = "+Tag!" }
+        end
+        if context.end_of_round then
+            e.active = true
+            e.hand = nil
+        end
+    end,
+}
+
+-- stereoscopic_specs
+-- PORT NOTE: PC copies the last Tag *used*, heard on a tag_triggered
+-- context; the fork raises no such context, so the port tracks the last
+-- Tag *gained* (tag_added). Tags that fire the moment they are gained
+-- read identically; held tags copy on gain rather than on use.
+SMODS.Joker {
+    key = "stereoscopic_specs",
+    name = "Stereoscopic Specs",
+    rarity = 3,
+    cost = 8,
+    sprite = "stereoscopic_specs.png",
+    negative_sprite = "stereoscopic_specs_negative.png",
+    config = { extra = { last_tag = nil } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.last_tag or "None" } }
+    end,
+    loc_txt = { name = "Stereoscopic Specs", text = {
+        "Create a {C:attention}copy{} of the",
+        "last tag used after",
+        "beating a {C:attention}Boss Blind{}",
+        "{C:inactive}(Currently {C:attention}#1#{C:inactive})",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.tag_added then
+            local t = context.tag_added
+            e.last_tag = (type(t) == "table" and t.type) or t
+        end
+        if context.end_of_round and pb5_boss(context) and e.last_tag then
+            pb5_add_tag(e.last_tag)
+            return { message = "+Tag!" }
+        end
+    end,
+}
+
+-- the_wonder_of_you
+SMODS.Joker {
+    key = "the_wonder_of_you",
+    name = "The Wonder of You",
+    rarity = 2,
+    cost = 9,
+    sprite = "the_wonder_of_you.png",
+    negative_sprite = "the_wonder_of_you_negative.png",
+    config = { extra = { tag_count = 2 } },
+    loc_txt = { name = "The Wonder of You", text = {
+        "When selecting a {C:attention}Boss Blind{},",
+        "create two random {C:attention}tags",
+    } },
+    calculate = function(self, card, context)
+        if context.setting_blind and pb5_boss(context) then
+            for _ = 1, card.ability.extra.tag_count do
+                pb5_add_tag(pb5_random_tag("the_wonder_of_you"))
+            end
+            return { message = "+Tags!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Balance
+--------------------------------------------------------------------------------
+
+-- let_it_happen
+SMODS.Joker {
+    key = "let_it_happen",
+    name = "Let it Happen",
+    rarity = 3,
+    cost = 8,
+    sprite = "let_it_happen.png",
+    negative_sprite = "let_it_happen_negative.png",
+    config = { extra = { hands_played_this_ante = {} } },
+    loc_vars = function(self, info_queue, card)
+        local list = card.ability.extra.hands_played_this_ante
+        return { vars = { #list > 0 and table.concat(list, ", ") or "None" } }
+    end,
+    loc_txt = { name = "Let it Happen", text = {
+        "If hand has not been played this",
+        "{C:attention}Ante{}, {C:purple}balance{} {C:mult}Mult{} and {C:chips}Chips",
+        "{C:inactive}(Hands played:{C:attention}#1#{C:inactive})",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_main then
+            local name = context.scoring_name
+                or (context.port and context.port.scoring_name)
+            if name then
+                for _, h in ipairs(e.hands_played_this_ante) do
+                    if h == name then return end
+                end
+                e.hands_played_this_ante[#e.hands_played_this_ante + 1] = name
+                return { balance = true }
+            end
+        end
+        if context.end_of_round and pb5_boss(context) then
+            e.hands_played_this_ante = {}
+            return { message = "Reset!" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- New-context class
+--------------------------------------------------------------------------------
+
+-- coin_collection
+-- The $1 is eased from inside the handler under a guard flag on the
+-- game (PC's guard is the same shape, a G.GAME flag): a dollars return
+-- would re-enter money_altered with nothing to stop it but the fork's
+-- nesting cap, and would pay once per level.
+SMODS.Joker {
+    key = "coin_collection",
+    name = "Coin Collection",
+    rarity = 1,
+    cost = 6,
+    sprite = "coin_collection.png",
+    negative_sprite = "coin_collection_negative.png",
+    config = { extra = { dollars = 1 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.dollars } }
+    end,
+    loc_txt = { name = "Coin Collection", text = {
+        "Any time you earn {C:money}money{},",
+        "earn an additional {C:money}$#1#",
+    } },
+    calculate = function(self, card, context)
+        if context.money_altered and (tonumber(context.amount) or 0) > 0 then
+            local g = pb5_game()
+            if not g or g.pb5_coin_guard then return end
+            g.pb5_coin_guard = true
+            if g.ease_dollars then
+                g:ease_dollars(card.ability.extra.dollars)
+            else
+                g.money = (tonumber(g.money) or 0)
+                    + card.ability.extra.dollars
+            end
+            g.pb5_coin_guard = nil
+            return { message = "+$1" }
+        end
+    end,
+}
+
+-- frutiger_aero
+-- PC initializes Chips to base in set_ability; the port's config starts
+-- there, which is the same state a fresh Joker is in.
+SMODS.Joker {
+    key = "frutiger_aero",
+    name = "Frutiger Aero",
+    rarity = 1,
+    cost = 6,
+    sprite = "frutiger_aero.png",
+    negative_sprite = "frutiger_aero_negative.png",
+    config = { extra = { base = 100, chips = 100, rate = 2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.chips, e.rate } }
+    end,
+    loc_txt = { name = "Frutiger Aero", text = {
+        "{C:chips}#1#{} Chips, loses",
+        "{C:chips}#2#{} Chips per {C:money}$1{} spent.",
+        "{C:attention}Resets{} after defeating",
+        "a {C:attention}Boss Blind{}",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.money_altered and (tonumber(context.amount) or 0) < 0
+            and context.from_shop then
+            e.chips = math.max(0, e.chips
+                + e.rate * (tonumber(context.amount) or 0))
+            return { message = "Downgrade!" }
+        end
+        if context.end_of_round and pb5_boss(context) then
+            e.chips = e.base
+            return { message = "Reset!" }
+        end
+        if context.joker_main and e.chips > 0 then
+            return { chips = e.chips }
+        end
+    end,
+}
+
+-- cream_liqueur
+-- PORT NOTE: PC pays when a Tag *activates* (a paperback.using_tag
+-- context) and resets its fuse when one is *acquired*
+-- (paperback.tag_acquired). The fork raises tag_added on acquisition
+-- and no activation context at all, so the port pays on acquisition --
+-- the two coincide for tags that fire the moment they are gained -- and
+-- the fuse reset rides along, as PC's does.
+SMODS.Joker {
+    key = "cream_liqueur",
+    name = "Cream Liqueur",
+    rarity = 1,
+    cost = 4,
+    sprite = "cream_liqueur.png",
+    negative_sprite = "cream_liqueur_negative.png",
+    config = { extra = { rounds_reset = 3, rounds = 3, money = 5 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.money, e.rounds, e.rounds == 1 and "" or "s" } }
+    end,
+    loc_txt = { name = "Cream Liqueur", text = {
+        "{C:attention}Tags{} earn {C:money}$#1#{} when activated",
+        "Consumed in {C:attention}#2#{} round#3#",
+        "{C:inactive}(Resets when a {C:attention}Tag{C:inactive} is acquired)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.tag_added then
+            if e.rounds > 0 and e.rounds < e.rounds_reset then
+                e.rounds = e.rounds_reset
+            end
+            return { dollars = e.money }
+        end
+        if context.end_of_round then
+            e.rounds = e.rounds - 1
+            if e.rounds <= 0 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Consumed!" }
+            end
+            return { message = e.rounds .. " Rounds Left" }
+        end
+    end,
+}
+
+-- off_alpha / off_epsilon / off_omega: the OFF Switch addons. PC counts
+-- destructions with its include-self flag set; a Joker scaling itself
+-- as it dies changes nothing, so every destruction counts.
+local function pb5_off_addon(key, name, sprite, config, loc, calc)
+    SMODS.Joker {
+        key = key,
+        name = name,
+        rarity = 4,
+        cost = 1,
+        sprite = sprite .. ".png",
+        negative_sprite = sprite .. "_negative.png",
+        soul_sprite = sprite .. "_soul.png",
+        config = { extra = config },
+        loc_vars = function(self, info_queue, card)
+            local e = card.ability.extra
+            return { vars = { e.chips_mod or e.dollars or e.mult_mod,
+                e.chips or e.mult or "" } }
+        end,
+        loc_txt = loc,
+        in_pool = function(self, game) return false end,
+        calculate = calc,
+    }
+end
+
+pb5_off_addon("off_alpha", "Alpha", "off_alpha",
+    { chips_mod = 13, chips = 0 },
+    { name = "Alpha", text = {
+        "Gains {C:chips}+#1#{} Chips for each",
+        "Joker {C:attention}destroyed",
+        "{C:inactive}(Currently {C:chips}+#2# {C:inactive}Chips)",
+    } },
+    function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_type_destroyed then
+            e.chips = e.chips + e.chips_mod
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and e.chips > 0 then
+            return { chips = e.chips }
+        end
+    end)
+
+pb5_off_addon("off_epsilon", "Epsilon", "off_epsilon",
+    { dollars = 13 },
+    { name = "Epsilon", text = {
+        "Earn {C:gold}$#1#{} for each",
+        "Joker {C:attention}destroyed",
+    } },
+    function(self, card, context)
+        if context.joker_type_destroyed then
+            return { dollars = card.ability.extra.dollars }
+        end
+    end)
+
+pb5_off_addon("off_omega", "Omega", "off_omega",
+    { mult_mod = 13, mult = 0 },
+    { name = "Omega", text = {
+        "Gains {C:mult}+#1#{} Mult for each",
+        "Joker {C:attention}destroyed",
+        "{C:inactive}(Currently {C:mult}+#2# {C:inactive}Mult)",
+    } },
+    function(self, card, context)
+        local e = card.ability.extra
+        if context.joker_type_destroyed then
+            e.mult = e.mult + e.mult_mod
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and e.mult > 0 then
+            return { mult = e.mult }
+        end
+    end)
+
+-- one_with_nothing
+-- PORT NOTE: PC discards the held cards (they pass through the discard
+-- pile and its effects). The fork has no discard-from-hand API, so the
+-- port destroys the held unplayed cards instead; destruction effects
+-- (and Cross's veto) apply where discard effects would have.
+SMODS.Joker {
+    key = "one_with_nothing",
+    name = "One With Nothing",
+    rarity = 2,
+    cost = 5,
+    sprite = "one_with_nothing.png",
+    negative_sprite = "one_with_nothing_negative.png",
+    loc_txt = { name = "One With Nothing", text = {
+        "After playing a hand,",
+        "{C:attention}discard{} all cards in hand",
+    } },
+    calculate = function(self, card, context)
+        if context.press_play and type(context.full_hand) == "table" then
+            local played = {}
+            for _, node in ipairs(context.full_hand) do
+                played[node] = true
+            end
+            local g = pb5_game()
+            if g and g.hand and type(g.hand.card_nodes) == "table"
+                and SMODS.destroy_card then
+                local targets = {}
+                for _, node in ipairs(g.hand.card_nodes) do
+                    if not played[node] then targets[#targets + 1] = node end
+                end
+                for _, node in ipairs(targets) do
+                    SMODS.destroy_card(node)
+                end
+                if #targets > 0 then return { message = "Discarded!" } end
+            end
+        end
+    end,
+}
+
+-- watermelon
+-- PORT NOTE: setting_ability fires for seal changes too; the port
+-- counts a change when the card now carries an enhancement different
+-- from the reported old value, which is exact for enhancement changes
+-- and can also count a seal change made on an already-enhanced card.
+SMODS.Joker {
+    key = "watermelon",
+    name = "Watermelon",
+    rarity = 2,
+    cost = 6,
+    sprite = "watermelon.png",
+    negative_sprite = "watermelon_negative.png",
+    config = { extra = { a_xmult = 0.1, x_mult = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.a_xmult, e.x_mult } }
+    end,
+    loc_txt = { name = "Watermelon", text = {
+        "Gains {X:mult,C:white}X#1#{} Mult when {C:attention}Enhancing{}",
+        "a playing card. Loses {X:mult,C:white}X#1#{} Mult",
+        "when a playing card is {C:attention}destroyed{}",
+        "{C:inactive}(Currently {X:mult,C:white}X#2#{} {C:inactive}Mult)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.setting_ability and not context.unchanged
+            and context.other_card then
+            local enh = pb5_enh(context.other_card)
+            if enh and context.old ~= enh then
+                e.x_mult = pb5_round2(e.x_mult + e.a_xmult)
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.remove_playing_cards and context.port
+            and context.port.destroyed_cards
+            and #context.port.destroyed_cards > 0 then
+            local n = #context.port.destroyed_cards
+            if e.x_mult - e.a_xmult * n < 1 then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Eaten!" }
+            end
+            e.x_mult = pb5_round2(e.x_mult - e.a_xmult * n)
+            return { message = "Downgrade!" }
+        end
+        if context.joker_main and e.x_mult ~= 1 then
+            return { xmult = e.x_mult }
+        end
+    end,
+}
+
+-- weather_radio
+-- PORT NOTE: the target hand is per-Joker here (see Spirit Box's note);
+-- the boss disable runs through Game:disable_boss_blind, the fork's
+-- canonical disable, at the same two moments PC disables (first hand
+-- drawn, and in `before` as the scale lands).
+SMODS.Joker {
+    key = "weather_radio",
+    name = "Weather Radio",
+    rarity = 3,
+    cost = 9,
+    sprite = "weather_radio.png",
+    negative_sprite = "weather_radio_negative.png",
+    config = { extra = { x_mult = 1, a_xmult = 0.5,
+        xmult_disable = 3, xmult_penalty = 2 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.a_xmult, e.hand or "Pair", e.xmult_disable,
+            e.xmult_penalty, e.x_mult } }
+    end,
+    loc_txt = { name = "Weather Radio", text = {
+        "This Joker gains {X:mult,C:white}X#1#{} Mult if",
+        "{C:attention}played hand{} contains a {C:attention}#2#{}.",
+        "During {C:attention}Boss Blind{}, if this Joker has",
+        "{X:mult,C:white}X#3#{} Mult or more, disable {C:attention}Boss Blind{}",
+        "and this Joker loses {X:mult,C:white}X#4#{} Mult",
+        "{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult)",
+        "{s:0.75}poker hand changes at end of round",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        local g = pb5_game()
+        local function roll_hand()
+            if g and type(g.handlist) == "table" and #g.handlist > 0 then
+                e.hand = g.handlist[SMODS.pseudorandom(
+                    "weather_radio_hand", 1, #g.handlist)]
+            end
+        end
+        local function try_disable()
+            if pb5_boss(context) and not e.boss_disabled
+                and e.x_mult >= e.xmult_disable
+                and g and g.disable_boss_blind then
+                e.x_mult = pb5_round2(e.x_mult - e.xmult_penalty)
+                e.boss_disabled = true
+                g:disable_boss_blind()
+                return true
+            end
+            return false
+        end
+        if context.setting_blind then
+            e.boss_disabled = false
+            if not e.hand then roll_hand() end
+        end
+        if context.first_hand_drawn then
+            if try_disable() then return { message = "Boss Disabled!" } end
+        end
+        if context.before and e.hand and context.poker_hands
+            and context.poker_hands[e.hand]
+            and next(context.poker_hands[e.hand]) then
+            e.x_mult = pb5_round2(e.x_mult + e.a_xmult)
+            if try_disable() then return { message = "Boss Disabled!" } end
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and e.x_mult ~= 1 then
+            return { xmult = e.x_mult }
+        end
+        if context.end_of_round then
+            e.hand = nil
+            roll_hand()
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Debuff pair. PORT NOTE (both): PC's debuffs are Blind predicates
+-- re-evaluated over the deck continuously. The fork's canonical channel
+-- is the persistent perma_debuff flag, applied through SMODS.set_debuff,
+-- so the ports refresh the whole deck's flags at the moments PC
+-- re-evaluates (blind select / after each hand / when the tracked suit
+-- changes). A card drawn mid-hand keeps its flag until the next
+-- refresh, and leaving the Joker clears the flags it was maintaining.
+--------------------------------------------------------------------------------
+
+local PB5_DA_CAPO_CYCLE = { "Clubs", "Spades", "Diamonds", "Hearts", "None" }
+
+local function pb5_set_debuff(target, flag)
+    if SMODS.set_debuff then
+        SMODS.set_debuff(target, flag)
+    elseif type(target) == "table" and target.card_data then
+        target.card_data.perma_debuff = flag or nil
+    elseif type(target) == "table" then
+        target.perma_debuff = flag or nil
+    end
+end
+
+-- Apply `flag_for(data)` across the full deck, through the node setter
+-- for cards in hand (the canonical path) and the data channel for the
+-- rest.
+local function pb5_refresh_debuffs(flag_for)
+    local g = pb5_game()
+    local by_data = {}
+    if g and g.hand and type(g.hand.card_nodes) == "table" then
+        for _, n in ipairs(g.hand.card_nodes) do
+            if n.card_data then by_data[n.card_data] = n end
+        end
+    end
+    for _, d in ipairs(pb5_full_deck_data()) do
+        pb5_set_debuff(by_data[d] or d, flag_for(d) and true or false)
+    end
+end
+
+-- da_capo
+SMODS.Joker {
+    key = "da_capo",
+    name = "Da Capo",
+    rarity = 3,
+    cost = 8,
+    sprite = "da_capo.png",
+    negative_sprite = "da_capo_negative.png",
+    config = { extra = { xmult = 4, suit_idx = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.xmult, PB5_DA_CAPO_CYCLE[e.suit_idx] } }
+    end,
+    loc_txt = { name = "Da Capo", text = {
+        "{X:mult,C:white}X#1#{} Mult",
+        "{C:red}Debuffs{} all but one {C:attention}suit{}",
+        "every {C:attention}hand{}, in order:",
+        "{C:clubs}Clubs{}, {C:spades}Spades{}, {C:diamonds}Diamonds{}, {C:hearts}Hearts{}, {C:inactive}None{}",
+        "{C:inactive}(Currently: {V:1}#2#{C:inactive}){}",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        local function refresh()
+            local suit = PB5_DA_CAPO_CYCLE[e.suit_idx]
+            pb5_refresh_debuffs(function(d)
+                if suit == "None" then return false end
+                return d.enhancement ~= "stone" and d.suit ~= suit
+            end)
+        end
+        if context.setting_blind then refresh() end
+        if context.after then
+            e.suit_idx = e.suit_idx % #PB5_DA_CAPO_CYCLE + 1
+            refresh()
+            return { message = PB5_DA_CAPO_CYCLE[e.suit_idx] }
+        end
+        if context.joker_main then
+            return { xmult = e.xmult }
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        pb5_refresh_debuffs(function(d) return false end)
+    end,
+}
+
+-- jester_of_nihil
+SMODS.Joker {
+    key = "jester_of_nihil",
+    name = "Jester of Nihil",
+    rarity = 3,
+    cost = 7,
+    sprite = "jester_of_nihil.png",
+    negative_sprite = "jester_of_nihil_negative.png",
+    config = { extra = { suit = "Spades", debuff_mult = 5 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        local n = 0
+        for _, d in ipairs(pb5_full_deck_data()) do
+            if d.perma_debuff then n = n + 1 end
+        end
+        return { vars = { e.debuff_mult, e.suit, e.debuff_mult * n } }
+    end,
+    loc_txt = { name = "Jester of Nihil", text = {
+        "{C:attention}Debuffs{} the suit of the",
+        "{C:attention}last scored{} card",
+        "{C:mult}+#1#{} Mult for every {C:attention}debuffed{}",
+        "card in your full deck",
+        "{C:inactive}(Currently {V:1}#2#{C:inactive} and {C:mult}+#3#{C:inactive} Mult)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.individual and pb5_play_area(context)
+            and context.other_card
+            and pb5_enh(context.other_card) ~= "stone" then
+            e.last_suit = pb5_suit(context.other_card)
+        end
+        if context.after and e.last_suit and e.last_suit ~= e.suit then
+            e.suit = e.last_suit
+            pb5_refresh_debuffs(function(d)
+                return d.enhancement ~= "stone" and d.suit == e.suit
+            end)
+            return { message = e.suit }
+        end
+        if context.joker_main then
+            local n = 0
+            for _, d in ipairs(pb5_full_deck_data()) do
+                if d.perma_debuff then n = n + 1 end
+            end
+            if n > 0 then return { mult = e.debuff_mult * n } end
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        pb5_refresh_debuffs(function(d) return false end)
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Cross + Unholy Alliance
+--------------------------------------------------------------------------------
+
+-- cross
+-- PORT NOTE: PC also makes Jokers and consumables indestructible
+-- (a check_eternal query) and keeps protected cards out of other
+-- effects' removed lists. The fork's destroying_card pass covers
+-- playing cards only, so the veto lands there; a blanket veto also
+-- stops destructions other effects pay as a cost, as PC's does for
+-- playing cards.
+SMODS.Joker {
+    key = "cross",
+    name = "Cross",
+    rarity = 2,
+    cost = 6,
+    sprite = "cross.png",
+    negative_sprite = "cross_negative.png",
+    loc_txt = { name = "Cross", text = {
+        "Playing cards, Jokers, and",
+        "Consumables {C:attention}cannot{} be {C:red}destroyed{}",
+        "{C:inactive}(Does not prevent {C:money}selling{}",
+        "{C:inactive}or {C:red}self-destruction{C:inactive})",
+    } },
+    calculate = function(self, card, context)
+        if context.destroying_card then
+            return { remove = false }
+        end
+    end,
+}
+
+-- unholy_alliance
+-- PORT NOTE: PC's revive (destroy itself instead of losing at 666+
+-- Chips) answers a game_over check inside end_of_round; the fork raises
+-- no game_over context and no return carries a save, so the revive is
+-- unported. The scaling is exact.
+SMODS.Joker {
+    key = "unholy_alliance",
+    name = "Unholy Alliance",
+    rarity = 1,
+    cost = 6,
+    sprite = "unholy_alliance.png",
+    negative_sprite = "unholy_alliance_negative.png",
+    config = { extra = { a_chips = 12, chips = 0, revive_treshold = 666 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.a_chips, e.chips } }
+    end,
+    loc_txt = { name = "Unholy Alliance", text = {
+        "This Joker gains {C:chips}+#1#{} Chips",
+        "when a card or Joker is {C:attention}destroyed{}",
+        "{C:inactive}(Currently {C:chips}+#2#{C:inactive} Chips)",
+    } },
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        if context.remove_playing_cards and context.port
+            and context.port.destroyed_cards
+            and #context.port.destroyed_cards > 0 then
+            e.chips = e.chips + e.a_chips * #context.port.destroyed_cards
+            return { message = "Upgrade!" }
+        end
+        if context.joker_type_destroyed and context.card ~= card then
+            e.chips = e.chips + e.a_chips
+            return { message = "Upgrade!" }
+        end
+        if context.joker_main and e.chips > 0 then
+            return { chips = e.chips }
+        end
+    end,
+}
+
+end -- SMODS.Joker (Tier 3 wave 2)
+
+--------------------------------------------------------------------------------
+-- Minor Arcana additions: the 8 enhancement conversions (mod_conv now
+-- accepts the registered enhancements), the two Tag-granting Wands, and
+-- Queen of Wands (Dichrome edition).
+--------------------------------------------------------------------------------
+
+if SMODS.Consumable then
+
+local function pb5_conversion(key, name, max_hl, enh_value, enh_name, plural)
+    SMODS.Consumable {
+        set = "minor_arcana", key = key, cost = 3,
+        loc_txt = { name = name, text = {
+            "Enhances {C:attention}#1#{}",
+            max_hl == 1 and "selected card into an" or "selected cards to",
+            "{C:attention}#2#" .. (plural and "s{}" or "{}"),
+        } },
+        config = { max_highlighted = max_hl,
+            mod_conv = "m_pbp_" .. enh_value },
+        sprite = key .. ".png",
+        negative_sprite = key .. "_negative.png",
+        loc_vars = function(self, info_queue, card)
+            local cfg = (card and (card.ability or card.config)) or {}
+            return { vars = { cfg.max_highlighted, enh_name } }
+        end,
+    }
+end
+
+pb5_conversion("five_of_cups", "Five of Cups", 2, "soaked", "Soaked Card", true)
+pb5_conversion("five_of_pentacles", "Five of Pentacles", 1, "antique", "Antique Card", false)
+pb5_conversion("nine_of_wands", "Nine of Wands", 2, "bandaged", "Bandaged Card", true)
+pb5_conversion("page_of_pentacles", "Page of Pentacles", 2, "sleeved", "Sleeved Card", true)
+pb5_conversion("page_of_swords", "Page of Swords", 2, "domino", "Domino Card", true)
+pb5_conversion("queen_of_cups", "Queen of Cups", 2, "ceramic", "Ceramic Card", true)
+pb5_conversion("six_of_wands", "Six of Wands", 2, "wrapped", "Wrapped Card", true)
+pb5_conversion("three_of_swords", "Three of Swords", 2, "stained", "Stained Card", true)
+
+SMODS.Consumable {
+    set = "minor_arcana", key = "knight_of_wands", cost = 3,
+    loc_txt = { name = "Knight of Wands", text = {
+        "Gives a {C:mult}High Risk{C:attention} Tag",
+    } },
+    sprite = "knight_of_wands.png",
+    negative_sprite = "knight_of_wands_negative.png",
+    can_use = function(self, card) return true end,
+    use = function(self, card, area, copier)
+        pb5_add_tag("high_risk")
+    end,
+}
+
+SMODS.Consumable {
+    set = "minor_arcana", key = "seven_of_wands", cost = 3,
+    loc_txt = { name = "Seven of Wands", text = {
+        "Gives a {C:attention}Breaking Tag",
+    } },
+    sprite = "seven_of_wands.png",
+    negative_sprite = "seven_of_wands_negative.png",
+    can_use = function(self, card) return true end,
+    use = function(self, card, area, copier)
+        pb5_add_tag("breaking")
+    end,
+}
+
+-- queen_of_wands: PC picks a random uneditioned Joker (not a selected
+-- one), so this stays a plain use, not a target_joker card.
+SMODS.Consumable {
+    set = "minor_arcana", key = "queen_of_wands", cost = 3,
+    loc_txt = { name = "Queen of Wands", text = {
+        "{C:green}#1# in #2#{} chance to",
+        "add {C:dark_edition}Dichrome{} edition",
+        "to a random {C:attention}Joker",
+    } },
+    config = { extra = { odds = 3 } },
+    sprite = "queen_of_wands.png",
+    negative_sprite = "queen_of_wands_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local cfg = (card and (card.ability or card.config)) or {}
+        local extra = cfg.extra or {}
+        local num, den = 1, extra.odds or 3
+        if SMODS.get_probability_vars then
+            num, den = SMODS.get_probability_vars(card, num, den,
+                "paperback_queen_of_wands")
+        end
+        return { vars = { num, den } }
+    end,
+    can_use = function(self, card)
+        for _, j in ipairs(pb5_jokers()) do
+            if j.edition == nil or j.edition == "base" then
+                return true
+            end
+        end
+        return false
+    end,
+    use = function(self, card, area, copier)
+        local eligible = {}
+        for _, j in ipairs(pb5_jokers()) do
+            if j.edition == nil or j.edition == "base" then
+                eligible[#eligible + 1] = j
+            end
+        end
+        if #eligible == 0 then return end
+        local cfg = (card and (card.ability or card.config)) or {}
+        local odds = (cfg.extra or {}).odds or 3
+        if SMODS.pseudorandom_probability(card, "queen_of_wands",
+            1, odds, "paperback_queen_of_wands") then
+            local target = eligible[SMODS.pseudorandom(
+                "queen_of_wands_joker", 1, #eligible)]
+            target.edition = "dichrome"
+        end
+    end,
+}
+
+end -- SMODS.Consumable (Tier 3 arcana)
+
+end -- Tier 3 expansion block

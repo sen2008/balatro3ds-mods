@@ -16,9 +16,12 @@
 --   * Stone evolutions (v1.2.0) use the fork's SMODS.ConsumableType:
 --     the Moon, Fire, Water and Thunder Stones are registered under
 --     the pack's own "poke_item" type (as on PC) at the bottom of
---     this file, and using one evolves the leftmost held Clefairy,
---     Jigglypuff, Growlithe, Pikachu or Shellder through the same
---     poke_evolve call. On the stock game the type API does not
+--     this file. v1.3.0 upgrades them to the fork's Tier 3 Joker
+--     targeting (target_joker): the player chooses the Joker, and
+--     using one evolves the chosen held Clefairy, Jigglypuff,
+--     Growlithe, Pikachu or Shellder through the same poke_evolve
+--     call; the kind also gets a collection category and an Item
+--     Pack booster. On the stock game the type API does not
 --     exist, no stones register, and those five never evolve; their
 --     evolved forms (Clefable, Wigglytuff, Arcanine, Raichu) are
 --     still in the pack as standalone Jokers either way, like every
@@ -1796,7 +1799,7 @@ SMODS.Joker {
 }
 
 --------------------------------------------------------------------------------
--- Evolution stones (fork SMODS.ConsumableType; pack v1.2.0)
+-- Evolution stones (fork SMODS.ConsumableType; pack v1.2.0, targeting v1.3.0)
 --------------------------------------------------------------------------------
 -- PC Pokermon registers its items under its own consumable type
 -- ("consumable types/type1.lua": key "poke_item", name "Item",
@@ -1804,9 +1807,14 @@ SMODS.Joker {
 -- ("consumables/03_mart_items.lua": cost 4, evo_item = true). The fork's
 -- SMODS.ConsumableType is the same registration with the same rate
 -- units (Tarot and Planet weigh 4), so the stones below are registered
--- exactly as on PC and roll in the shop as their own kind. The fork
--- gives a custom kind no booster pack or collection tab of its own;
--- on PC the stones also reach the player through Item packs.
+-- exactly as on PC and roll in the shop as their own kind. Since the
+-- fork's Tier 3 API the kind also gets a collection category, and the
+-- Item Pack booster registered below (pool = poke_item) deals stones
+-- the way PC's Item packs do. The booster carries no sprite: the pack
+-- has no pack-wrapper art (its card art was sliced from the NatDex
+-- atlas, and PC Pokermon's own pack art lives in its repo, not here),
+-- so the engine draws its plain booster fallback panel -- noted in
+-- README.txt.
 --
 -- Which stones: exactly the ones that evolve Jokers in this pack
 -- (PC "item_req" on the base forms): Fire (Growlithe), Water
@@ -1816,18 +1824,16 @@ SMODS.Joker {
 -- target here: on PC it evolves into Magnezone, which is not in the
 -- pack, so the stone refuses it.
 --
--- Targeting: on PC a stone is usable when a Joker it evolves is
--- highlighted (or its playing-card effect applies); using it marks the
--- highlighted, else the leftmost, eligible Joker, and the evolution
--- lands at the round's evolution step. The fork has no Joker
--- highlighting for consumables, and the stones' secondary playing-card
--- effects (Fire: Mult cards, Water: Bonus cards, Thunder: Gold copies,
--- Moon: poker-hand upgrade) are not ported, so a stone here is usable
--- exactly when a held Joker it evolves is present, and using it evolves
--- the leftmost such Joker on the spot through poke_evolve (the same
--- call the level/scaling chains use, so the edition and any kept
--- scaling carry the same way). A debuffed Joker is never chosen, as
--- on PC.
+-- Targeting: since v1.3.0 the stones declare `target_joker = true`
+-- (fork Tier 3). The player chooses the Joker -- the tooltip-open
+-- Joker, or the gamepad-focused one -- and can_use accepts only that
+-- Joker, when it is held, is not debuffed, and is a pre-form this
+-- stone evolves (Moon Stone: either of its two lines). Using the
+-- stone evolves the CHOSEN Joker on the spot through poke_evolve
+-- (the same call the level/scaling chains use, so the edition and any
+-- kept scaling carry the same way). The stones' secondary
+-- playing-card effects (Fire: Mult cards, Water: Bonus cards,
+-- Thunder: Gold copies, Moon: poker-hand upgrade) are not ported.
 --
 -- On the stock game SMODS.ConsumableType does not exist: this whole
 -- block is skipped, no stones register, and the pack behaves exactly
@@ -1857,18 +1863,20 @@ if SMODS.ConsumableType then
         j_pokep_jigglypuff = "j_pokep_wigglytuff",
     }
 
-    -- The leftmost held Joker this stone evolves, or nil. Debuffed
-    -- Jokers are skipped, as on PC.
-    local function stone_target(stone_key)
+    -- Is `target` a Joker this stone may evolve right now: the right
+    -- pre-form, actually held, and not debuffed (as on PC)? The
+    -- engine only ever resolves held Jokers as targets, but the held
+    -- check keeps can_use honest when called directly.
+    local function stone_target_ok(stone_key, target)
+        if type(target) ~= "table" or not target.def then return false end
+        if STONE_OF[target.def.id] ~= stone_key then return false end
+        if target.debuff == true or target.debuffed == true then return false end
         local jokers = G and G.jokers
-        if type(jokers) ~= "table" then return nil end
+        if type(jokers) ~= "table" then return false end
         for _, j in ipairs(jokers) do
-            if j and j.def and STONE_OF[j.def.id] == stone_key
-                and j.debuff ~= true and j.debuffed ~= true then
-                return j
-            end
+            if j == target then return true end
         end
-        return nil
+        return false
     end
 
     local function evolution_stone(key, name, text)
@@ -1879,12 +1887,12 @@ if SMODS.ConsumableType then
             negative_sprite = key .. "_negative.png",
             loc_txt = { name = name, text = text },
             cost = 4,
-            can_use = function(self, card)
-                return stone_target(key) ~= nil
+            target_joker = true,
+            can_use = function(self, card, target)
+                return stone_target_ok(key, target)
             end,
-            use = function(self, card)
-                local target = stone_target(key)
-                if target then
+            use = function(self, card, area, copier, target)
+                if stone_target_ok(key, target) then
                     poke_evolve(target, STONE_EVOLUTION[target.def.id])
                 end
             end,
@@ -1893,27 +1901,48 @@ if SMODS.ConsumableType then
 
     evolution_stone("firestone", "Fire Stone", {
         "{C:attention}Evolution Card{}",
-        "Evolves a held {C:attention}Growlithe{}",
+        "Evolves the {C:attention}chosen Growlithe{}",
         "into {C:attention}Arcanine{}",
-        "{C:inactive}(Leftmost eligible Joker){}",
+        "{C:inactive}(Open a Joker's tooltip, then use){}",
     })
     evolution_stone("waterstone", "Water Stone", {
         "{C:attention}Evolution Card{}",
-        "Evolves a held {C:attention}Shellder{}",
+        "Evolves the {C:attention}chosen Shellder{}",
         "into {C:attention}Cloyster{}",
-        "{C:inactive}(Leftmost eligible Joker){}",
+        "{C:inactive}(Open a Joker's tooltip, then use){}",
     })
     evolution_stone("thunderstone", "Thunder Stone", {
         "{C:attention}Evolution Card{}",
-        "Evolves a held {C:attention}Pikachu{}",
+        "Evolves the {C:attention}chosen Pikachu{}",
         "into {C:attention}Raichu{}",
-        "{C:inactive}(Leftmost eligible Joker){}",
+        "{C:inactive}(Open a Joker's tooltip, then use){}",
     })
     evolution_stone("moonstone", "Moon Stone", {
         "{C:attention}Evolution Card{}",
-        "Evolves a held {C:attention}Clefairy{} into",
-        "{C:attention}Clefable{}, or a held {C:attention}Jigglypuff{}",
+        "Evolves the {C:attention}chosen Clefairy{} into",
+        "{C:attention}Clefable{}, or the {C:attention}chosen Jigglypuff{}",
         "into {C:attention}Wigglytuff{}",
-        "{C:inactive}(Leftmost eligible Joker){}",
+        "{C:inactive}(Open a Joker's tooltip, then use){}",
     })
+
+    -- Item Pack: on PC the stones also reach the player through Item
+    -- packs. Registered without a sprite (no pack-wrapper art exists
+    -- in this pack), so the shop shows the engine's plain booster
+    -- fallback panel. Guarded separately: an older fork build could
+    -- have ConsumableType without Booster.
+    if SMODS.Booster then
+        SMODS.Booster {
+            key = "itempack",
+            loc_txt = {
+                name = "Item Pack",
+                text = { "Choose {C:attention}1{} of {C:attention}3{} Item cards" },
+            },
+            pool = { consumable = "poke_item" },
+            card_count = 3,
+            picks = 1,
+            cost = 4,
+            weight = 100,
+            colour = { 0.95, 0.8, 0.25 },
+        }
+    end
 end

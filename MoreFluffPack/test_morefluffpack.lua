@@ -47,6 +47,10 @@ local NAMES = {
     "steamflogger_boss", "stifle", "stonejokerjoker", "stormscale", "stylemeter", "sudoku",
     "sword_of_steven_and_todd", "the_solo", "thejester", "theshatteringcircle", "tonersoup", "top10",
     "top10_soul", "treasuremap", "triangular", "virtual", "whiteboard", "wilddrawfour",
+    "allicantdo", "allicantdo_soul", "blahaj", "brass", "flintandsteel", "gemstonejoker", "jankman",
+    "lettergem_e", "marigold", "marigold_soul", "rosetinted", "teacup", "tealjoker", "unpleasantcard",
+    "widejoker", "yuckyrat",
+    "enh_brass", "enh_gemstone", "enh_marigold", "enh_teal", "enh_yucky",
 }
 
 local function install_pack()
@@ -64,7 +68,7 @@ local function install_pack()
         "name": "MoreFluff Pack",
         "prefix": "mfp",
         "main_file": "morefluffpack.lua",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "author": ["notmario", "3DS port"]
     }]])
     love.filesystem.write(base .. "/morefluffpack.lua", main)
@@ -265,15 +269,33 @@ local EXPECT = {
     ["j_mfp_virtual"] = { "Virtual Joker", 5, 7 },
     ["j_mfp_whiteboard"] = { "Whiteboard", 5, 6 },
     ["j_mfp_wilddrawfour"] = { "Wild Draw Four", 5, 7 },
+    ["j_mfp_allicantdo"] = { "All I Can't Do", 3, 9 },
+    ["j_mfp_blahaj"] = { "Blåhaj", 1, 1 },
+    ["j_mfp_brass"] = { "Brass Joker", 3, 10 },
+    ["j_mfp_flintandsteel"] = { "Flint and Steel", 5, 4 },
+    ["j_mfp_gemstonejoker"] = { "Gemstone Joker", 2, 6 },
+    ["j_mfp_jankman"] = { "Jankman", 3, 9 },
+    ["j_mfp_lettergem_e"] = { "E", 6, 2 },
+    ["j_mfp_marigold"] = { "Marigold", 4, 20 },
+    ["j_mfp_rosetinted"] = { "Rose-Tinted Glasses", 5, 5 },
+    ["j_mfp_teacup"] = { "Teacup", 2, 7 },
+    ["j_mfp_tealjoker"] = { "Teal Joker", 2, 7 },
+    ["j_mfp_unpleasantcard"] = { "Unpleasant Card", 2, 6.5 },
+    ["j_mfp_widejoker"] = { "Wide Joker", 3, 9 },
+    ["j_mfp_yuckyrat"] = { "Yucky Rat", 2, 8 },
 }
 
-suite.test("pack loads and registers all 89 Jokers", function()
+suite.test("pack loads and registers all 103 Jokers", function()
     install_pack()
     local n = 0
     for id in pairs(JOKER_DEFS) do
         if id:sub(1, 6) == "j_mfp_" then n = n + 1 end
     end
-    T.assert_eq(n, 89, "89 pack Jokers registered")
+    T.assert_eq(n, 103, "103 pack Jokers registered")
+    for _, value in ipairs({ "teal", "marigold", "brass", "gemstone", "yucky" }) do
+        T.assert_not_nil(SMODS.EnhancementByValue[value], value .. " enhancement registered")
+        T.assert_eq(SMODS.EnhancementByValue[value].weight, 0, value .. " stays out of the polls")
+    end
     for id, want in pairs(EXPECT) do
         local def = JOKER_DEFS[id]
         T.assert_not_nil(def, id .. " registered")
@@ -998,6 +1020,197 @@ suite.test("burner phone tooltip names the top cards of the deck", function()
     local text = table.concat(flatten(SMODS.tooltip_lines("j_mfp_burnerphone", phone)), " ")
     T.assert_true(text:find("of", 1, true) ~= nil, "tooltip shows a rank of a suit")
     T.assert_false(text:find("#", 1, true) ~= nil, "and every fragment is filled")
+    wipe_mods()
+end)
+
+-- ---------------------------------------------------------------------------
+-- Behaviour: Tier 3 top-up ports (v1.2.0)
+-- ---------------------------------------------------------------------------
+
+-- A joker_main pass with the hand-level plumbing the fork's own
+-- level_up test sets up, so level_up returns land for real.
+local function scored_hand(game, joker, played, hand_name)
+    local idx
+    for i, name in ipairs(game.handlist) do if name == hand_name then idx = i end end
+    local stats = game.hand_stats[idx]
+    game.selectedHand = idx
+    game.selectedHandChips = stats.base_chips
+    game.selectedHandMult = stats.base_mult
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored",
+        chips = stats.base_chips, mult = stats.base_mult,
+        hand_index = idx, hand_type = hand_name,
+        cards = played, played_cards = played, full_hand = played }
+    if joker:matches_trigger("on_hand_scored", ctx) then joker:apply_effect(ctx) end
+    return ctx, stats
+end
+
+suite.test("tier3 return readers: x_chips, swap, e_mult", function()
+    local game = install_pack()
+    T.assert_near(scored(add(game, "j_mfp_unpleasantcard")).chips, 20.67, 0.01, "Unpleasant X2.067 Chips")
+    local swap = scored(add(game, "j_mfp_blahaj"))
+    T.assert_eq(swap.chips, 2, "Blahaj swaps Chips to the Mult value")
+    T.assert_eq(swap.mult, 10, "Blahaj swaps Mult to the Chips value")
+    T.assert_near(scored(add(game, "j_mfp_widejoker")).mult, 2.203, 0.01, "Wide Joker Mult ^1.14")
+    T.assert_near(scored(add(game, "j_mfp_lettergem_e")).mult, 2.639, 0.01, "Letter E Mult ^1.4")
+    wipe_mods()
+end)
+
+suite.test("jankman pays X1.31 Chips per modded Joker that triggers", function()
+    local game = install_pack()
+    add(game, "j_mfp_jankman")
+    add(game, "j_mfp_jester")
+    local ctx = scored_emit(game, { card(9) })
+    T.assert_near(ctx.chips, 65.5, 0.01, "10 + 40 from Jester, then X1.31")
+    wipe_mods()
+    game = install_pack()
+    add(game, "j_mfp_jankman")
+    add(game, "j_jolly")
+    local pair = { card(9), card(9, "Clubs") }
+    ctx = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 10, mult = 2,
+        cards = pair, played_cards = pair, full_hand = pair,
+        hand_type = "Pair", contains_hand_types = { Pair = true } }
+    game:emit_joker_event("on_hand_scored", ctx)
+    T.assert_near(ctx.chips, 13.1, 0.01, "Jolly Joker counts too")
+    T.assert_eq(ctx.mult, 10, "Jolly's own +8 Mult on the Pair still lands")
+    wipe_mods()
+    game = install_pack()
+    add(game, "j_mfp_jankman")
+    add(game, "j_joker")
+    ctx = scored_emit(game, { card(9) })
+    T.assert_eq(ctx.chips, 10, "a plain vanilla Joker does not count")
+    wipe_mods()
+end)
+
+suite.test("teacup levels the played hand and is spent after 5", function()
+    local game = install_pack()
+    local cup = add(game, "j_mfp_teacup")
+    local _, stats = scored_hand(game, cup, { card(9), card(9, "Clubs") }, "Pair")
+    T.assert_eq(stats.level, 2, "the played hand levelled")
+    T.assert_eq(cup.ability.extra, 5, "the charge is spent in before, not yet")
+    fire(cup, "on_hand_played", { played_cards = {}, full_hand = {} })
+    T.assert_eq(cup.ability.extra, 4, "one charge spent")
+    for _ = 1, 4 do fire(cup, "on_hand_played", { played_cards = {}, full_hand = {} }) end
+    T.assert_eq(cup.ability.extra, 0)
+    fire(cup, "on_hand_after", { played_cards = {}, full_hand = {} })
+    T.assert_eq(#game.jokers, 0, "the spent cup destroys itself")
+    wipe_mods()
+end)
+
+suite.test("flint and steel levels a Stone+Steel scoring hand only", function()
+    local game = install_pack()
+    local flint = add(game, "j_mfp_flintandsteel")
+    local played = { card(7, "Hearts", "stone"), card(8, "Clubs", "steel") }
+    local _, stats = scored_hand(game, flint, played, "Pair")
+    T.assert_eq(stats.level, 2, "Stone + Steel levels the hand")
+    local _, stats2 = scored_hand(game, flint, { card(7, "Hearts", "stone") }, "High Card")
+    T.assert_eq(stats2.level, 1, "Stone alone does not")
+    wipe_mods()
+end)
+
+suite.test("rose-tinted glasses destroys a lone first-hand 2 for a Double Tag", function()
+    local game = install_pack()
+    add(game, "j_mfp_rosetinted")
+    game.round_hands_played = 1
+    local two = SMODS.add_card { set = "Playing", rank = 2, suit = "Hearts" }
+    T.assert_true(two ~= nil, "the 2 was dealt")
+    local in_hand = #game.hand.card_nodes
+    local tags = #(game.tags or {})
+    fire(game.jokers[1], "on_hand_after", { played_cards = { two }, full_hand = { two }, cards = { two } })
+    T.assert_eq(#game.hand.card_nodes, in_hand - 1, "the 2 is destroyed")
+    T.assert_eq(#(game.tags or {}), tags + 1, "a tag was granted")
+    T.assert_eq(game.tags[#game.tags].type, "double", "and it is the Double Tag")
+    wipe_mods()
+end)
+
+suite.test("teal joker counts teal cards; teal cards pay X1.5 Chips held", function()
+    local game = install_pack()
+    local teal = add(game, "j_mfp_tealjoker")
+    T.assert_eq(scored(teal).chips, 10, "no Teal Cards, no bonus")
+    SMODS.add_card { set = "Playing", rank = 5, suit = "Hearts", enhancement = "teal" }
+    SMODS.add_card { set = "Playing", rank = 6, suit = "Clubs", enhancement = "teal" }
+    T.assert_near(scored(teal).chips, 14, 0.01, "X1.4 with two Teal Cards")
+    local node = game.hand.card_nodes[#game.hand.card_nodes]
+    local held = { chips = 10, mult = 1 }
+    T.assert_true(node:emit_hand_event("held_in_hand", held))
+    T.assert_near(held.chips, 15, 0.01, "a held Teal Card gives X1.5 Chips")
+    wipe_mods()
+end)
+
+suite.test("marigold retriggers marigold cards; marigold cards pay per hand at round end", function()
+    local game = install_pack()
+    local mari = add(game, "j_mfp_marigold")
+    local mcard = card(5, "Hearts", "marigold")
+    local plain = card(6, "Clubs")
+    T.assert_eq(mari:query_retrigger({ card_node = mcard, retrigger_card = mcard }), 2,
+        "a Marigold Card retriggers twice")
+    T.assert_eq(mari:query_retrigger({ card_node = plain, retrigger_card = plain }), 0,
+        "a plain card does not")
+    SMODS.add_card { set = "Playing", rank = 5, suit = "Hearts", enhancement = "marigold" }
+    SMODS.add_card { set = "Playing", rank = 6, suit = "Clubs", enhancement = "marigold" }
+    local node = game.hand.card_nodes[#game.hand.card_nodes]
+    local m0 = game.money
+    node:emit_hand_event("on_round_end", { chips = 0, mult = 1 })
+    T.assert_eq(game.money - m0, 2, "$1 per Marigold Card in hand, paid per card")
+    wipe_mods()
+end)
+
+suite.test("brass scales on destroyed brass cards and retriggers its right neighbour", function()
+    local game = install_pack()
+    local brass = add(game, "j_mfp_brass")
+    local destroyed = { card(4, "Hearts", "brass"), card(5, "Clubs", "brass"), card(6, "Spades", "brass") }
+    fire(brass, "on_destroy", { destroyed_cards = destroyed })
+    T.assert_eq(brass.ability.extra.retriggers, 1, "3 destroyed Brass Cards buy a retrigger")
+    T.assert_eq(brass.ability.extra.partial_rounds, 0)
+    add(game, "j_mfp_jester")
+    T.assert_eq(scored_emit(game, { card(9) }).chips, 90, "the right Joker triggers twice (40 x2 + 10)")
+    local bcard = card(7, "Hearts", "brass")
+    T.assert_eq(brass:query_retrigger({ card_node = bcard, retrigger_card = bcard }), 2,
+        "a Brass Card retriggers twice while Brass Joker is held")
+    wipe_mods()
+end)
+
+suite.test("gemstone joker pays per gemstone card; gemstone cards pay held at round end", function()
+    local game = install_pack()
+    local gem = add(game, "j_mfp_gemstonejoker")
+    SMODS.add_card { set = "Playing", rank = 5, suit = "Hearts", enhancement = "gemstone", area = "deck" }
+    SMODS.add_card { set = "Playing", rank = 6, suit = "Clubs", enhancement = "gemstone", area = "deck" }
+    local m0 = game.money
+    fire(gem, "on_round_end", {})
+    T.assert_eq(game.money - m0, 2, "$1 per Gemstone Card in the full deck")
+    local view = SMODS.add_card { set = "Playing", rank = 7, suit = "Spades", enhancement = "gemstone" }
+    local node = game.hand.card_nodes[#game.hand.card_nodes]
+    local m1 = game.money
+    node:emit_hand_event("on_round_end", { chips = 0, mult = 1 })
+    T.assert_eq(game.money - m1, 3, "a held Gemstone Card pays $3 at round end")
+    wipe_mods()
+end)
+
+suite.test("yucky rat converts unenhanced played cards and scales", function()
+    local game = install_pack()
+    local rat = add(game, "j_mfp_yuckyrat")
+    local plain = card(5, "Hearts")
+    local lucky = card(6, "Clubs", "lucky")
+    fire(rat, "on_hand_played", { played_cards = { plain, lucky }, full_hand = { plain, lucky }, cards = { plain, lucky } })
+    T.assert_eq(plain.card_data.enhancement, "yucky", "the unenhanced card became Yucky")
+    T.assert_eq(lucky.card_data.enhancement, "lucky", "the enhanced card was left alone")
+    T.assert_near(rat.ability.extra.x_mult, 1.05, 0.001, "X0.05 per conversion")
+    T.assert_near(scored(rat).mult, 2.1, 0.001, "and the grown XMult scores")
+    wipe_mods()
+end)
+
+suite.test("all i can't do debuffs the first drawn hand and scales on debuffed plays", function()
+    local game = install_pack()
+    local aicd = add(game, "j_mfp_allicantdo")
+    local n1, n2 = card(5, "Hearts"), card(6, "Clubs")
+    fire(aicd, "on_hand_drawn", { drawn_cards = { n1 } })
+    T.assert_true(n1.card_data.perma_debuff == nil, "not armed before the blind is set")
+    fire(aicd, "on_blind_selected", {})
+    fire(aicd, "on_hand_drawn", { drawn_cards = { n1, n2 } })
+    T.assert_eq(n1.card_data.perma_debuff, true, "the first drawn hand is debuffed")
+    T.assert_eq(n2.card_data.perma_debuff, true)
+    fire(aicd, "on_hand_played", { played_cards = { n1 }, full_hand = { n1 }, cards = { n1 } })
+    T.assert_near(aicd.ability.extra.x_mult, 1.1, 0.001, "X0.1 per debuffed card played")
+    T.assert_near(scored(aicd).mult, 2.2, 0.001)
     wipe_mods()
 end)
 

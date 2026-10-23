@@ -65,6 +65,17 @@ local ARCANA = {
     queen_of_pentacles = "Queen of Pentacles",
     knight_of_pentacles = "Knight of Pentacles",
     king_of_pentacles = "King of Pentacles",
+    five_of_cups = "Five of Cups",
+    five_of_pentacles = "Five of Pentacles",
+    queen_of_cups = "Queen of Cups",
+    nine_of_wands = "Nine of Wands",
+    knight_of_wands = "Knight of Wands",
+    seven_of_wands = "Seven of Wands",
+    queen_of_wands = "Queen of Wands",
+    page_of_pentacles = "Page of Pentacles",
+    page_of_swords = "Page of Swords",
+    six_of_wands = "Six of Wands",
+    three_of_swords = "Three of Swords",
 }
 
 local function install_pack()
@@ -144,6 +155,25 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Dummy sprites for the Tier 3 (v1.1.0) Jokers.
+    for _, n in ipairs({
+        "collector", "festive_joker", "greeting_card", "happy_accident",
+        "kintsugi_joker", "mexican_train", "plastic_wrap", "sommelier",
+        "spotty_joker", "teapot", "watercolor_joker", "pinot_noir",
+        "gauze", "blue_star", "chocolate_joker", "crispy_taco",
+        "deck_of_cards", "nachos", "oracle", "quartz",
+        "ready_to_fly", "stella_octangula", "angel_investor", "book_of_life",
+        "j_and_js", "jimbo_adventure", "jokers_11", "shopkeep",
+        "spirit_box", "stereoscopic_specs", "the_wonder_of_you", "let_it_happen",
+        "coin_collection", "frutiger_aero", "cream_liqueur", "off_alpha",
+        "off_epsilon", "off_omega", "one_with_nothing", "watermelon",
+        "weather_radio", "da_capo", "jester_of_nihil", "cross",
+        "unholy_alliance", "jimbo_adventure_soul", "off_alpha_soul", "off_epsilon_soul",
+        "off_omega_soul",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
     ModLoader.load_all()
     local game = bootstrap.new_game(9182)
     game.hand = Hand(game)
@@ -199,15 +229,15 @@ end
 -- Registration
 --------------------------------------------------------------------------------
 
-suite.test("minor arcana type and all 33 cards register", function()
+suite.test("minor arcana type and all 44 cards register", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.consumables, 33, "33 arcana register")
+    T.assert_eq(#mod.registered.consumables, 44, "44 arcana register")
     local entry = SMODS.ConsumableTypes["pbp_minor_arcana"]
     T.assert_true(entry ~= nil, "the minor_arcana type registers")
     T.assert_eq(entry.kind, "minor_arcana", "the kind string is minor_arcana")
-    T.assert_eq(entry.shop_rate, 3, "shop_rate 3 (port deviation, no packs)")
+    T.assert_eq(entry.shop_rate, 0, "shop_rate 0, as on PC (booster-delivered)")
     T.assert_true(game:is_consumable_kind("minor_arcana"))
     for key, name in pairs(ARCANA) do
         local def = CONSUMABLE_DEFS["c_pbp_" .. key]
@@ -308,13 +338,12 @@ suite.test("eight of cups moves selected cards to an unselected deck suit", func
     wipe_mods()
 end)
 
-suite.test("nine of cups destroys a Common Joker and creates an Uncommon one", function()
+suite.test("nine of cups destroys the chosen Common Joker and creates an Uncommon one", function()
     local game = install_pack()
     game.STATE = game.STATES.SHOP
-    add_joker(game, "j_pbp_claw") -- Common, cost 3
+    local target = add_joker(game, "j_pbp_claw") -- Common, cost 3
     local slot = hold(game, "nine_of_cups")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, target))
     T.assert_eq(#game.jokers, 1, "one Joker before and after")
     local j = game.jokers[1]
     local def = JOKER_DEFS[j.def.id]
@@ -500,14 +529,14 @@ suite.test("five of swords grants one missing modifier to the selected card", fu
     wipe_mods()
 end)
 
-suite.test("nine of swords destroys the leftmost Joker and pays $5", function()
+suite.test("nine of swords destroys the chosen Joker and pays $5", function()
     local game = install_pack()
     game.STATE = game.STATES.SHOP
     local j = add_joker(game, "j_pbp_claw")
     j.eternal = true
     local slot = hold(game, "nine_of_swords")
     local money = game.money
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, j))
     T.assert_eq(#game.jokers, 0, "even an Eternal Joker is destroyed")
     T.assert_eq(game.money, money + 5)
     wipe_mods()
@@ -571,8 +600,7 @@ suite.test("king of swords strips Rental and Perishable from a Joker", function(
     j.rental = true
     j.perishable = true
     local slot = hold(game, "king_of_swords")
-    T.assert_true(game:consumable_use_enabled(slot))
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, j))
     T.assert_true(j.rental == nil, "Rental removed")
     T.assert_true(j.perishable == nil, "Perishable removed")
     wipe_mods()
@@ -582,15 +610,18 @@ end)
 -- Pentacles
 --------------------------------------------------------------------------------
 
-suite.test("two of pentacles toggles Eternal on the leftmost Joker", function()
+suite.test("two of pentacles toggles Eternal on the chosen Joker", function()
     local game = install_pack()
     game.STATE = game.STATES.SHOP
     local j = add_joker(game, "j_pbp_claw")
+    local other = add_joker(game, "j_pbp_jacks")
     local slot = hold(game, "two_of_pentacles")
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, j))
     T.assert_eq(j.eternal, true, "Eternal gained")
+    T.assert_true(other.eternal == nil or other.eternal == false,
+        "the unchosen Joker is untouched")
     slot = hold(game, "two_of_pentacles")
-    T.assert_true(game:use_consumable(slot))
+    T.assert_true(game:use_consumable(slot, j))
     T.assert_eq(j.eternal, false, "Eternal lost again")
     wipe_mods()
 end)
@@ -701,6 +732,132 @@ suite.test("king of pentacles pays $1 per face card in the full deck", function(
     local money = game.money
     T.assert_true(game:use_consumable(slot))
     T.assert_eq(game.money, money + 4, "four face cards pay $4")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3 additions: enhancements, conversions, tags, boosters, Dichrome
+--------------------------------------------------------------------------------
+
+suite.test("tier 3 centers register: 8 enhancements and the Dichrome edition", function()
+    local game = install_pack()
+    for _, v in ipairs({ "soaked", "sleeved", "bandaged", "wrapped",
+        "ceramic", "domino", "stained", "antique" }) do
+        T.assert_true(SMODS.EnhancementByValue[v] ~= nil,
+            v .. " enhancement registered")
+        T.assert_eq(SMODS.EnhancementByValue[v].weight, 0,
+            v .. " stays out of the random polls, as on PC")
+    end
+    T.assert_true(SMODS.EditionByValue.dichrome ~= nil,
+        "the Dichrome edition registers")
+    T.assert_eq(SMODS.EditionByValue.dichrome.cost, 5)
+    wipe_mods()
+end)
+
+suite.test("five of cups converts selected cards to Soaked", function()
+    local game = install_pack()
+    local a, b = card(5, "Hearts"), card(9, "Clubs")
+    setup_hand(game, { a, b }, { a, b })
+    local slot = hold(game, "five_of_cups")
+    T.assert_true(game:consumable_use_enabled(slot))
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(a.card_data.enhancement, "soaked")
+    T.assert_eq(b.card_data.enhancement, "soaked")
+    wipe_mods()
+end)
+
+suite.test("five of pentacles converts one selected card to Antique", function()
+    local game = install_pack()
+    local a, b = card(5, "Hearts"), card(9, "Clubs")
+    setup_hand(game, { a, b }, { a })
+    local slot = hold(game, "five_of_pentacles")
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(a.card_data.enhancement, "antique")
+    T.assert_eq(b.card_data.enhancement, nil, "only the selected card")
+    wipe_mods()
+end)
+
+suite.test("antique cards grow and pay XChips through the center event", function()
+    local game = install_pack()
+    game.hand = Hand(game)
+    game.hand:add_card({ rank = 9, suit = "Hearts", enhancement = "antique" })
+    local node = game.hand.card_nodes[#game.hand.card_nodes]
+    local ctx = { chips = 10, mult = 1 }
+    SMODS.card_center_event(node, "card_played", ctx)
+    T.assert_eq(node.card_data.pb_antique_x, 1.1, "first play grows to X1.1")
+    T.assert_true(ctx.chips > 10, "the X1.1 Chips return lands on the total")
+    SMODS.card_center_event(node, "card_played", ctx)
+    T.assert_eq(node.card_data.pb_antique_x, 1.2, "second play grows to X1.2")
+    wipe_mods()
+end)
+
+suite.test("knight of wands grants a High Risk Tag; seven of wands a Breaking Tag", function()
+    local game = install_pack()
+    game.STATE = game.STATES.SHOP
+    local before = #game.tags
+    local slot = hold(game, "knight_of_wands")
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(#game.tags, before + 1, "one tag granted")
+    T.assert_eq(game.tags[#game.tags].type, "high_risk")
+    slot = hold(game, "seven_of_wands")
+    T.assert_true(game:use_consumable(slot))
+    T.assert_eq(game.tags[#game.tags].type, "breaking")
+    wipe_mods()
+end)
+
+suite.test("angel investment tag pays $1 per $5 held when gained", function()
+    local game = install_pack()
+    game.money = 103
+    game:addTag("angel_investment")
+    T.assert_eq(game.money, 123, "floor(103/5) = $20 paid on gain")
+    wipe_mods()
+end)
+
+suite.test("divination tag opens the Mega Minor Arcana Pack at blind choice", function()
+    local game = install_pack()
+    game:addTag("divination")
+    T.assert_true(game:apply_new_blind_choice_tags(), "the tag fires")
+    T.assert_true(game.booster_session ~= nil, "a pack session opened")
+    T.assert_eq(game.booster_session.pack, "minor_arcana_mega")
+    wipe_mods()
+end)
+
+suite.test("minor arcana booster packs register in all three sizes", function()
+    local game = install_pack()
+    local expect = {
+        pbp_minor_arcana_normal = { 3, 1, 4, 100 },
+        pbp_minor_arcana_jumbo = { 5, 1, 6, 100 },
+        pbp_minor_arcana_mega = { 5, 2, 8, 25 },
+    }
+    for id, e in pairs(expect) do
+        local entry = SMODS.Boosters[id]
+        T.assert_true(entry ~= nil, id .. " registered")
+        T.assert_eq(entry.card_count, e[1], id .. " card_count")
+        T.assert_eq(entry.picks, e[2], id .. " picks")
+        T.assert_eq(entry.cost, e[3], id .. " cost")
+        T.assert_eq(entry.weight, e[4], id .. " weight")
+        T.assert_eq(entry.pool_kind, "consumable", id .. " pool kind")
+    end
+    local profiled = SMODS.booster_profile_entries()
+    local found = 0
+    for _, p in ipairs(profiled) do
+        if expect[p.key] then found = found + 1 end
+    end
+    T.assert_eq(found, 3, "all three packs join the shop booster pool")
+    wipe_mods()
+end)
+
+suite.test("queen of wands can put Dichrome on a held Joker", function()
+    local game = install_pack()
+    game.STATE = game.STATES.SHOP
+    local j = add_joker(game, "j_pbp_claw")
+    local landed = false
+    for _ = 1, 12 do
+        local slot = hold(game, "queen_of_wands")
+        T.assert_true(game:use_consumable(slot))
+        if j.edition == "dichrome" then landed = true break end
+    end
+    T.assert_true(landed, "Dichrome landed within 12 uses (1-in-3 each)")
     wipe_mods()
 end)
 

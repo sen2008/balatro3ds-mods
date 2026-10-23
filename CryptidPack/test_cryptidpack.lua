@@ -161,6 +161,33 @@ local JOKER_EXPECT = {
     ["the_duos"] = { name = "The Duos", cost = 8, rarity = 3 },
     ["the_home"] = { name = "The Home", cost = 8, rarity = 3 },
     ["triplet_rhythm"] = { name = "Triplet Rhythm", cost = 6, rarity = 1 },
+    ["circulus_pistoris"] = { name = "Circulus Pistoris", cost = 31, rarity = "exotic" },
+    ["facile"] = { name = "Facile", cost = 50, rarity = "exotic" },
+    ["primus"] = { name = "Primus", cost = 53, rarity = "exotic" },
+    ["stella_mortis"] = { name = "Stella Mortis", cost = 50, rarity = "exotic" },
+    ["formidiulosus"] = { name = "Formidiulosus", cost = 50, rarity = "exotic" },
+    ["mprime"] = { name = "Tredecim", cost = 50, rarity = "exotic" },
+    ["energia"] = { name = "Energia", cost = 50, rarity = "exotic" },
+    ["happyhouse"] = { name = "Happy House", cost = 2, rarity = 2 },
+    ["night"] = { name = "Night", cost = 6, rarity = 3 },
+    ["jtron"] = { name = "Jimbo-tron 9000", cost = 14, rarity = "epic" },
+    ["starfruit"] = { name = "Starfruit", cost = 14, rarity = "epic" },
+    ["googol_play"] = { name = "Googol Play Card", cost = 10, rarity = "epic" },
+    ["supercell"] = { name = "Supercell", cost = 14, rarity = "epic" },
+    ["sync_catalyst"] = { name = "Sync Catalyst", cost = 12, rarity = "epic" },
+    ["smallestm"] = { name = "Tiny", cost = 8, rarity = "epic" },
+    ["universe"] = { name = "Universe", cost = 6, rarity = 3 },
+    ["antennatoheaven"] = { name = "...Like Antennas to Heaven", cost = 7, rarity = 3 },
+    ["big_cube"] = { name = "Big Cube", cost = 27, rarity = 1 },
+    ["spaceglobe"] = { name = "Celestial Globe", cost = 8, rarity = 3 },
+    ["pirate_dagger"] = { name = "Pirate Dagger", cost = 8, rarity = 2 },
+    ["arsonist"] = { name = "Arsonist", cost = 5, rarity = 3 },
+    ["queens_gambit"] = { name = "Queen's Gambit", cost = 7, rarity = 1 },
+    ["huntingseason"] = { name = "Hunting Season", cost = 7, rarity = 2 },
+    ["astral_bottle"] = { name = "Astral in a Bottle", cost = 6, rarity = 2 },
+    ["pickle"] = { name = "Pickle", cost = 6, rarity = 2 },
+    ["pity_prize"] = { name = "Pity Prize", cost = 2, rarity = 1 },
+    ["yarnball"] = { name = "Yarn Ball", cost = 8, rarity = 3 },
 }
 
 local CONSUMABLE_EXPECT = {
@@ -186,6 +213,11 @@ local CONSUMABLE_EXPECT = {
     ["summoning"] = { name = "Summoning", set = "Spectral", cost = 4 },
     ["theblessing"] = { name = "The Blessing", set = "Tarot", cost = 3 },
     ["gateway"] = { name = "Gateway", set = "Spectral", cost = 4 },
+    ["source"] = { name = "Source", set = "Spectral", cost = 4 },
+    ["typhoon"] = { name = "Typhoon", set = "Spectral", cost = 4 },
+    ["ritual"] = { name = "Ritual", set = "Spectral", cost = 5 },
+    ["commit"] = { name = "://COMMIT", set = "Code", cost = 4 },
+    ["rework"] = { name = "://REWORK", set = "Code", cost = 4 },
 }
 
 local SPRITE_STEMS = {
@@ -524,6 +556,93 @@ local SPRITE_STEMS = {
     "wrapped_negative",
     "zooble",
     "zooble_negative",
+    "antennatoheaven",
+    "antennatoheaven_negative",
+    "arsonist",
+    "arsonist_negative",
+    "astral_bottle",
+    "astral_bottle_negative",
+    "big_cube",
+    "big_cube_negative",
+    "circulus_pistoris",
+    "circulus_pistoris_negative",
+    "circulus_pistoris_soul",
+    "commit",
+    "commit_negative",
+    "cry_astral",
+    "cry_astral_negative",
+    "cry_azure",
+    "cry_azure_negative",
+    "cry_cat",
+    "cry_cat_negative",
+    "cry_double_m",
+    "cry_double_m_negative",
+    "cry_green",
+    "cry_green_negative",
+    "cry_m",
+    "cry_m_negative",
+    "cry_mosaic",
+    "cry_mosaic_negative",
+    "cry_rework",
+    "cry_rework_negative",
+    "energia",
+    "energia_negative",
+    "energia_soul",
+    "facile",
+    "facile_negative",
+    "facile_soul",
+    "formidiulosus",
+    "formidiulosus_negative",
+    "formidiulosus_soul",
+    "googol_play",
+    "googol_play_negative",
+    "happyhouse",
+    "happyhouse_negative",
+    "huntingseason",
+    "huntingseason_negative",
+    "jtron",
+    "jtron_negative",
+    "mprime",
+    "mprime_negative",
+    "mprime_soul",
+    "night",
+    "night_negative",
+    "pickle",
+    "pickle_negative",
+    "pirate_dagger",
+    "pirate_dagger_negative",
+    "pity_prize",
+    "pity_prize_negative",
+    "primus",
+    "primus_negative",
+    "primus_soul",
+    "queens_gambit",
+    "queens_gambit_negative",
+    "rework",
+    "rework_negative",
+    "ritual",
+    "ritual_negative",
+    "smallestm",
+    "smallestm_negative",
+    "source",
+    "source_negative",
+    "spaceglobe",
+    "spaceglobe_negative",
+    "starfruit",
+    "starfruit_negative",
+    "stella_mortis",
+    "stella_mortis_negative",
+    "stella_mortis_soul",
+    "supercell",
+    "supercell_negative",
+    "sync_catalyst",
+    "sync_catalyst_negative",
+    "typhoon",
+    "typhoon_negative",
+    "universe",
+    "universe_negative",
+    "yarnball",
+    "yarnball_negative",
 }
 
 
@@ -538,7 +657,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/CryptidPack.json", [[{
         "id": "CryptidPack", "name": "Cryptid Pack", "prefix": "cryp",
-        "main_file": "cryptidpack.lua", "version": "1.1.0",
+        "main_file": "cryptidpack.lua", "version": "1.2.0",
         "author": ["Cryptid team", "3DS port"]
     }]])
     love.filesystem.write(base .. "/cryptidpack.lua", main)
@@ -618,12 +737,12 @@ end
 -- Registration: rarities, hands, consumable types, every item + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads: 140 Jokers, 22 consumables, rarities, hands, types", function()
+suite.test("pack loads: 167 Jokers, 27 consumables, rarities, hands, types", function()
     local game = install_pack()
     local mod = ModLoader.by_id.CryptidPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 140, "140 Jokers register")
-    T.assert_eq(#mod.registered.consumables, 22, "22 consumables register")
+    T.assert_eq(#mod.registered.jokers, 167, "167 Jokers register")
+    T.assert_eq(#mod.registered.consumables, 27, "27 consumables register")
 
     T.assert_eq(SMODS.Rarities["cryp_epic"].weight, 0.3, "epic weight")
     T.assert_eq(SMODS.Rarities["cryp_exotic"].weight, 0, "exotic weight 0 (never in shop)")
@@ -1101,8 +1220,10 @@ suite.test("the automaton (a Tarot) creates a random Code card", function()
     local game = install_pack_full()
     use_slot(game, hold_consumable(game, "automaton"))
     T.assert_eq(#game.consumables, 1, "one consumable afterwards")
-    T.assert_eq(game.consumables[1].id, "c_cryp_ctrl_v", "the only Code card in the pool")
-    T.assert_eq(game.consumables[1].kind, "Code", "and its kind is Code")
+    T.assert_eq(game.consumables[1].kind, "Code", "the created card is a Code card")
+    local code_ids = { c_cryp_ctrl_v = true, c_cryp_commit = true, c_cryp_rework = true }
+    T.assert_true(code_ids[game.consumables[1].id] == true,
+        "and it is one of the pack's Code cards: " .. tostring(game.consumables[1].id))
     wipe_mods()
 end)
 
@@ -1197,6 +1318,558 @@ suite.test("replica turns every hand card into a copy of one of them", function(
         T.assert_eq(n.card_data.rank, rank, "all ranks match the chosen card")
         T.assert_eq(n.card_data.suit, suit, "all suits match the chosen card")
     end
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3 (v1.2.0): registrations for seals, editions and tags
+--------------------------------------------------------------------------------
+
+suite.test("tier 3 registers the Green/Azure seals, Astral/Mosaic/M editions, Cat/Double M/Rework tags", function()
+    local game = install_pack()
+    T.assert_true(SMODS.SealByValue ~= nil and SMODS.SealByValue["cry_green"] ~= nil, "Green Seal registered")
+    T.assert_true(SMODS.SealByValue["cry_azure"] ~= nil, "Azure Seal registered")
+    T.assert_eq(SMODS.SealByValue["cry_green"].weight, 0, "Green Seal stays out of random polls")
+    T.assert_eq(SMODS.SealByValue["cry_azure"].weight, 0, "Azure Seal stays out of random polls")
+    T.assert_true(SMODS.EditionByValue["cry_astral"] ~= nil, "Astral edition registered")
+    T.assert_true(SMODS.EditionByValue["cry_mosaic"] ~= nil, "Mosaic edition registered")
+    T.assert_true(SMODS.EditionByValue["cry_m"] ~= nil, "M edition registered")
+    T.assert_eq(SMODS.EditionByValue["cry_m"].config.mult, 8, "M edition is +8 Mult")
+    T.assert_true(SMODS.Tags["cryp_cry_cat"] ~= nil, "Cat Tag registered")
+    T.assert_true(SMODS.Tags["cryp_cry_double_m"] ~= nil, "Double M Tag registered")
+    T.assert_true(SMODS.Tags["cryp_cry_rework"] ~= nil, "Rework Tag registered")
+    game:addTag("cry_cat")
+    T.assert_eq(game.tags[#game.tags].type, "cry_cat", "Cat Tag can be granted")
+    T.assert_eq(game.tags[#game.tags].ability.level, 1, "Cat Tag starts at level 1")
+    wipe_mods()
+end)
+
+suite.test("double M tag rewrites a shop draft into an M Joker with the M edition", function()
+    local game = install_pack()
+    game:addTag("cry_double_m")
+    local draft = { id = "j_joker" }
+    local fired = SMODS.tag_moment(game, "store_joker_create", { card = draft })
+    T.assert_eq(fired, 1, "the tag fires once")
+    T.assert_eq(draft.edition, "cry_m", "the draft gains the M edition")
+    local m_ids = {}
+    for _, id in ipairs({ "j_cryp_m", "j_cryp_M", "j_cryp_jollysus", "j_cryp_bubblem",
+        "j_cryp_foodm", "j_cryp_mstack", "j_cryp_mneon", "j_cryp_notebook", "j_cryp_bonk",
+        "j_cryp_loopy", "j_cryp_scrabble", "j_cryp_sacrifice", "j_cryp_reverse",
+        "j_cryp_doodlem", "j_cryp_virgo", "j_cryp_biggestm", "j_cryp_macabre",
+        "j_cryp_megg", "j_cryp_longboi", "j_cryp_smallestm", "j_cryp_mprime" }) do
+        m_ids[id] = true
+    end
+    T.assert_true(m_ids[draft.id] == true, "the draft is an M-pool Joker: " .. tostring(draft.id))
+    T.assert_eq(#game.tags, 0, "the tag is consumed")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3: big-number Jokers (e_mult / e_chips returns)
+--------------------------------------------------------------------------------
+
+suite.test("circulus pistoris pays ^pi Chips and ^pi Mult at exactly 3 hands remaining", function()
+    local game = install_pack()
+    local circ = add(game, "j_cryp_circulus_pistoris")
+    game.hands = 3
+    local ctx = scored(circ, { played_cards = { card(5) } })
+    T.assert_near(ctx.chips, 10 ^ math.pi, 5, "^pi Chips at 3 hands")
+    T.assert_near(ctx.mult, 2 ^ math.pi, 0.05, "^pi Mult at 3 hands")
+    game.hands = 2
+    local ctx2 = scored(circ, { played_cards = { card(5) } })
+    T.assert_eq(ctx2.chips, 10, "nothing at 2 hands")
+    T.assert_eq(ctx2.mult, 2, "nothing at 2 hands")
+    wipe_mods()
+end)
+
+suite.test("facile pays ^3 Mult when the hand scored 10 or fewer card triggers", function()
+    local game = install_pack()
+    local facile = add(game, "j_cryp_facile")
+    local a, b = card(5), card(9, "Spades")
+    local played = { a, b }
+    play_card(facile, a, played)
+    play_card(facile, b, played)
+    T.assert_eq(facile.ability.immutable.check2, 2, "two scored cards counted")
+    local ctx = scored(facile, { played_cards = played })
+    T.assert_near(ctx.mult, 8, 0.001, "^3 Mult under the cap")
+    T.assert_eq(facile.ability.immutable.check2, 0, "counter resets after the hand")
+    for _ = 1, 11 do play_card(facile, a, played) end
+    local ctx2 = scored(facile, { played_cards = played })
+    T.assert_eq(ctx2.mult, 2, "11 triggers is over the cap: no pay")
+    wipe_mods()
+end)
+
+suite.test("primus grows ^0.17 on prime-only hands and pays the stored ^Mult", function()
+    local game = install_pack()
+    local primus = add(game, "j_cryp_primus")
+    local primes = { card(2), card(3, "Spades"), card(5, "Clubs") }
+    fire(primus, "on_hand_played", { played_cards = primes, hand_type = "Three of a Kind" })
+    T.assert_near(primus.ability.extra.Emult, 1.18, 0.001, "prime hand grows to ^1.18")
+    local ctx = scored(primus, { played_cards = primes })
+    T.assert_near(ctx.mult, 2 ^ 1.18, 0.01, "stored ^Mult pays")
+    local mixed = { card(2), card(9, "Spades"), card(5, "Clubs") }
+    fire(primus, "on_hand_played", { played_cards = mixed, hand_type = "Three of a Kind" })
+    T.assert_near(primus.ability.extra.Emult, 1.18, 0.001, "a 9 breaks the prime hand: no growth")
+    wipe_mods()
+end)
+
+suite.test("stella mortis destroys a Planet at the end of the shop for ^0.4 Mult", function()
+    local game = install_pack_full()
+    local stella = add(game, "j_cryp_stella_mortis")
+    hold_consumable(game, "planetlua")
+    fire(stella, "on_shop_exit", {})
+    T.assert_eq(#game.consumables, 0, "the Planet card is destroyed")
+    T.assert_near(stella.ability.extra.Emult, 1.4, 0.001, "^1.4 stored")
+    local ctx = scored(stella, { played_cards = { card(5) } })
+    T.assert_near(ctx.mult, 2 ^ 1.4, 0.01, "stored ^Mult pays")
+    wipe_mods()
+end)
+
+suite.test("happy house pays ^4 Mult only after 114 hands", function()
+    local game = install_pack()
+    local happy = add(game, "j_cryp_happyhouse")
+    local hand = { card(5) }
+    for _ = 1, 114 do fire(happy, "on_hand_played", { played_cards = hand, hand_type = "High Card" }) end
+    T.assert_eq(happy.ability.immutable.check, 114, "114 hands counted")
+    T.assert_eq(scored(happy, { played_cards = hand }).mult, 2, "114 is not past the trigger yet")
+    fire(happy, "on_hand_played", { played_cards = hand, hand_type = "High Card" })
+    T.assert_near(scored(happy, { played_cards = hand }).mult, 16, 0.001, "^4 Mult after the trigger")
+    wipe_mods()
+end)
+
+suite.test("night pays ^3 Mult on the final hand, then self-destructs", function()
+    local game = install_pack()
+    local night = add(game, "j_cryp_night")
+    local hand = { card(5) }
+    game.hands = 2
+    T.assert_eq(scored(night, { played_cards = hand }).mult, 2, "not the final hand: nothing")
+    fire(night, "on_hand_after", { played_cards = hand })
+    T.assert_eq(#game.jokers, 1, "survives a non-final hand")
+    game.hands = 0
+    T.assert_near(scored(night, { played_cards = hand }).mult, 8, 0.001, "^3 Mult on the final hand")
+    fire(night, "on_hand_after", { played_cards = hand })
+    T.assert_eq(#game.jokers, 0, "destroyed after the final hand")
+    wipe_mods()
+end)
+
+suite.test("jimbo-tron 9000 gains ^1 Mult per default Joker held", function()
+    local game = install_pack()
+    local jtron = add(game, "j_cryp_jtron")
+    local hand = { card(5) }
+    T.assert_eq(scored(jtron, { played_cards = hand }).mult, 2, "no default Jokers: ^1 is a no-op")
+    add(game, "j_joker"); add(game, "j_joker")
+    T.assert_near(scored(jtron, { played_cards = hand }).mult, 8, 0.001, "two default Jokers: ^3 Mult")
+    wipe_mods()
+end)
+
+suite.test("starfruit loses ^0.2 Mult per reroll and is eaten at ^1", function()
+    local game = install_pack()
+    local star = add(game, "j_cryp_starfruit")
+    local hand = { card(5) }
+    for _ = 1, 4 do fire(star, "on_shop_reroll", { reroll_cost = 5 }) end
+    T.assert_near(star.ability.extra.emult, 1.2, 0.001, "^1.2 after four rerolls")
+    T.assert_eq(#game.jokers, 1, "still held")
+    fire(star, "on_shop_reroll", { reroll_cost = 5 })
+    T.assert_eq(#game.jokers, 0, "eaten when the decay reaches ^1")
+    wipe_mods()
+end)
+
+suite.test("googol play card stores an exact X10^100 at 1 in 8", function()
+    local game = install_pack()
+    local googol = add(game, "j_cryp_googol_play")
+    T.assert_eq(googol.ability.extra.Xmult, 1e100, "the googol is stored exact")
+    T.assert_eq(googol.ability.extra.odds, 8, "1 in 8")
+    wipe_mods()
+end)
+
+suite.test("formidiulosus pays per Candy, spawns Negative Candies, and destroys bought Cursed Jokers", function()
+    local game = install_pack()
+    local formid = add(game, "j_cryp_formidiulosus")
+    add(game, "j_cryp_cotton_candy")
+    local ctx = scored(formid, { played_cards = { card(5) } })
+    T.assert_near(ctx.mult, 2 ^ 1.01, 0.01, "one Candy held: ^1.01 Mult")
+    local before = #game.jokers
+    fire(formid, "on_shop_exit", {})
+    T.assert_eq(#game.jokers, before + 3, "three Candies created at the end of the shop")
+    for i = before + 1, #game.jokers do
+        T.assert_eq(game.jokers[i].def.rarity, SMODS.Rarities["cryp_candy"].index, "created Joker is Candy")
+        T.assert_eq(game.jokers[i].edition, "negative", "created Joker is Negative")
+    end
+    wipe_mods()
+    game = install_pack()
+    local formid2 = add(game, "j_cryp_formidiulosus")
+    add(game, "j_cryp_monopoly_money")
+    T.assert_eq(#game.jokers, 2, "the Cursed Joker is held")
+    fire(formid2, "on_shop_buy", { offer_kind = "joker", offer_id = "j_cryp_monopoly_money" })
+    T.assert_eq(#game.jokers, 1, "the bought Cursed Joker is destroyed")
+    T.assert_eq(game.jokers[1].def.id, "j_cryp_formidiulosus", "Formidiulosus itself remains")
+    wipe_mods()
+end)
+
+suite.test("tredecim reacts to Jolly and M Jokers, scales on Jolly sales, creates M at round end", function()
+    local game = install_pack()
+    local tre = add(game, "j_cryp_mprime")
+    local sus = add(game, "j_cryp_jollysus")
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 10, mult = 2 }
+    SMODS.post_trigger(sus, ctx)
+    T.assert_near(ctx.mult, 2 ^ 1.05, 0.01, "a Jolly Joker's trigger gives ^1.05")
+    local plain = add(game, "j_joker")
+    local ctx2 = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 10, mult = 2 }
+    SMODS.post_trigger(plain, ctx2)
+    T.assert_eq(ctx2.mult, 2, "a plain Joker's trigger gives nothing")
+    fire(tre, "on_joker_sold", { joker = sus })
+    T.assert_near(tre.ability.extra.mult, 1.09, 0.001, "selling a Jolly raises the amount")
+    local before = #game.jokers
+    fire(tre, "on_round_end", {})
+    T.assert_eq(#game.jokers, before + 1, "an M Joker is created at end of round")
+    wipe_mods()
+end)
+
+suite.test("universe pays ^1.2 Mult per other Astral card", function()
+    local game = install_pack()
+    local uni = add(game, "j_cryp_universe")
+    local carrier = add(game, "j_cryp_dubious")
+    carrier.edition = "cry_astral"
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored", chips = 10, mult = 2 }
+    SMODS.post_trigger(carrier, ctx)
+    T.assert_near(ctx.mult, 2 ^ 1.2, 0.01, "an Astral Joker's trigger gives ^1.2")
+    local astral = card(7)
+    astral.card_data.edition = "cry_astral"
+    local ctx2 = fire(uni, "card_played", { card_node = astral, played_cards = { astral } })
+    T.assert_near(ctx2.mult, 2 ^ 1.2, 0.01, "a scored Astral card gives ^1.2")
+    local plaincard = card(9)
+    local ctx3 = fire(uni, "card_played", { card_node = plaincard, played_cards = { plaincard } })
+    T.assert_eq(ctx3.mult, 2, "a plain scored card gives nothing")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3: x_chips class, balance, destruction, tags
+--------------------------------------------------------------------------------
+
+suite.test("antennas gains X0.1 Chips per scored 7 or 4; big cube pays X6 Chips", function()
+    local game = install_pack()
+    local ant = add(game, "j_cryp_antennatoheaven")
+    local seven, four, nine = card(7), card(4, "Spades"), card(9, "Clubs")
+    local played = { seven, four, nine }
+    play_card(ant, seven, played)
+    play_card(ant, four, played)
+    play_card(ant, nine, played)
+    T.assert_near(ant.ability.extra.x_chips, 1.2, 0.001, "7 and 4 grow it, the 9 does not")
+    T.assert_near(scored(ant, { played_cards = played }).chips, 12, 0.01, "X1.2 Chips pays")
+    local cube = add(game, "j_cryp_big_cube")
+    T.assert_eq(scored(cube, { played_cards = played }).chips, 60, "X6 Chips")
+    T.assert_false(game:joker_allowed_in_random_pool("j_cryp_big_cube"),
+        "Big Cube stays out of the pool without Cube")
+    wipe_mods()
+    game = install_pack()
+    add(game, "j_cryp_cube")
+    T.assert_true(game:joker_allowed_in_random_pool("j_cryp_big_cube"),
+        "Big Cube joins the pool while Cube is held")
+    wipe_mods()
+end)
+
+suite.test("celestial globe grows on its target hand, then the target changes", function()
+    local game = install_pack()
+    local globe = add(game, "j_cryp_spaceglobe")
+    local target = globe.ability.extra.type
+    T.assert_true(target ~= nil and target ~= "", "a target hand was rolled on creation")
+    local hand = { card(5) }
+    fire(globe, "on_hand_played", { played_cards = hand, hand_type = target })
+    T.assert_near(globe.ability.extra.x_chips, 1.2, 0.001, "hitting the target grows XChips")
+    T.assert_true(globe.ability.extra.type ~= target, "the target changes after a hit")
+    T.assert_near(scored(globe, { played_cards = hand }).chips, 12, 0.01, "X1.2 Chips pays")
+    wipe_mods()
+end)
+
+suite.test("pirate dagger destroys the Joker to its right for XChips", function()
+    local game = install_pack()
+    local dagger = add(game, "j_cryp_pirate_dagger")
+    local victim = add(game, "j_joker")
+    victim.sell_cost = 8
+    fire(dagger, "on_blind_selected", {})
+    T.assert_eq(#game.jokers, 1, "the Joker to the right is destroyed")
+    T.assert_near(dagger.ability.extra.x_chips, 3, 0.001, "a quarter of $8 sell value banked")
+    T.assert_eq(scored(dagger, { played_cards = { card(5) } }).chips, 30, "X3 Chips pays")
+    wipe_mods()
+end)
+
+suite.test("supercell pays all four stats and $3 at round end; sync catalyst balances", function()
+    local game = install_pack()
+    local cell = add(game, "j_cryp_supercell")
+    local ctx = scored(cell, { played_cards = { card(5) } })
+    T.assert_eq(ctx.chips, 50, "+15 Chips then X2 Chips")
+    T.assert_eq(ctx.mult, 34, "+15 Mult then X2 Mult")
+    local def = JOKER_DEFS["j_cryp_supercell"]
+    T.assert_eq(def.smods.calc_dollar_bonus(def.smods, cell), 3, "$3 at end of round")
+    local sync = add(game, "j_cryp_sync_catalyst")
+    local ctx2 = scored(sync, { played_cards = { card(5) } })
+    T.assert_eq(ctx2.chips, ctx2.mult, "Chips and Mult are balanced")
+    T.assert_eq(ctx2.chips, 10, "the fork's balance lifts both totals to the larger (10)")
+    wipe_mods()
+end)
+
+suite.test("arsonist burns the whole played hand after a Full House", function()
+    local game = install_pack_full()
+    local ars = add(game, "j_cryp_arsonist")
+    local fh = { card(4), card(4, "Spades"), card(4, "Clubs"), card(9), card(9, "Clubs") }
+    setup_hand(game, fh, {})
+    fire(ars, "on_hand_after", { played_cards = fh,
+        contains_hand_types = { ["Full House"] = true }, hand_type = "Full House" })
+    T.assert_eq(#game.hand.cards, 0, "all played cards are destroyed")
+    local pair = { card(4), card(4, "Spades") }
+    setup_hand(game, pair, {})
+    fire(ars, "on_hand_after", { played_cards = pair,
+        contains_hand_types = { Pair = true }, hand_type = "Pair" })
+    T.assert_eq(#game.hand.cards, 2, "no Full House: nothing burns")
+    wipe_mods()
+end)
+
+suite.test("queen's gambit destroys the Queen on a Royal Flush and creates a Negative Rare", function()
+    local game = install_pack_full()
+    local gambit = add(game, "j_cryp_queens_gambit")
+    local royal = { card(10, "Spades"), card(11, "Spades"), card(12, "Spades"),
+        card(13, "Spades"), card(14, "Spades") }
+    setup_hand(game, royal, {})
+    local before = #game.jokers
+    fire(gambit, "on_hand_after", { played_cards = royal, hand_type = "Straight Flush" })
+    T.assert_eq(#game.hand.cards, 4, "the Queen is destroyed")
+    local queen_gone = true
+    for _, d in ipairs(game.hand.cards) do if d.rank == 12 then queen_gone = false end end
+    T.assert_true(queen_gone, "no Queen remains in hand")
+    T.assert_eq(#game.jokers, before + 1, "a Joker is created")
+    local made = game.jokers[#game.jokers]
+    T.assert_eq(made.def.rarity, 3, "the created Joker is Rare")
+    T.assert_eq(made.edition, "negative", "the created Joker is Negative")
+    wipe_mods()
+end)
+
+suite.test("hunting season destroys the center card of a 3-card hand", function()
+    local game = install_pack_full()
+    local hunt = add(game, "j_cryp_huntingseason")
+    local three = { card(3), card(7, "Spades"), card(11, "Clubs") }
+    setup_hand(game, three, {})
+    fire(hunt, "on_hand_after", { played_cards = three, hand_type = "Three of a Kind" })
+    T.assert_eq(#game.hand.cards, 2, "one card is destroyed")
+    local ranks = {}
+    for _, d in ipairs(game.hand.cards) do ranks[d.rank] = true end
+    T.assert_true(ranks[3] and ranks[11] and not ranks[7], "the center card (7) is the one destroyed")
+    wipe_mods()
+end)
+
+suite.test("tiny creates a Double M Tag on a Pair", function()
+    local game = install_pack()
+    local tiny = add(game, "j_cryp_smallestm")
+    local pair = { card(4), card(4, "Spades") }
+    fire(tiny, "on_hand_played", { played_cards = pair, hand_type = "Pair" })
+    T.assert_eq(#game.tags, 1, "one tag gained")
+    T.assert_eq(game.tags[1].type, "cry_double_m", "it is a Double M Tag")
+    fire(tiny, "on_hand_played", { played_cards = { card(5) }, hand_type = "High Card" })
+    T.assert_eq(#game.tags, 1, "no tag on a non-Pair")
+    wipe_mods()
+end)
+
+suite.test("energia duplicates acquired tags and grows its copy count", function()
+    local game = install_pack()
+    local energia = add(game, "j_cryp_energia")
+    game:addTag("uncommon")
+    T.assert_eq(#game.tags, 2, "the acquired tag is duplicated once")
+    T.assert_eq(game.tags[1].type, "uncommon", "the copy is the same tag")
+    T.assert_eq(game.tags[2].type, "uncommon", "the original is the same tag")
+    T.assert_eq(energia.ability.extra.tags, 2, "the copy count grows by 1")
+    wipe_mods()
+end)
+
+suite.test("pickle creates 3 tags per skip and is eaten after 3 blinds", function()
+    local game = install_pack()
+    local pickle = add(game, "j_cryp_pickle")
+    fire(pickle, "on_blind_skipped", {})
+    -- Three tags are granted; immediate tags (Handy, Garbage) pay out on
+    -- grant instead of staying held, so the held count can be lower.
+    T.assert_true(#game.tags >= 2, "tags created on a skip, got " .. #game.tags)
+    for _, t in ipairs(game.tags) do
+        T.assert_true(t.type ~= "boss", "never a Boss Tag")
+    end
+    local function pickle_held()
+        for _, j in ipairs(game.jokers) do if j == pickle then return true end end
+        return false
+    end
+    fire(pickle, "on_blind_selected", {})
+    fire(pickle, "on_blind_selected", {})
+    T.assert_true(pickle_held(), "still held at 1 tag left")
+    fire(pickle, "on_blind_selected", {})
+    T.assert_false(pickle_held(), "eaten when the count reaches 0")
+    wipe_mods()
+end)
+
+suite.test("pity prize grants a random tag when a booster is skipped", function()
+    local game = install_pack()
+    local prize = add(game, "j_cryp_pity_prize")
+    fire(prize, "on_booster_skip", {})
+    T.assert_eq(#game.tags, 1, "one tag gained")
+    T.assert_true(game.tags[1].type ~= "boss", "never a Boss Tag")
+    wipe_mods()
+end)
+
+suite.test("yarn ball adds the highest Cat Tag level to probabilities and needs a Cat Tag for the pool", function()
+    local game = install_pack()
+    T.assert_false(game:joker_allowed_in_random_pool("j_cryp_yarnball"),
+        "out of the pool without a Cat Tag")
+    game:addTag("cry_cat")
+    T.assert_true(game:joker_allowed_in_random_pool("j_cryp_yarnball"),
+        "in the pool while a Cat Tag is held")
+    local yarn = add(game, "j_cryp_yarnball")
+    local num, den = SMODS.get_probability_vars(nil, 1, 4)
+    T.assert_eq(num, 2, "Cat level 1 adds 1 to the numerator")
+    T.assert_eq(den, 4, "the denominator is unchanged")
+    wipe_mods()
+end)
+
+suite.test("astral in a bottle applies Astral and Perishable to a random Joker when sold", function()
+    local game = install_pack()
+    local bottle = add(game, "j_cryp_astral_bottle")
+    local other = add(game, "j_joker")
+    fire(bottle, "on_joker_sold", { joker = bottle })
+    T.assert_eq(other.edition, "cry_astral", "the other Joker becomes Astral")
+    T.assert_true(other.perishable == true, "and Perishable")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3: deviation restorations
+--------------------------------------------------------------------------------
+
+suite.test("exposed debuffs face cards and mask debuffs non-face cards while held", function()
+    local game = install_pack_full()
+    local queen = card(12)
+    local five = card(5, "Spades")
+    local stonejack = card(11, "Clubs", "stone")
+    setup_hand(game, { queen, five, stonejack }, {})
+    local exposed = add(game, "j_cryp_exposed")
+    fire(exposed, "on_blind_selected", {})
+    T.assert_true(queen.card_data.perma_debuff == true, "Exposed: the Queen is debuffed")
+    T.assert_true(five.card_data.perma_debuff ~= true, "Exposed: the 5 is not")
+    T.assert_true(stonejack.card_data.perma_debuff ~= true, "Exposed: a Stone Jack is not a face card")
+    wipe_mods()
+    game = install_pack_full()
+    local queen2 = card(12)
+    local five2 = card(5, "Spades")
+    local stonejack2 = card(11, "Clubs", "stone")
+    setup_hand(game, { queen2, five2, stonejack2 }, {})
+    local mask = add(game, "j_cryp_mask")
+    fire(mask, "on_blind_selected", {})
+    T.assert_true(queen2.card_data.perma_debuff ~= true, "Mask: the Queen is not debuffed")
+    T.assert_true(five2.card_data.perma_debuff == true, "Mask: the 5 is debuffed")
+    T.assert_true(stonejack2.card_data.perma_debuff == true, "Mask: a Stone Jack counts as non-face")
+    wipe_mods()
+end)
+
+suite.test("seal the deal seals played cards from the full pool including Green and Azure", function()
+    local game = install_pack_full()
+    local std = add(game, "j_cryp_seal_the_deal")
+    local nodes = {}
+    for i = 1, 12 do nodes[i] = card(2 + i) end
+    setup_hand(game, nodes, {})
+    game.hands = 0
+    fire(std, "on_hand_after", { played_cards = nodes })
+    local pool = { gold = true, red = true, blue = true, purple = true,
+        cry_azure = true, cry_green = true }
+    local saw_custom = false
+    for _, n in ipairs(nodes) do
+        T.assert_true(pool[n.card_data.seal] == true,
+            "sealed from the pool: " .. tostring(n.card_data.seal))
+        if n.card_data.seal == "cry_azure" or n.card_data.seal == "cry_green" then
+            saw_custom = true
+        end
+    end
+    T.assert_true(saw_custom, "12 seals draw at least one of Green/Azure")
+    wipe_mods()
+end)
+
+suite.test("kitty printer turns the next skipped-blind tag into a Cat Tag", function()
+    local game = install_pack()
+    local kitty = add(game, "j_cryp_kittyprinter")
+    game:addTag("uncommon")
+    T.assert_eq(game.tags[#game.tags].type, "uncommon", "the rolled tag is held first")
+    fire(kitty, "on_blind_skipped", {})
+    T.assert_eq(game.tags[#game.tags].type, "cry_cat", "the skip converts it to a Cat Tag")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Tier 3: new consumables
+--------------------------------------------------------------------------------
+
+local function use_slot_target(game, slot, target)
+    game.STATE = game.STATES.SELECTING_HAND
+    T.assert_true(game:use_consumable(slot, target), "targeted consumable used")
+end
+
+suite.test("source applies the Green Seal and typhoon the Azure Seal", function()
+    local game = install_pack_full()
+    local seven = card(7)
+    setup_hand(game, { seven }, { seven })
+    use_slot(game, hold_consumable(game, "source"))
+    T.assert_eq(seven.card_data.seal, "cry_green", "Green Seal applied")
+    local nine = card(9, "Spades")
+    setup_hand(game, { nine }, { nine })
+    use_slot(game, hold_consumable(game, "typhoon"))
+    T.assert_eq(nine.card_data.seal, "cry_azure", "Azure Seal applied")
+    wipe_mods()
+end)
+
+suite.test("ritual adds one of Astral, Mosaic or Negative to a selected card", function()
+    local game = install_pack_full()
+    local seven = card(7)
+    setup_hand(game, { seven }, { seven })
+    use_slot(game, hold_consumable(game, "ritual"))
+    local data = seven.card_data
+    local ed = data.edition or (data.modifier and data.modifier.edition)
+    local allowed = { cry_astral = true, cry_mosaic = true, negative = true }
+    T.assert_true(allowed[ed] == true, "a Ritual edition was applied: " .. tostring(ed))
+    wipe_mods()
+end)
+
+suite.test("conduit swaps a hand card's edition with a Joker's", function()
+    local game = install_pack_full()
+    local joker = add(game, "j_joker")
+    local seven = card(7)
+    seven.card_data.edition = "foil"
+    setup_hand(game, { seven }, { seven })
+    use_slot_target(game, hold_consumable(game, "conduit"), joker)
+    T.assert_eq(joker.edition, "foil", "the Joker gains the card's edition")
+    local ed = seven.card_data.edition
+        or (seven.card_data.modifier and seven.card_data.modifier.edition)
+    T.assert_true(ed == nil or ed == "base", "the card gives its edition up")
+    wipe_mods()
+end)
+
+suite.test("commit destroys a Joker and creates a random Joker of the same rarity", function()
+    local game = install_pack_full()
+    local target = add(game, "j_cryp_python")
+    use_slot_target(game, hold_consumable(game, "commit"), target)
+    T.assert_eq(#game.jokers, 1, "one Joker remains")
+    T.assert_true(game.jokers[1] ~= target, "the target was destroyed")
+    T.assert_eq(game.jokers[1].def.rarity, 2, "the replacement shares the rarity (Uncommon)")
+    wipe_mods()
+end)
+
+suite.test("rework destroys a Joker and the next shop Joker is that Joker, one edition up", function()
+    local game = install_pack_full()
+    local target = add(game, "j_greedy_joker")
+    use_slot_target(game, hold_consumable(game, "rework"), target)
+    T.assert_eq(#game.jokers, 0, "the target was destroyed")
+    T.assert_eq(#game.tags, 1, "a Rework Tag is held")
+    local tag = game.tags[1]
+    T.assert_eq(tag.type, "cry_rework", "it is the Rework Tag")
+    T.assert_eq(tag.ability.rework_key, "j_greedy_joker", "it remembers the Joker")
+    T.assert_eq(tag.ability.rework_edition, "foil", "Base climbs to Foil")
+    local draft = { id = "j_joker" }
+    local fired = SMODS.tag_moment(game, "store_joker_create", { card = draft })
+    T.assert_eq(fired, 1, "the tag fires on the next shop Joker")
+    T.assert_eq(draft.id, "j_greedy_joker", "the draft becomes the reworked Joker")
+    T.assert_eq(draft.edition, "foil", "with the climbed edition")
+    T.assert_eq(#game.tags, 0, "the tag is consumed")
     wipe_mods()
 end)
 

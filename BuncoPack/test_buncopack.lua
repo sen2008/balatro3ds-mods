@@ -34,6 +34,8 @@ local NAMES = {
     "dynasty", "magic_wand", "starfruit", "fondue", "roygbiv", "rigoletto",
     "rigoletto_soul",
     "quaoar", "haumea", "sedna", "makemake", "sky", "abyss",
+    -- v1.2.0
+    "neon", "bounty_hunter",
 }
 
 local NEW_JOKERS = {
@@ -43,6 +45,8 @@ local NEW_JOKERS = {
     "xray", "dread", "the_joker", "puzzle_board",
     "zealous", "lurid", "envious", "proud", "wishalloy", "unobtanium",
     "dynasty", "magic_wand", "starfruit", "fondue", "roygbiv", "rigoletto",
+    -- v1.2.0
+    "neon", "bounty_hunter",
 }
 
 local function install_pack()
@@ -131,11 +135,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 19 Bunco Jokers", function()
+suite.test("pack loads and registers all 53 Bunco Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.BuncoPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 51)
+    T.assert_eq(#mod.registered.jokers, 53)
     local expect = {
         j_buncp_cassette = { "Cassette", 2, 5 }, j_buncp_mosaic = { "Mosaic Joker", 2, 4 },
         j_buncp_voxel = { "Voxel Joker", 2, 5 }, j_buncp_crop_circles = { "Crop Circles", 1, 4 },
@@ -193,6 +197,7 @@ suite.test("pack loads and registers all 19 Bunco Jokers", function()
         j_buncp_dynasty = { "The Dynasty", 3, 8 }, j_buncp_magic_wand = { "Magic Wand", 1, 5 },
         j_buncp_starfruit = { "Starfruit", 2, 5 }, j_buncp_fondue = { "Fondue", 3, 8 },
         j_buncp_roygbiv = { "Roy G. Biv", 2, 8 }, j_buncp_rigoletto = { "Rigoletto", 4, 20 },
+        j_buncp_neon = { "Neon Joker", 2, 5 }, j_buncp_bounty_hunter = { "Bounty Hunter", 1, 5 },
     }
     for id, e in pairs(expect_new) do
         local def = JOKER_DEFS[id]
@@ -810,6 +815,104 @@ suite.test("zero shapiro tags on a face card; juggalo and puzzle board edit edit
     fire(pb, "on_consumable_used", { consumable_id = "tarot_fool", consumable_kind = "tarot" })
     T.assert_true(target.card_data.modifier ~= nil and target.card_data.modifier.edition ~= nil,
         "highlighted card gained an edition")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.2.0: Fluorescent edition + Neon, Bounty Hunter
+--------------------------------------------------------------------------------
+
+suite.test("fluorescent edition registers with no stats and no immunities claimed", function()
+    local game = install_pack()
+    local entry = SMODS.EditionByValue and SMODS.EditionByValue.fluorescent
+    T.assert_true(entry ~= nil, "the Fluorescent edition registers by value")
+    T.assert_eq(entry.id or entry.key, "buncp_fluorescent", "under the pack's prefix")
+    T.assert_eq(entry.weight, 3.5, "PC weight 18 of Foil's 20, rescaled to the fork's poll")
+    -- Empty config: an editioned playing card scores exactly as a plain one.
+    local cb, mb, xb = SMODS.playing_card_edition_bonus("fluorescent")
+    T.assert_eq(cb, 0, "no chip bonus")
+    T.assert_eq(mb, 0, "no mult bonus")
+    T.assert_eq(xb, 1, "no xmult")
+    T.assert_eq(entry.name, "Fluorescent")
+    T.assert_true(type(entry.loc_txt) == "table"
+        and type(entry.loc_txt.text) == "table" and #entry.loc_txt.text >= 1,
+        "the edition carries its (honest) tooltip text")
+    wipe_mods()
+end)
+
+suite.test("neon grants fluorescent when a card's enhancement changes", function()
+    local game = install_pack()
+    local neon = add(game, "j_buncp_neon")
+
+    -- An enhancement change on an editionless card: Fluorescent lands.
+    local plain = card(7, "Clubs")
+    fire(neon, "on_setting_ability", {
+        card_node = plain, ability_kind = "enhancement",
+        old = "base", new = "bonus", unchanged = false,
+    })
+    T.assert_true(plain.card_data.modifier ~= nil
+        and plain.card_data.modifier.edition == "fluorescent",
+        "the enhanced card gained Fluorescent")
+
+    -- A card that already has an edition keeps it.
+    local foiled = card(8, "Clubs")
+    foiled.card_data.modifier = { edition = "foil" }
+    fire(neon, "on_setting_ability", {
+        card_node = foiled, ability_kind = "enhancement",
+        old = "base", new = "bonus", unchanged = false,
+    })
+    T.assert_eq(foiled.card_data.modifier.edition, "foil",
+        "an editioned card is not overwritten")
+
+    -- A seal change is not an enhancement.
+    local sealed = card(9, "Clubs")
+    fire(neon, "on_setting_ability", {
+        card_node = sealed, ability_kind = "seal",
+        old = "base", new = "gold", unchanged = false,
+    })
+    T.assert_true(sealed.card_data.modifier == nil
+        or sealed.card_data.modifier.edition == nil,
+        "a seal change grants nothing")
+
+    -- A re-set to the same enhancement (unchanged) does not fire either.
+    local same = card(10, "Clubs")
+    fire(neon, "on_setting_ability", {
+        card_node = same, ability_kind = "enhancement",
+        old = "bonus", new = "bonus", unchanged = true,
+    })
+    T.assert_true(same.card_data.modifier == nil
+        or same.card_data.modifier.edition == nil,
+        "an unchanged re-set grants nothing")
+    wipe_mods()
+end)
+
+suite.test("bounty hunter taxes positive gains and grows mult", function()
+    local game = install_pack()
+    local bh = add(game, "j_buncp_bounty_hunter")
+    T.assert_eq(bh.ability.extra.mult, 0, "starts at +0 Mult")
+
+    -- A positive gain: $1 tax lands and the Mult grows by the bonus.
+    local before_money = game.money
+    fire(bh, "on_money_altered", { amount = 10 })
+    T.assert_eq(game.money - before_money, -1, "the gain is taxed $1")
+    T.assert_eq(bh.ability.extra.mult, 1, "and the Joker gains +1 Mult")
+
+    -- Another gain: taxed and grown again.
+    before_money = game.money
+    fire(bh, "on_money_altered", { amount = 3 })
+    T.assert_eq(game.money - before_money, -1, "every positive gain is taxed")
+    T.assert_eq(bh.ability.extra.mult, 2, "Mult keeps growing")
+
+    -- Losses and zero are not taxed and do not grow it.
+    before_money = game.money
+    fire(bh, "on_money_altered", { amount = -5 })
+    fire(bh, "on_money_altered", { amount = 0 })
+    T.assert_eq(game.money - before_money, 0, "no tax on losses")
+    T.assert_eq(bh.ability.extra.mult, 2, "no growth on losses")
+
+    -- The grown Mult scores at joker_main.
+    local ctx = scored(bh)
+    T.assert_eq(ctx.mult, 4, "base 2 + the grown +2 Mult")
     wipe_mods()
 end)
 

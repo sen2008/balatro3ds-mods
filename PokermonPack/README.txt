@@ -1,4 +1,4 @@
-Pokermon Pack (3DS Port) v1.2.0
+Pokermon Pack (3DS Port) v1.3.0
 Fifty Gen 1 Pokemon Jokers from Pokermon (PC, by InertSteak) ported
 to Balatro3DS, with evolution and the evolution stones.
 
@@ -57,20 +57,24 @@ met; every stage is also a standalone shop Joker):
 - Goldeen -> Seaking (5 rounds).
 - Magikarp -> Gyarados (8 rounds).
 
-Item evolutions (v1.2.0, fork build only). The stones are Item
-consumables, registered under the pack's own "poke_item" type at
-PC's shop_rate 4 and PC's $4 cost, so they roll in the shop as
-their own kind:
+Item evolutions (v1.2.0, fork build only; real targeting since
+v1.3.0). The stones are Item consumables, registered under the
+pack's own "poke_item" type at PC's shop_rate 4 and PC's $4 cost,
+so they roll in the shop as their own kind, and since v1.3.0 the
+pack also registers an Item Pack booster (choose 1 of 3 Items,
+$4) that deals stones, as Item packs do on PC:
 - Pikachu -> Raichu: use a Thunder Stone.
 - Clefairy -> Clefable: use a Moon Stone.
 - Jigglypuff -> Wigglytuff: use a Moon Stone.
 - Growlithe -> Arcanine: use a Fire Stone.
 - Shellder -> Cloyster: use a Water Stone.
-Using a stone evolves the leftmost held Joker it applies to, on
-the spot (see port notes). The Leaf Stone is not included: its
-Gen 1 targets (Gloom, Weepinbell, Exeggcute) are not in the pack.
-Magneton does not take the Thunder Stone here: its PC evolution
-is Magnezone, which is not in the pack.
+Using a stone evolves the Joker you CHOOSE, on the spot: open the
+Joker's tooltip (or focus it with the gamepad), then use the
+stone. The stone refuses any other Joker, and a debuffed Joker
+cannot be evolved (see port notes). The Leaf Stone is not
+included: its Gen 1 targets (Gloom, Weepinbell, Exeggcute) are
+not in the pack. Magneton does not take the Thunder Stone here:
+its PC evolution is Magnezone, which is not in the pack.
 
 INCLUDED JOKERS
 Starters and their lines:
@@ -148,20 +152,20 @@ Others:
   random seal if it has neither yet.
 
 EVOLUTION STONES (Item consumables, $4, fork build only)
-- Fire Stone: evolves a held Growlithe into Arcanine.
-- Water Stone: evolves a held Shellder into Cloyster.
-- Thunder Stone: evolves a held Pikachu into Raichu.
-- Moon Stone: evolves a held Clefairy into Clefable, or a held
-  Jigglypuff into Wigglytuff.
-A stone can be used only while a Joker it evolves is held (and not
-debuffed); using it evolves the leftmost such Joker immediately,
-with the same edition/scaling carry-over as the other chains.
+- Fire Stone: evolves the chosen Growlithe into Arcanine.
+- Water Stone: evolves the chosen Shellder into Cloyster.
+- Thunder Stone: evolves the chosen Pikachu into Raichu.
+- Moon Stone: evolves the chosen Clefairy into Clefable, or the
+  chosen Jigglypuff into Wigglytuff.
+A stone can be used only on a chosen Joker it evolves (held and
+not debuffed); using it evolves that Joker immediately, with the
+same edition/scaling carry-over as the other chains.
 
 Validated headlessly against the Balatro3DS fork source (loader +
 per-Joker tests incl. five evolution chains end to end, edition
-preservation, and stone registration, targeting and evolution
-checks, 31/31; the fork's own mod suite stays 54/54) on
-2026-10-22. Not yet tested on real hardware.
+preservation, and stone registration, chosen-target evolution and
+Item Pack checks, 32/32; the fork's own mod suite stays 54/54) on
+2026-10-23. Not yet tested on real hardware.
 
 Port notes:
 - Energy is stripped everywhere; each Pokemon keeps its base effect
@@ -171,13 +175,15 @@ Port notes:
   and carries a secondary playing-card effect (Fire: Mult cards,
   Water: Bonus cards, Thunder: Gold copies, Moon: upgrade a poker
   hand), and the evolution itself lands at the end of the round.
-  The 3DS port has no Joker highlighting for consumables and does
-  not port the secondary effects, so a stone here is an
-  evolution-only card: usable exactly when a Joker it evolves is
-  held, evolving the leftmost one on the spot. The fork also gives
-  a custom consumable type no booster pack or collection tab, so
-  the stones arrive through the shop roll only (on PC they also
-  appear in Item packs).
+  The 3DS port does not port the secondary effects, so a stone
+  here is an evolution-only card; since v1.3.0 it targets the
+  chosen Joker through the fork's Tier 3 targeting (the same
+  choice PC's highlighted Joker makes) and evolves it on the
+  spot. The Item Pack booster is registered without pack-wrapper
+  art (none exists in this pack; its card art was sliced from the
+  NatDex atlas), so the shop shows the engine's plain booster
+  fallback panel for it. The poke_item kind also gets the fork's
+  collection category, as custom kinds now do.
 - Magneton's PC effect counts adjacent Metal-type Jokers. Pokemon
   types do not exist in the port, and the only Metal line in this
   roster is Magnemite/Magneton, so adjacency counts those two.
