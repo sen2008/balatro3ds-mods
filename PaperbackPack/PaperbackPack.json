@@ -1,0 +1,12 @@
+{
+    "id": "PaperbackPack",
+    "name": "Paperback Pack",
+    "display_name": "Paperback Pack",
+    "description": "224 Jokers, the Stars and Crowns suits, the Spectrum hands and 33 Minor Arcana from Paperback (MIT) by Nether and contributors, ported to Balatro3DS. Requires the Balatro3DS fork (github.com/sen2008/balatro3ds-fork).",
+    "author": ["Nether and contributors", "3DS port"],
+    "prefix": "pbp",
+    "main_file": "paperbackpack.lua",
+    "priority": 0,
+    "version": "1.0.0",
+    "badges": []
+}
