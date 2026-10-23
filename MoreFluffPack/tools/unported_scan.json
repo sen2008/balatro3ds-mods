@@ -1,0 +1,2496 @@
+[
+ {
+  "key": "aceupthesleeve",
+  "file": "src/jokers/aceupthesleeve.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 40,
+  "contexts": [
+   "after",
+   "cardarea"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "poll_enhancement",
+   "enhancement",
+   "sleeve",
+   "shader",
+   "add_card"
+  ]
+ },
+ {
+  "key": "aheartofcold",
+  "file": "src/jokers/aheartofcold.lua",
+  "rarity": "3",
+  "lines": 50,
+  "contexts": [
+   "blueprint",
+   "end_of_round",
+   "individual",
+   "modify_weights",
+   "pool",
+   "pool_types",
+   "repetition"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "edition",
+   "blind"
+  ]
+ },
+ {
+  "key": "allicantdo",
+  "file": "src/jokers/allicantdo.lua",
+  "rarity": "3",
+  "lines": 63,
+  "contexts": [
+   "before",
+   "blueprint",
+   "cardarea",
+   "first_hand_drawn",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "money_altered-ish"
+  ]
+ },
+ {
+  "key": "apex_devastator",
+  "file": "src/jokers/apex_devastator.lua",
+  "rarity": "3",
+  "lines": 40,
+  "contexts": [
+   "buying_self",
+   "joker_main"
+  ],
+  "signals": []
+ },
+ {
+  "key": "applefriends",
+  "file": "src/jokers/applefriends.lua",
+  "rarity": "2",
+  "lines": 54,
+  "contexts": [
+   "card",
+   "selling_card"
+  ],
+  "signals": [
+   "find_card",
+   "colour",
+   "destroy",
+   "sell",
+   "h_chips"
+  ]
+ },
+ {
+  "key": "astral_sliver",
+  "file": "src/jokers/astral_sliver.lua",
+  "rarity": "2",
+  "lines": 56,
+  "contexts": [
+   "before",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver",
+   "hand_level"
+  ]
+ },
+ {
+  "key": "aura_farm",
+  "file": "src/jokers/aura_farm.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 49,
+  "contexts": [],
+  "signals": [
+   "find_card"
+  ]
+ },
+ {
+  "key": "balatromods",
+  "file": "src/jokers/balatromods.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 70,
+  "contexts": [
+   "before",
+   "blueprint",
+   "cardarea",
+   "first_hand_drawn",
+   "full_hand"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "poll_enhancement",
+   "enhancement",
+   "colour",
+   "shader",
+   "money_altered-ish"
+  ]
+ },
+ {
+  "key": "blahaj",
+  "file": "src/jokers/blahaj.lua",
+  "rarity": "1",
+  "lines": 23,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers"
+  ]
+ },
+ {
+  "key": "blasphemy",
+  "file": "src/jokers/blasphemy.lua",
+  "rarity": "2",
+  "lines": 36,
+  "contexts": [
+   "before",
+   "blueprint",
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers"
+  ]
+ },
+ {
+  "key": "blunder",
+  "file": "src/jokers/blunder.lua",
+  "rarity": "2",
+  "lines": 56,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "hand_drawn",
+   "joker_main",
+   "selling_self"
+  ],
+  "signals": [
+   "G.jokers",
+   "highlighted",
+   "sell"
+  ]
+ },
+ {
+  "key": "bonussheet",
+  "file": "src/jokers/bonussheet.lua",
+  "rarity": "2",
+  "lines": 45,
+  "contexts": [
+   "booster",
+   "open_booster"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "booster",
+   "colour",
+   "add_card"
+  ]
+ },
+ {
+  "key": "bouncer",
+  "file": "src/jokers/bouncer.lua",
+  "rarity": "1",
+  "lines": 76,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "joker_main",
+   "starting_shop"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "colour",
+   "add_card",
+   "sell"
+  ]
+ },
+ {
+  "key": "boxofhands",
+  "file": "src/jokers/boxofhands.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 33,
+  "contexts": [
+   "selling_self"
+  ],
+  "signals": [
+   "colour",
+   "shader",
+   "sell"
+  ]
+ },
+ {
+  "key": "brass",
+  "file": "src/jokers/brass.lua",
+  "rarity": "3",
+  "lines": 86,
+  "contexts": [
+   "other_card",
+   "remove_playing_cards",
+   "removed",
+   "retrigger_joker",
+   "retrigger_joker_check"
+  ],
+  "signals": [
+   "G.jokers",
+   "enhancement",
+   "colour"
+  ]
+ },
+ {
+  "key": "bridge_from_below",
+  "file": "src/jokers/bridge_from_below.lua",
+  "rarity": "2",
+  "lines": 75,
+  "contexts": [
+   "full_hand",
+   "hook",
+   "mf_bridge_from_below_pre_discard"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "colour",
+   "create_card",
+   "destroy",
+   "sell"
+  ]
+ },
+ {
+  "key": "burnerphone",
+  "file": "src/jokers/burnerphone.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 121,
+  "contexts": [],
+  "signals": [
+   "find_card",
+   "deck",
+   "colour",
+   "shader"
+  ]
+ },
+ {
+  "key": "clipart",
+  "file": "src/jokers/clipart.lua",
+  "rarity": "2",
+  "lines": 52,
+  "contexts": [
+   "blueprint_card",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "create_card"
+  ]
+ },
+ {
+  "key": "cosmogoyf",
+  "file": "src/jokers/cosmogoyf.lua",
+  "rarity": "2",
+  "lines": 44,
+  "contexts": [
+   "blueprint",
+   "ending_shop",
+   "joker_main"
+  ],
+  "signals": []
+ },
+ {
+  "key": "crad_shuffler",
+  "file": "src/jokers/crad_shuffler.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 74,
+  "contexts": [
+   "blueprint",
+   "discard",
+   "mf_add_to_hand"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "deck",
+   "colour",
+   "destroy"
+  ]
+ },
+ {
+  "key": "crimsonglassdecomposition",
+  "file": "src/jokers/crimsonglassdecomposition.lua",
+  "rarity": "3",
+  "lines": 125,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "other_card",
+   "poker_hands",
+   "repetition",
+   "scoring_hand",
+   "scoring_name"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "enhancement",
+   "blind",
+   "deck",
+   "colour",
+   "add_card"
+  ]
+ },
+ {
+  "key": "crypticmod",
+  "file": "src/jokers/crypticmod.lua",
+  "rarity": "2",
+  "lines": 75,
+  "contexts": [
+   "amount",
+   "blueprint",
+   "cardarea",
+   "drawing_cards",
+   "end_of_round",
+   "individual",
+   "main_scoring",
+   "repetition"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "edition",
+   "blind",
+   "shader"
+  ]
+ },
+ {
+  "key": "css",
+  "file": "src/jokers/css.lua",
+  "rarity": "2",
+  "lines": 49,
+  "contexts": [
+   "blueprint_card",
+   "cardarea",
+   "joker_main",
+   "poker_hands"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "colour",
+   "create_card"
+  ]
+ },
+ {
+  "key": "cueball",
+  "file": "src/jokers/cueball.lua",
+  "rarity": "2",
+  "lines": 54,
+  "contexts": [
+   "cardarea",
+   "individual",
+   "other_card"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "colour",
+   "rotarot",
+   "create_card"
+  ]
+ },
+ {
+  "key": "deadheatpulse",
+  "file": "src/jokers/deadheatpulse.lua",
+  "rarity": "3",
+  "lines": 61,
+  "contexts": [
+   "amount",
+   "drawing_cards",
+   "other_card",
+   "repetition",
+   "retrigger_joker",
+   "retrigger_joker_check",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "edition",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "diabolical",
+  "file": "src/jokers/diabolical.lua",
+  "rarity": "2",
+  "lines": 54,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "individual",
+   "other_card",
+   "setting_blind"
+  ],
+  "signals": [
+   "blind"
+  ]
+ },
+ {
+  "key": "digital_exclusive",
+  "file": "src/jokers/digital_exclusive.lua",
+  "rarity": "3",
+  "lines": 80,
+  "contexts": [
+   "discard",
+   "joker_main",
+   "other_card",
+   "selling_self"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "edition",
+   "add_card",
+   "ante",
+   "sell"
+  ]
+ },
+ {
+  "key": "doubledscale",
+  "file": "src/jokers/doubledscale.lua",
+  "rarity": "3",
+  "lines": 31,
+  "contexts": [],
+  "signals": []
+ },
+ {
+  "key": "dropkick",
+  "file": "src/jokers/dropkick.lua",
+  "rarity": "2",
+  "lines": 39,
+  "contexts": [
+   "after",
+   "cardarea",
+   "poker_hands"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_decay",
+  "file": "src/jokers/emeritus_decay.lua",
+  "rarity": "2",
+  "lines": 31,
+  "contexts": [
+   "playing_card_added"
+  ],
+  "signals": [
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_eternity",
+  "file": "src/jokers/emeritus_eternity.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 78,
+  "contexts": [
+   "blueprint_card",
+   "card",
+   "mf_used_prepared",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind",
+   "voucher",
+   "colour",
+   "money_altered-ish",
+   "ante"
+  ]
+ },
+ {
+  "key": "emeritus_eventuality",
+  "file": "src/jokers/emeritus_eventuality.lua",
+  "rarity": "3",
+  "lines": 51,
+  "contexts": [
+   "before",
+   "scoring_hand",
+   "scoring_name",
+   "setting_blind"
+  ],
+  "signals": [
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_growth",
+  "file": "src/jokers/emeritus_growth.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 51,
+  "contexts": [
+   "blueprint",
+   "card",
+   "end_of_round",
+   "individual",
+   "mf_used_prepared",
+   "repetition"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_lore",
+  "file": "src/jokers/emeritus_lore.lua",
+  "rarity": "2",
+  "lines": 84,
+  "contexts": [
+   "blueprint",
+   "buying_card",
+   "card",
+   "cardarea",
+   "end_of_round"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_rebirth",
+  "file": "src/jokers/emeritus_rebirth.lua",
+  "rarity": "3",
+  "lines": 80,
+  "contexts": [
+   "before",
+   "cardarea",
+   "scoring_hand"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "emeritus_variety",
+  "file": "src/jokers/emeritus_variety.lua",
+  "rarity": "2",
+  "lines": 47,
+  "contexts": [
+   "selling_card",
+   "selling_self"
+  ],
+  "signals": [
+   "colour",
+   "sell"
+  ]
+ },
+ {
+  "key": "eventhorizon",
+  "file": "src/jokers/eventhorizon.lua",
+  "rarity": "3",
+  "lines": 81,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "other_card",
+   "repetition"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "blind",
+   "hand_level"
+  ]
+ },
+ {
+  "key": "farmmerge",
+  "file": "src/jokers/farmmerge.lua",
+  "rarity": "2",
+  "lines": 127,
+  "contexts": [
+   "cardarea",
+   "full_hand",
+   "pre_discard"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "enhancement",
+   "edition",
+   "seal",
+   "blind",
+   "destroy",
+   "perma",
+   "h_chips"
+  ]
+ },
+ {
+  "key": "fived",
+  "file": "src/jokers/fived.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 37,
+  "contexts": [
+   "after",
+   "cardarea"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "blind",
+   "colour",
+   "shader",
+   "destroy",
+   "money_altered-ish",
+   "ante"
+  ]
+ },
+ {
+  "key": "fleshprison",
+  "file": "src/jokers/fleshprison.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 45,
+  "contexts": [
+   "blind",
+   "blueprint",
+   "end_of_round",
+   "individual",
+   "repetition",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "edition",
+   "blind",
+   "shader",
+   "add_card",
+   "destroy"
+  ]
+ },
+ {
+  "key": "flintandsteel",
+  "file": "src/jokers/flintandsteel.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 50,
+  "contexts": [
+   "before",
+   "cardarea",
+   "full_hand",
+   "scoring_hand"
+  ],
+  "signals": [
+   "G.jokers",
+   "enhancement",
+   "shader"
+  ]
+ },
+ {
+  "key": "fortunate_sliver",
+  "file": "src/jokers/fortunate_sliver.lua",
+  "rarity": "2",
+  "lines": 61,
+  "contexts": [
+   "blueprint",
+   "denominator",
+   "mod_probability",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "fourd_sanctuary",
+  "file": "src/jokers/fourd_sanctuary.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 50,
+  "contexts": [
+   "consumeable",
+   "using_consumeable"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "rotarot"
+  ]
+ },
+ {
+  "key": "freaky_pizza",
+  "file": "src/jokers/freaky_pizza.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 54,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour",
+   "xchips"
+  ]
+ },
+ {
+  "key": "fury_sliver",
+  "file": "src/jokers/fury_sliver.lua",
+  "rarity": "3",
+  "lines": 51,
+  "contexts": [
+   "modify_weights",
+   "other_card",
+   "pool",
+   "pool_types",
+   "retrigger_joker",
+   "retrigger_joker_check"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "gemalert",
+  "file": "src/jokers/gemalert.lua",
+  "rarity": "2",
+  "lines": 59,
+  "contexts": [
+   "blueprint",
+   "card",
+   "joker_main",
+   "modify_shop_card"
+  ],
+  "signals": [
+   "G.GAME",
+   "edition",
+   "deck",
+   "shader"
+  ]
+ },
+ {
+  "key": "gemhide_sliver",
+  "file": "src/jokers/gemhide_sliver.lua",
+  "rarity": "2",
+  "lines": 54,
+  "contexts": [
+   "blueprint",
+   "modify_final_cashout",
+   "modify_weights",
+   "pool",
+   "pool_types",
+   "retrigger_joker"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "gemstonejoker",
+  "file": "src/jokers/gemstonejoker.lua",
+  "rarity": "2",
+  "lines": 59,
+  "contexts": [],
+  "signals": [
+   "enhancement",
+   "deck",
+   "voucher",
+   "shader"
+  ]
+ },
+ {
+  "key": "gentlemelon",
+  "file": "src/jokers/gentlemelon.lua",
+  "rarity": "2",
+  "lines": 80,
+  "contexts": [
+   "blueprint",
+   "buying_card",
+   "buying_self",
+   "card",
+   "modify_weights",
+   "open_booster",
+   "pool"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "booster",
+   "colour"
+  ]
+ },
+ {
+  "key": "ghostly_reflection",
+  "file": "src/jokers/ghostly_reflection.lua",
+  "rarity": "2",
+  "lines": 62,
+  "contexts": [
+   "blueprint",
+   "discard",
+   "other_card",
+   "setting_blind"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "enhancement",
+   "blind"
+  ]
+ },
+ {
+  "key": "glitterbomb",
+  "file": "src/jokers/glitterbomb.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 59,
+  "contexts": [
+   "selling_self"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "poll_enhancement",
+   "enhancement",
+   "colour",
+   "shader",
+   "sell"
+  ]
+ },
+ {
+  "key": "grep",
+  "file": "src/jokers/grep.lua",
+  "rarity": "3",
+  "lines": 55,
+  "contexts": [
+   "blueprint",
+   "discard",
+   "first_hand_drawn",
+   "full_hand"
+  ],
+  "signals": [
+   "G.GAME",
+   "deck"
+  ]
+ },
+ {
+  "key": "hallofmirrors",
+  "file": "src/jokers/hallofmirrors.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 49,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "other_card",
+   "repetition"
+  ],
+  "signals": [
+   "colour",
+   "shader"
+  ]
+ },
+ {
+  "key": "halt",
+  "file": "src/jokers/halt.lua",
+  "rarity": "3",
+  "lines": 136,
+  "contexts": [
+   "blueprint",
+   "end_of_round",
+   "individual",
+   "repetition",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "enhancement",
+   "blind",
+   "deck"
+  ]
+ },
+ {
+  "key": "hold_music",
+  "file": "src/jokers/hold_music.lua",
+  "rarity": "2",
+  "lines": 45,
+  "contexts": [
+   "after",
+   "joker_main"
+  ],
+  "signals": []
+ },
+ {
+  "key": "hollow",
+  "file": "src/jokers/hollow.lua",
+  "rarity": "1",
+  "lines": 34,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers"
+  ]
+ },
+ {
+  "key": "homing_sliver",
+  "file": "src/jokers/homing_sliver.lua",
+  "rarity": "1",
+  "lines": 31,
+  "contexts": [
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "hyperjimbo",
+  "file": "src/jokers/hyperjimbo.lua",
+  "rarity": "3",
+  "lines": 63,
+  "contexts": [
+   "initial_scoring_step"
+  ],
+  "signals": [
+   "colour"
+  ]
+ },
+ {
+  "key": "intervention_pact",
+  "file": "src/jokers/intervention_pact.lua",
+  "rarity": "2",
+  "lines": 66,
+  "contexts": [
+   "end_of_round",
+   "game_over",
+   "main_eval"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "jankman",
+  "file": "src/jokers/jankman.lua",
+  "rarity": "3",
+  "lines": 38,
+  "contexts": [
+   "other_joker"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "xchips",
+   "h_chips"
+  ]
+ },
+ {
+  "key": "johnbalatro",
+  "file": "src/jokers/johnbalatro.lua",
+  "rarity": "3",
+  "lines": 80,
+  "contexts": [],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "planeswalker",
+   "loyalty",
+   "highlighted",
+   "perma"
+  ]
+ },
+ {
+  "key": "johnbalatro_super_ultra_mega_upgraded_deluxe",
+  "file": "src/jokers/johnbalatrotrue.lua",
+  "rarity": "mf_john",
+  "lines": 113,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "initial_scoring_step",
+   "joker_main",
+   "repetition"
+  ],
+  "signals": [
+   "G.jokers",
+   "planeswalker",
+   "colour"
+  ]
+ },
+ {
+  "key": "johnbalatrotrue",
+  "file": "src/jokers/johnbalatrotrue.lua",
+  "rarity": "mf_superlegendary",
+  "lines": 113,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "initial_scoring_step",
+   "joker_main",
+   "repetition"
+  ],
+  "signals": [
+   "G.jokers",
+   "planeswalker",
+   "colour"
+  ]
+ },
+ {
+  "key": "joker_with_sets_mechanic",
+  "file": "src/jokers/joker_with_sets_mechanic.lua",
+  "rarity": "1",
+  "lines": 42,
+  "contexts": [
+   "joker_main",
+   "other_card",
+   "other_ret",
+   "post_trigger"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "jokerreacts",
+  "file": "src/jokers/jokerreacts.lua",
+  "rarity": "2",
+  "lines": 60,
+  "contexts": [
+   "buying_card",
+   "card",
+   "cardarea",
+   "joker_main",
+   "modify_shop_card",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "G.jokers",
+   "find_card",
+   "colour"
+  ]
+ },
+ {
+  "key": "junkmail",
+  "file": "src/jokers/junkmail.lua",
+  "rarity": "2",
+  "lines": 36,
+  "contexts": [
+   "end_of_round",
+   "starting_shop"
+  ],
+  "signals": [
+   "voucher"
+  ]
+ },
+ {
+  "key": "junkyard",
+  "file": "src/jokers/junkyard.lua",
+  "rarity": "2",
+  "lines": 39,
+  "contexts": [
+   "full_hand",
+   "initial_scoring_step"
+  ],
+  "signals": [
+   "enhancement",
+   "xchips"
+  ]
+ },
+ {
+  "key": "lessfluff",
+  "file": "src/jokers/lessfluff.lua",
+  "rarity": "3",
+  "lines": 75,
+  "contexts": [
+   "blueprint",
+   "cardarea",
+   "joker_main",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "destroy"
+  ]
+ },
+ {
+  "key": "lettergem_b",
+  "file": "src/jokers/lettergem_b.lua",
+  "rarity": "mf_letter",
+  "lines": 33,
+  "contexts": [
+   "end_of_round",
+   "starting_shop"
+  ],
+  "signals": [
+   "booster"
+  ]
+ },
+ {
+  "key": "lettergem_d",
+  "file": "src/jokers/lettergem_d.lua",
+  "rarity": "mf_letter",
+  "lines": 54,
+  "contexts": [
+   "end_of_round",
+   "main_eval"
+  ],
+  "signals": [
+   "destroy"
+  ]
+ },
+ {
+  "key": "lettergem_e",
+  "file": "src/jokers/lettergem_e.lua",
+  "rarity": "mf_letter",
+  "lines": 39,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "lettergem_l",
+  "file": "src/jokers/lettergem_l.lua",
+  "rarity": "mf_letter",
+  "lines": 34,
+  "contexts": [
+   "check_enhancement",
+   "denominator",
+   "mod_probability",
+   "numerator",
+   "other_card",
+   "trigger_obj"
+  ],
+  "signals": [
+   "enhancement"
+  ]
+ },
+ {
+  "key": "lettergem_p",
+  "file": "src/jokers/lettergem_p.lua",
+  "rarity": "mf_letter",
+  "lines": 30,
+  "contexts": [
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind",
+   "ante"
+  ]
+ },
+ {
+  "key": "lettergem_q",
+  "file": "src/jokers/lettergem_q.lua",
+  "rarity": "mf_letter",
+  "lines": 43,
+  "contexts": [
+   "cardarea",
+   "end_of_round",
+   "individual",
+   "other_card"
+  ],
+  "signals": [
+   "colour"
+  ]
+ },
+ {
+  "key": "lettergem_r",
+  "file": "src/jokers/lettergem_r.lua",
+  "rarity": "mf_letter",
+  "lines": 49,
+  "contexts": [
+   "joker_main",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind"
+  ]
+ },
+ {
+  "key": "lettergem_t",
+  "file": "src/jokers/lettergem_t.lua",
+  "rarity": "mf_letter",
+  "lines": 45,
+  "contexts": [
+   "hand_drawn",
+   "other_drawn"
+  ],
+  "signals": [
+   "enhancement"
+  ]
+ },
+ {
+  "key": "lettergem_u",
+  "file": "src/jokers/lettergem_u.lua",
+  "rarity": "mf_letter",
+  "lines": 40,
+  "contexts": [
+   "blueprint",
+   "joker_main",
+   "modify_scoring_hand"
+  ],
+  "signals": []
+ },
+ {
+  "key": "lettergem_x",
+  "file": "src/jokers/lettergem_x.lua",
+  "rarity": "mf_letter",
+  "lines": 45,
+  "contexts": [],
+  "signals": [
+   "find_card"
+  ]
+ },
+ {
+  "key": "lettergem_z",
+  "file": "src/jokers/lettergem_z.lua",
+  "rarity": "mf_letter",
+  "lines": 67,
+  "contexts": [
+   "end_of_round",
+   "game_over",
+   "main_eval"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "destroy"
+  ]
+ },
+ {
+  "key": "loadeddisk",
+  "file": "src/jokers/loadeddisk.lua",
+  "rarity": "2",
+  "lines": 79,
+  "contexts": [
+   "blueprint_card",
+   "selling_self"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "colour",
+   "create_card",
+   "sell"
+  ]
+ },
+ {
+  "key": "lonewolf",
+  "file": "src/jokers/lonewolf.lua",
+  "rarity": "1",
+  "lines": 39,
+  "contexts": [
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "xchips"
+  ]
+ },
+ {
+  "key": "marigold",
+  "file": "src/jokers/marigold.lua",
+  "rarity": "4",
+  "lines": 38,
+  "contexts": [
+   "other_card",
+   "repetition"
+  ],
+  "signals": [
+   "enhancement"
+  ]
+ },
+ {
+  "key": "marketable_plushie",
+  "file": "src/jokers/marketable_plushie.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 46,
+  "contexts": [],
+  "signals": [
+   "find_card"
+  ]
+ },
+ {
+  "key": "mathemagics",
+  "file": "src/jokers/mathemagics.lua",
+  "rarity": "3",
+  "lines": 45,
+  "contexts": [
+   "card",
+   "first_hand_drawn",
+   "selling_card",
+   "selling_self"
+  ],
+  "signals": [
+   "colour",
+   "sell"
+  ]
+ },
+ {
+  "key": "megantic_sliver",
+  "file": "src/jokers/megantic_sliver.lua",
+  "rarity": "3",
+  "lines": 65,
+  "contexts": [
+   "joker_main",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver",
+   "colour"
+  ]
+ },
+ {
+  "key": "might_sliver",
+  "file": "src/jokers/might_sliver.lua",
+  "rarity": "2",
+  "lines": 52,
+  "contexts": [
+   "joker_main",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "mindlash_sliver",
+  "file": "src/jokers/mindlash_sliver.lua",
+  "rarity": "2",
+  "lines": 58,
+  "contexts": [
+   "modify_weights",
+   "pool",
+   "pool_types",
+   "selling_self"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind",
+   "sliver",
+   "sell"
+  ]
+ },
+ {
+  "key": "mindsculptor",
+  "file": "src/jokers/mindsculptor.lua",
+  "rarity": "3",
+  "lines": 70,
+  "contexts": [],
+  "signals": [
+   "G.GAME",
+   "deck",
+   "planeswalker",
+   "loyalty",
+   "destroy",
+   "ante"
+  ]
+ },
+ {
+  "key": "missingjoker",
+  "file": "src/jokers/missingjoker.lua",
+  "rarity": "2",
+  "lines": 51,
+  "contexts": [
+   "blueprint",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "monochrome",
+  "file": "src/jokers/monochrome.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 58,
+  "contexts": [
+   "blueprint",
+   "blueprint_card",
+   "cardarea",
+   "joker_main",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.jokers",
+   "blind",
+   "colour",
+   "shader"
+  ]
+ },
+ {
+  "key": "mrloans",
+  "file": "src/jokers/mrloans.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 41,
+  "contexts": [
+   "blueprint",
+   "end_of_round",
+   "game_over"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "shader",
+   "money_altered-ish"
+  ]
+ },
+ {
+  "key": "mspaint",
+  "file": "src/jokers/mspaint.lua",
+  "rarity": "1",
+  "lines": 38,
+  "contexts": [
+   "after",
+   "blueprint",
+   "cardarea",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "blind"
+  ]
+ },
+ {
+  "key": "muscle_sliver",
+  "file": "src/jokers/muscle_sliver.lua",
+  "rarity": "1",
+  "lines": 52,
+  "contexts": [
+   "joker_main",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "name_sticker_goblin",
+  "file": "src/jokers/crossmod/name_sticker_goblin.lua",
+  "rarity": "3",
+  "lines": 61,
+  "contexts": [
+   "before",
+   "joker_main"
+  ],
+  "signals": [
+   "G.GAME",
+   "sticker"
+  ]
+ },
+ {
+  "key": "nemesis",
+  "file": "src/jokers/nemesis.lua",
+  "rarity": "1",
+  "lines": 205,
+  "contexts": [
+   "blueprint",
+   "end_of_round",
+   "main_eval",
+   "type"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "tag",
+   "blind",
+   "booster",
+   "create_card",
+   "destroy",
+   "copy_card"
+  ]
+ },
+ {
+  "key": "old_rot_chicot",
+  "file": "src/jokers/old_rot_chicot.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 52,
+  "contexts": [
+   "full_hand",
+   "pre_discard"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "blind"
+  ]
+ },
+ {
+  "key": "old_rot_marigold",
+  "file": "src/jokers/old_rot_marigold.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 40,
+  "contexts": [
+   "check_enhancement",
+   "other_card"
+  ],
+  "signals": [
+   "enhancement"
+  ]
+ },
+ {
+  "key": "old_rot_triangle",
+  "file": "src/jokers/old_rot_triangle.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 65,
+  "contexts": [
+   "blueprint",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "blind",
+   "colour",
+   "hand_level"
+  ]
+ },
+ {
+  "key": "old_rot_triboulet",
+  "file": "src/jokers/old_rot_triboulet.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 88,
+  "contexts": [
+   "cardarea",
+   "individual",
+   "other_card",
+   "poker_hands",
+   "scoring_hand",
+   "scoring_name"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event("
+  ]
+ },
+ {
+  "key": "onesliptoolate",
+  "file": "src/jokers/onesliptoolate.lua",
+  "rarity": "2",
+  "lines": 34,
+  "contexts": [
+   "cardarea",
+   "joker_main",
+   "scoring_hand"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers"
+  ]
+ },
+ {
+  "key": "overlord",
+  "file": "src/jokers/overlord.lua",
+  "rarity": "3",
+  "lines": 30,
+  "contexts": [
+   "initial_scoring_step"
+  ],
+  "signals": []
+ },
+ {
+  "key": "pact_of_negation",
+  "file": "src/jokers/pact_of_negation.lua",
+  "rarity": "2",
+  "lines": 52,
+  "contexts": [
+   "blind",
+   "blueprint",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "blind"
+  ]
+ },
+ {
+  "key": "pact_of_the_titan",
+  "file": "src/jokers/pact_of_the_titan.lua",
+  "rarity": "2",
+  "lines": 45,
+  "contexts": [
+   "blueprint",
+   "joker_main",
+   "setting_blind"
+  ],
+  "signals": [
+   "blind"
+  ]
+ },
+ {
+  "key": "paintcan",
+  "file": "src/jokers/paintcan.lua",
+  "rarity": "2",
+  "lines": 26,
+  "contexts": [],
+  "signals": [
+   "colour"
+  ]
+ },
+ {
+  "key": "phyrexian_banner",
+  "file": "src/jokers/phyrexian_banner.lua",
+  "rarity": "3",
+  "lines": 91,
+  "contexts": [
+   "other_card",
+   "other_ret",
+   "post_trigger"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "find_card",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "plasma_sliver",
+  "file": "src/jokers/plasma_sliver.lua",
+  "rarity": "2",
+  "lines": 109,
+  "contexts": [
+   "joker_main",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "sliver",
+   "colour"
+  ]
+ },
+ {
+  "key": "purple_economy_joker",
+  "file": "src/jokers/purple_economy_joker.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 24,
+  "contexts": [
+   "mf_deck_shuffled"
+  ],
+  "signals": [
+   "booster"
+  ]
+ },
+ {
+  "key": "quantum_sliver",
+  "file": "src/jokers/quantum_sliver.lua",
+  "rarity": "2",
+  "lines": 71,
+  "contexts": [
+   "blueprint_card",
+   "modify_weights",
+   "pool",
+   "pool_types",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "blind",
+   "sliver",
+   "add_card"
+  ]
+ },
+ {
+  "key": "rainbowjoker",
+  "file": "src/jokers/rainbowjoker.lua",
+  "rarity": "3",
+  "lines": 36,
+  "contexts": [
+   "other_consumeable"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "colour"
+  ]
+ },
+ {
+  "key": "ransom_note",
+  "file": "src/jokers/ransom_note.lua",
+  "rarity": "2",
+  "lines": 98,
+  "contexts": [
+   "cardarea",
+   "main_scoring",
+   "repetition"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "deck",
+   "destroy"
+  ]
+ },
+ {
+  "key": "refrigerator",
+  "file": "src/jokers/refrigerator.lua",
+  "rarity": "2",
+  "lines": 35,
+  "contexts": [
+   "check_eternal",
+   "modify_weights",
+   "other_card",
+   "pool",
+   "pool_types",
+   "trigger"
+  ],
+  "signals": [
+   "find_card",
+   "destroy"
+  ]
+ },
+ {
+  "key": "repack",
+  "file": "src/jokers/repack.lua",
+  "rarity": "1",
+  "lines": 76,
+  "contexts": [
+   "end_of_round",
+   "starting_shop"
+  ],
+  "signals": [
+   "booster",
+   "create_card"
+  ]
+ },
+ {
+  "key": "rosetinted",
+  "file": "src/jokers/rosetinted.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 36,
+  "contexts": [
+   "blueprint",
+   "destroying_card",
+   "full_hand"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "tag",
+   "shader",
+   "destroy"
+  ]
+ },
+ {
+  "key": "rot_canio",
+  "file": "src/jokers/rot_canio.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 120,
+  "contexts": [
+   "remove_playing_cards",
+   "removed"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "blind",
+   "colour",
+   "destroy",
+   "highlighted",
+   "perma"
+  ]
+ },
+ {
+  "key": "rot_cartomancer",
+  "file": "src/jokers/rot_cartomancer.lua",
+  "rarity": "2",
+  "lines": 47,
+  "contexts": [
+   "blueprint_card",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "rotarot",
+   "create_card"
+  ]
+ },
+ {
+  "key": "rot_chicot",
+  "file": "src/jokers/rot_chicot.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 70,
+  "contexts": [
+   "blueprint",
+   "skip_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "find_card",
+   "blind",
+   "colour"
+  ]
+ },
+ {
+  "key": "rot_marigold",
+  "file": "src/jokers/rot_marigold.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 146,
+  "contexts": [
+   "old",
+   "other_card",
+   "setting_ability"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "enhancement",
+   "deck",
+   "colour",
+   "highlighted"
+  ]
+ },
+ {
+  "key": "rot_perkeo",
+  "file": "src/jokers/old_rot_perkeo.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 25,
+  "contexts": [],
+  "signals": []
+ },
+ {
+  "key": "rot_triangle",
+  "file": "src/jokers/rot_triangle.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 113,
+  "contexts": [
+   "before",
+   "blueprint",
+   "cardarea",
+   "end_of_round",
+   "scoring_name"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "colour",
+   "add_card",
+   "money_altered-ish"
+  ]
+ },
+ {
+  "key": "rot_triboulet",
+  "file": "src/jokers/rot_triboulet.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 65,
+  "contexts": [
+   "full_hand",
+   "pre_discard"
+  ],
+  "signals": [
+   "G.GAME",
+   "find_card",
+   "colour"
+  ]
+ },
+ {
+  "key": "rot_yorick",
+  "file": "src/jokers/old_rot_yorick.lua",
+  "rarity": "mf_rot_legendary",
+  "lines": 22,
+  "contexts": [],
+  "signals": []
+ },
+ {
+  "key": "sapling",
+  "file": "src/jokers/sapling.lua",
+  "rarity": "2",
+  "lines": 110,
+  "contexts": [
+   "blueprint",
+   "end_of_round",
+   "forcetrigger",
+   "individual",
+   "repetition",
+   "selling_self"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "sell"
+  ]
+ },
+ {
+  "key": "saturnburger",
+  "file": "src/jokers/saturnburger.lua",
+  "rarity": "2",
+  "lines": 93,
+  "contexts": [
+   "blueprint",
+   "blueprint_card",
+   "full_hand",
+   "hook",
+   "pre_discard",
+   "retrigger_joker"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "colour",
+   "hand_level"
+  ]
+ },
+ {
+  "key": "sealthedeal",
+  "file": "src/jokers/sealthedeal.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 61,
+  "contexts": [
+   "after",
+   "cardarea",
+   "full_hand"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "seal",
+   "blind",
+   "shader"
+  ]
+ },
+ {
+  "key": "shopping_spree",
+  "file": "src/jokers/shopping_spree.lua",
+  "rarity": "2",
+  "lines": 109,
+  "contexts": [
+   "blueprint",
+   "reroll_shop",
+   "skip_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "blind"
+  ]
+ },
+ {
+  "key": "simplified",
+  "file": "src/jokers/simplified.lua",
+  "rarity": "1",
+  "lines": 42,
+  "contexts": [
+   "forcetrigger",
+   "other_joker"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event("
+  ]
+ },
+ {
+  "key": "sinew_sliver",
+  "file": "src/jokers/sinew_sliver.lua",
+  "rarity": "1",
+  "lines": 52,
+  "contexts": [
+   "joker_main",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "slaughter_pact",
+  "file": "src/jokers/slaughter_pact.lua",
+  "rarity": "2",
+  "lines": 40,
+  "contexts": [
+   "blueprint",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "blind"
+  ]
+ },
+ {
+  "key": "sliver_jockey",
+  "file": "src/jokers/sliver_jockey.lua",
+  "rarity": "2",
+  "lines": 67,
+  "contexts": [
+   "cardarea",
+   "modify_weights",
+   "other_card",
+   "pool",
+   "pool_types",
+   "repetition"
+  ],
+  "signals": [
+   "G.jokers",
+   "sliver"
+  ]
+ },
+ {
+  "key": "snake",
+  "file": "src/jokers/snake.lua",
+  "rarity": "2",
+  "lines": 29,
+  "contexts": [
+   "forcetrigger"
+  ],
+  "signals": [
+   "deck"
+  ]
+ },
+ {
+  "key": "space_elevator",
+  "file": "src/jokers/space_elevator.lua",
+  "rarity": "3",
+  "lines": 63,
+  "contexts": [
+   "blueprint",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.jokers",
+   "blind"
+  ]
+ },
+ {
+  "key": "stasis_chamber",
+  "file": "src/jokers/stasis_chamber.lua",
+  "rarity": "1",
+  "lines": 88,
+  "contexts": [],
+  "signals": [
+   "G.GAME",
+   "E_MANAGER",
+   "Event(",
+   "find_card",
+   "destroy",
+   "money_altered-ish",
+   "ante",
+   "highlighted"
+  ]
+ },
+ {
+  "key": "summoners_pact",
+  "file": "src/jokers/summoners_pact.lua",
+  "rarity": "2",
+  "lines": 58,
+  "contexts": [
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "blind",
+   "colour",
+   "add_card"
+  ]
+ },
+ {
+  "key": "suspension",
+  "file": "src/jokers/suspension.lua",
+  "rarity": "3",
+  "lines": 50,
+  "contexts": [
+   "blueprint",
+   "consumeable",
+   "end_of_round",
+   "individual",
+   "repetition",
+   "using_consumeable"
+  ],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "rotarot"
+  ]
+ },
+ {
+  "key": "talljoker",
+  "file": "src/jokers/talljoker.lua",
+  "rarity": "2",
+  "lines": 41,
+  "contexts": [
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers"
+  ]
+ },
+ {
+  "key": "teacup",
+  "file": "src/jokers/teacup.lua",
+  "rarity": "2",
+  "lines": 84,
+  "contexts": [
+   "before",
+   "blueprint",
+   "blueprint_card",
+   "cardarea",
+   "full_hand",
+   "retrigger_joker"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "colour",
+   "hand_level"
+  ]
+ },
+ {
+  "key": "tealjoker",
+  "file": "src/jokers/tealjoker.lua",
+  "rarity": "2",
+  "lines": 47,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "enhancement",
+   "xchips",
+   "h_chips"
+  ]
+ },
+ {
+  "key": "the_first_sliver",
+  "file": "src/jokers/the_first_sliver.lua",
+  "rarity": "3",
+  "lines": 51,
+  "contexts": [
+   "buying_self",
+   "modify_weights",
+   "pool",
+   "pool_types"
+  ],
+  "signals": [
+   "sliver"
+  ]
+ },
+ {
+  "key": "thewayhome",
+  "file": "src/jokers/thewayhome.lua",
+  "rarity": "2",
+  "lines": 36,
+  "contexts": [
+   "blueprint_card",
+   "setting_blind"
+  ],
+  "signals": [
+   "blind"
+  ]
+ },
+ {
+  "key": "three_steps_ahead",
+  "file": "src/jokers/three_steps_ahead.lua",
+  "rarity": "3",
+  "lines": 122,
+  "contexts": [
+   "blind",
+   "blueprint",
+   "card",
+   "discard",
+   "end_of_round",
+   "ending_shop",
+   "individual",
+   "repetition",
+   "selling_card",
+   "selling_self",
+   "setting_blind"
+  ],
+  "signals": [
+   "G.GAME",
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "calculate_effect",
+   "edition",
+   "blind",
+   "copy_card",
+   "sell"
+  ]
+ },
+ {
+  "key": "triangle",
+  "file": "src/jokers/triangle.lua",
+  "rarity": "4",
+  "lines": 53,
+  "contexts": [
+   "before",
+   "blueprint",
+   "scoring_name"
+  ],
+  "signals": [
+   "find_card"
+  ]
+ },
+ {
+  "key": "trianglewalker",
+  "file": "src/jokers/trianglewalker.lua",
+  "rarity": "3",
+  "lines": 94,
+  "contexts": [],
+  "signals": [
+   "E_MANAGER",
+   "Event(",
+   "planeswalker",
+   "loyalty",
+   "destroy",
+   "highlighted"
+  ]
+ },
+ {
+  "key": "unpleasantcard",
+  "file": "src/jokers/unpleasantcard.lua",
+  "rarity": "2",
+  "lines": 31,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "booster",
+   "xchips",
+   "h_chips"
+  ]
+ },
+ {
+  "key": "unregisteredhypercam",
+  "file": "src/jokers/unregisteredhypercam.lua",
+  "rarity": "1",
+  "lines": 65,
+  "contexts": [
+   "initial_scoring_step"
+  ],
+  "signals": [
+   "find_card",
+   "colour"
+  ]
+ },
+ {
+  "key": "violent_outburst",
+  "file": "src/jokers/violent_outburst.lua",
+  "rarity": "2",
+  "lines": 24,
+  "contexts": [
+   "starting_shop"
+  ],
+  "signals": []
+ },
+ {
+  "key": "virulent_sliver",
+  "file": "src/jokers/virulent_sliver.lua",
+  "rarity": "2",
+  "lines": 59,
+  "contexts": [
+   "modify_weights",
+   "other_card",
+   "other_ret",
+   "pool",
+   "pool_types",
+   "post_trigger"
+  ],
+  "signals": [
+   "sliver",
+   "colour"
+  ]
+ },
+ {
+  "key": "whiplash",
+  "file": "src/jokers/whiplash.lua",
+  "rarity": "3",
+  "lines": 38,
+  "contexts": [
+   "mf_add_to_hand"
+  ],
+  "signals": []
+ },
+ {
+  "key": "whiteboard",
+  "file": "src/jokers/whiteboard.lua",
+  "rarity": "mf_oldfluff",
+  "lines": 33,
+  "contexts": [
+   "cardarea",
+   "forcetrigger",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "shader"
+  ]
+ },
+ {
+  "key": "widejoker",
+  "file": "src/jokers/widejoker.lua",
+  "rarity": "3",
+  "lines": 43,
+  "contexts": [
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "colour"
+  ]
+ },
+ {
+  "key": "yuckyrat",
+  "file": "src/jokers/yuckyrat.lua",
+  "rarity": "2",
+  "lines": 78,
+  "contexts": [
+   "before",
+   "cardarea",
+   "joker_main"
+  ],
+  "signals": [
+   "G.jokers",
+   "E_MANAGER",
+   "Event(",
+   "enhancement"
+  ]
+ },
+ {
+  "key": "zhulodok",
+  "file": "src/jokers/zhulodok.lua",
+  "rarity": "3",
+  "lines": 37,
+  "contexts": [
+   "card",
+   "selling_card",
+   "starting_shop"
+  ],
+  "signals": [
+   "sell"
+  ]
+ }
+]

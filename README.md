@@ -179,6 +179,104 @@ Port notes:
 - **The ports follow Paperback's code where it disagrees with its tooltips** (Disco checks the wallet when buying; Der Freischütz takes the lowest chip-value card in the full deck, 7s included; Showdown's chance gate; The Normal Joker is Rare $8 as its def says, not Common). Permanent per-card bonuses write the fields the fork's scoring reads (`card_data.chip_bonus` / `mult_bonus` / `Bonus`).
 - **OFF Switch** cannot create its eternal addon Jokers (Off Alpha/Epsilon/Omega are themselves blocked on the `joker_type_destroyed` context); it creates **The Batter** uneternal instead, only when that def is registered. Its `add_to_deck` also means a test (or player) adding it gains a second Joker — intended, as on PC. **Red Key** creates a random Rare (no Ultra Secret rarity exists here), **Freezer** a random Negative Common/Uncommon (no Food pool exists).
 
+### MoreFluffPack — 89 Jokers (v1.1.0)
+
+Download: `balatro3ds-morefluff-pack-v1.1.0.zip`.
+
+From **MoreFluff** by notmario — the biggest single-author Joker mod for PC Balatro. 89 of its 229 Jokers are ported, including the Letter Jokers, the Scrapped set and the token Jokers. **The pack needs the [Balatro3DS fork](https://github.com/sen2008/balatro3ds-fork) build**: it registers MoreFluff's six custom rarities and uses the fork's `SMODS.add_card` / `SMODS.destroy_card`, retrigger returns, `post_trigger` passes and probability-shaping contexts. The six custom rarities are registered at weight 0, as on PC their Jokers arrive through other Jokers and effects rather than the shop (Forge and Letter F create them; Fish is a token). The other 140 Jokers stay blocked on systems the fork does not have — Slivers, Colour cards, prepared cards, exile, custom enhancements and more; each one is listed under Not ported below. Deviations from PC are listed in the pack's README.txt (the largest: Blade Dance's Steel cards are permanent here, Brainrot's destroy forces past Eternal, and Expansion Pack's modded pool is this pack's own Jokers).
+
+| Joker | Rarity | Cost |
+|---|---|---|
+| [[BIG SHOT]] | Scrapped | $7 |
+| A | Letter | $2 |
+| Bad Legal Defence | Uncommon | $6 |
+| Basepaul Card | Common | $5 |
+| Big Win | Uncommon | $7 |
+| Black Market | Scrapped | $4 |
+| Blade Dance | Uncommon | $8 |
+| Book Move | Rare | $10 |
+| Bowling Ball | Rare | $8 |
+| Brainrot | Scrapped | $6 |
+| Brilliant | Uncommon | $8 |
+| Burner Phone | Scrapped | $2 |
+| C | Letter | $6 |
+| Card Buffer Advanced | Rare | $10 |
+| Clownfish | Common | $6 |
+| Contract from Below | Rare | $9 |
+| Coupon Catalogue | Scrapped | $7 |
+| D | Letter | $4 |
+| DINNER! | Uncommon | $5 |
+| Disintegration Loop | Rare | $10 |
+| Dramatic Entrance | Uncommon | $6 |
+| Expansion Pack | Common | $6 |
+| F | Letter | $8 |
+| Fish | Token | $1 |
+| Forge Residue | Token | $0 |
+| Friend Inside Me | Uncommon | $7 |
+| G | Letter | $4 |
+| Globe | Uncommon | $6 |
+| Golden Carrot | Uncommon | $4 |
+| grep | Rare | $8 |
+| H | Letter | $8 |
+| Hall of Mirrors | Scrapped | $6 |
+| Hollow Joker | Common | $4 |
+| Huge Joker | Rare | $8 |
+| Hyper Beam | Uncommon | $8 |
+| I | Letter | $2 |
+| I Sip Toner Soup | Scrapped | $8 |
+| Ice Cube | Uncommon | $6 |
+| Impostor | Scrapped | $7 |
+| J | Letter | $16 |
+| Jack of All Trades | Common | $6 |
+| Jester | Common | $2 |
+| Joker Forge | Uncommon | $6 |
+| Jokes for Balatro Players | Common | $7 |
+| K | Letter | $10 |
+| Knuckleblaster | Uncommon | $6 |
+| Less Fluff | Rare | $10 |
+| Lollipop | Common | $6 |
+| Lucky Charm | Common | $6 |
+| M | Letter | $6 |
+| Mashup Album | Scrapped | $8 |
+| Miner | Scrapped | $5 |
+| Money Printer | Scrapped | $5 |
+| MS Paint Joker | Common | $5 |
+| N | Letter | $2 |
+| O | Letter | $2 |
+| One Slip Too Late | Uncommon | $5 |
+| Oops! All 5s | Token | $1 |
+| Particle Accelerator | Scrapped | $7 |
+| Passing Balatro in 5 Minutes | Uncommon | $6 |
+| Philosophical Joker | Common | $1 |
+| Pixel Joker | Rare | $8 |
+| Q | Letter | $20 |
+| Recycling | Uncommon | $5 |
+| Retrigger Joker | Uncommon | $8 |
+| Riding the Dilu Horse | Rare | $7 |
+| S | Letter | $2 |
+| Simplified Joker | Common | $5 |
+| Spiral Joker | Common | $5 |
+| Steamflogger Boss | Scrapped | $6 |
+| Stifle | Common | $4 |
+| StoneJoker Joker | Uncommon | $8 |
+| Stormscale Scion | Scrapped | $10 |
+| Style Meter | Uncommon | $6 |
+| Sudoku Joker | Scrapped | $9 |
+| Sword of Steven and Todd | Rare | $10 |
+| The Baseball Stream | Rare | $10 |
+| The Broom Closet | Uncommon | $4 |
+| The Jester | Scrapped | $20 |
+| The Solo | Rare | $7 |
+| Top 10 Jokers From 1 To 10 | Rare | $10 |
+| Treasure Map | Common | $4 |
+| Triangular Joker | Scrapped | $7 |
+| V | Letter | $8 |
+| Virtual Joker | Scrapped | $7 |
+| W | Letter | $8 |
+| Whiteboard | Scrapped | $6 |
+| Wild Draw Four | Scrapped | $7 |
+| Y | Letter | $8 |
+
 ## Port notes
 
 - Descriptions are KCVanilla's en-us text verbatim. One mismatch inherited on purpose: Handy Joker's text says "first discard of round", but the PC code triggers on *every* single enhanced-card discard. These ports follow the code.
@@ -209,11 +307,13 @@ Bunco is 51 of 80 in BuncoPack v1.1.0. The other 29 stay blocked, each on a name
 
 Paperback is 224 of 316 in PaperbackPack v1.0.0, plus 33 of 56 Minor Arcana. The other 92 Jokers stay blocked, each on a named system: the eight custom enhancements (Soaked, Sleeved, Bandaged, Wrapped, Ceramic, Domino, Stained, Antique) gate 16 (Blood Rain, Collector, Festive Joker, Gauze, Greeting Card, Happy Accident, Kintsugi Joker, Medic, Mexican Train, Pink Joker, Pinot Noir, Plastic Wrap, Sommelier, Spotty Joker, Teapot, Watercolor Joker) and 8 more Arcana; XChips and permanent-X fields with no scoring reader block 14 (Bergentrücking, Blue Star, Chocolate Joker, Crispy Taco, Deck of Cards, Freedom of Choice, Grenadine, Nachos, Nigori, Oracle, Quartz, Ready to Fly, Shinzaemon, Stella Octangula); Paperback's custom tags and tag copying/polling block 9 (Angel Investor, Book of Life, J and Js, Jimbo Adventure, Jokers 11, Shopkeep, Spirit Box, Stereoscopic Specs, The Wonder of You); the Apostle custom rank blocks 6 (As Above So Below, In Case I Make It, One Sin and Hundreds of Good Deeds, Penumbra Phantasm, Plague Doctor, White Night); E.G.O Gifts block 4 (Arayashiki, Fodder, Grimoire, The Strongest); paperclips block 4 Jokers (Chip Clip, Clippy, Clothespin, Manilla Folder) and 11 Arcana; shop/pool/voucher manipulation blocks 9 (Backpack, Membership Card, NormalJKR, Protocol, Shopping Center, Touch Tone Joker, Ouija Board, Chaplin, Everything Must Go); blueprint-copy effects block 3 (Forgery, Master Plan, Photocopy); the balance mechanic blocks 3 (Let It Happen, Milk Tea, Stardrop); unraised contexts block 10 (Coin Collection and Frutiger Aero on money_altered, Cream Liqueur on tag activation, Off Alpha/Epsilon/Omega on joker_type_destroyed, One With Nothing on press_play, The Sun Rises on modify_scoring_hand, Watermelon on setting_ability, Weather Radio on blind_disabled); and single blockers take the rest (Aperol's perma_p_dollars, Burning Pact's draws, Cross and Unholy Alliance reacting to others' destructions, Da Capo and Jester of Nihil's debuff work, Ddakji / Vacation Juice / The World's state systems, Determination's death prevention, Jimbocards' inflation, Lager's permanent odds, Nichola's held-card scoring, Sacred Heart's permanent retriggers). 56 Leaf Clover, Ghost Cola and Shadowmantle were rescued from the tag class during the port: they create only the vanilla Negative Tag, which `Game:addTag` grants.
 
+MoreFluff is 89 of 229 in MoreFluffPack v1.1.0. The other 140 stay blocked, each on a named system: Astral Sliver, Megantic Sliver, Plasma Sliver, Sinew Sliver, Fortunate Sliver, Fury Sliver, Mindlash Sliver, Muscle Sliver, Quantum Sliver, Sliver Jockey, The First Sliver, Gemhide Sliver, Might Sliver, Virulent Sliver (the Sliver system (a shared `mf_sliver_ability` registry and `FLUFF.sliver_effects` the port has no equivalent for)); Paint Can, Rainbow Joker, Clipart Joker, Monochrome Joker, CSS, Loaded Disk (the Colour consumable system); Aura Farm, Emeritus of Eternity, Emeritus of Lore, Emeritus of Decay, Emeritus of Growth, Emeritus of Variety, Emeritus of Inevitability, Emeritus of Rebirth, Perkeo!, Yorick!, Canio!, Triboulet!, Chicot!, Triangle! (the prepared-cards system); Cosmogoyf, Hold Music, Pact of the Titan, Summoner's Pact, Pact of Negation, A-Hit the Road, Stasis Chamber, Diabolical Joker, Ghostly Reflection, Slaughter Pact, Space Elevator, Suspension of Disbelief (the exile/suspend system (`G.mf_exile`)); Teal Joker, Marigold, Brass Joker, Gemstone Joker, crimsonglassdecomposition, halt, Yucky Rat, Ransom          Note (custom enhancements, which cannot be registered (the port's enhancement constants are hardcoded)); crypticmod (a custom edition); 4rd Sanctuary, Cartomancer!, Cue Ball (the Rotarot consumable system); John Balatro..?, Jimbo, the Mind Sculptor, Triangle, Planeswalker (the loyalty/planeswalker system); Apex Devastator, Violent Outburst, Zhulodok, Void Gorger (`FLUFF.cascade`); Lone Wolf (tempname001 on PC), Tall Joker, Refrigerator, Joker Reacts To Broccoli (the FLUFF attribute registry); Joker With Set's Mechanic, Phyrexian Battle Standard (the FLUFF poisonous system); Ace Up The Sleeve, Balatro Mods (Working 2024), Glitter Bomb, Seal the Deal (`SMODS.poll_enhancement` / `SMODS.poll_seal`, which the port does not implement); Bouncer, Junk Mail, B, Shopping Spree, Gem Alert (shop manipulation (moving Jokers through the shop, injecting vouchers/boosters, resizing the shop, editing shop cards)); Bonus Sheet, Repack (booster-pack internals and custom boosters); eventhorizon, Teacup, Flesh Prison, P, Chicot!?, Jankman, Unpleasant Card, Blåhaj, Wide Joker, E, Freaky Pizza (return fields no reader applies (`level_up`, `xblindsize`, `xchips`, `swap`, `emult`/pow-mult, `xlog_chips`)); Bridge from Below, Purple Economy Joker, Whiplash, crad shuffler, deadheatpulse, Hyperjimbo, Junkyard, John Balatro, Unregistered Hypercam 2, Overlord of the Plasmadeck, Gentlemelon, A Heart of Cold, Homing Sliver, Z, Mr. Loans, Intervention Pact, Marigold!?, L, Marigold!, U, Snake, Missing Texture, Rose-Tinted Glasses (contexts the port never raises (MoreFluff's own `mf_*` events, `drawing_cards`, `initial_scoring_step`, `modify_weights`, `game_over`, `check_enhancement`, `setting_ability`, `modify_scoring_hand`, `forcetrigger`, `main_eval`, `destroying_card`)); Blasphemy, the way home, Box of Hands, Dropkick, 5D Joker with Multiverse Time Travel, R, T, Mathemagics, All I Can't Do, Blunder, Doubled Scale, Triangle, Triangle!?, Flint and Steel, Saturn Burger, Fast-Growing Sapling, Three Steps Ahead, Triboulet!?, Joke Merge Valley (engine APIs the port does not expose (changing hands/ante/round mid-play, drawing cards for effects, debuffing cards, forcing a selection, the `scale_card` system, levelling hands outside Planet use, winning a blind outright, transforming playing cards, scoring held cards)); Apple Friends, X, Marketable Plushie (global function overrides (`calculate_individual_effect`, PokerHand evaluation)); Nemesis (a custom tag); Name Sticker Goblin, John Balatro. (another mod being installed (aikoyorisshenanigans; Jen)).
+
 Also found while porting: Balatro3DS does not fill `context.full_hand` for discard contexts (the batch is only in `context.port.discarded_nodes`). Handy Joker works around it; other discard mods should too.
 
 ## Validation
 
-Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 at v1.0.0, 25/25 in its v1.1.0 suite and 31/31 in its v1.2.0 suite (registration and tooltips for all fifty, evolution chains end to end for the Caterpie, Charmander, Squirtle, Bulbasaur and Magikarp lines, edition preservation, stone chains correctly never evolving on round end alone, plus — at v1.2.0 — the four stones' registration under the poke_item type, shop-roll sampling, per-line evolution and refusal checks, leftmost targeting, and edition/scaling preservation through a stone evolution, plus regression checks on the original eighteen), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), the Bunco pack 17/17 at v1.0.0 and 38/38 in its v1.1.0 suite (registration and tooltips for all fifty-one Jokers and six consumables, both exotic suits, every Spectrum-family hand plus Deal evaluated through the game's own hand classifier, the exotic gate opening and shutting, and create/destroy/level/retrigger behavior for the new Jokers), the Paperback pack 41/41 in its main suite (the original thirty-six Jokers' behavior, both suits, the Spectrum hands through the game's own classifier and the exotic gate), 34/34 in its Minor Arcana suite (type registration, all thirty-three cards, one behavior test each) and 57/57 in its expansion suite (registration, names, rarities, costs and clean tooltips for all 224 Jokers, plus behavior tests across the 188 expansion Jokers, including the three rescued tag Jokers end to end), with the game's own mod suite still green (38 tests on the stock tree, 54/54 on the fork, including the suit-front gate test the Bunco pack needed and the consumable-type tests the Pokermon stones needed) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
+Each port was loaded through the real ModLoader and exercised in Balatro3DS's own headless test harness: Swiss Cheese 4/4 checks, the KCVanilla pack 13/13 at v1.0.0 and 9/9 in its v1.1.0 suite (registration and tooltips for all fourteen, create/destroy behavior for each of the five new Jokers, plus regression checks on the original nine), the Pokermon pack 18/18 at v1.0.0, 25/25 in its v1.1.0 suite and 31/31 in its v1.2.0 suite (registration and tooltips for all fifty, evolution chains end to end for the Caterpie, Charmander, Squirtle, Bulbasaur and Magikarp lines, edition preservation, stone chains correctly never evolving on round end alone, plus — at v1.2.0 — the four stones' registration under the poke_item type, shop-roll sampling, per-line evolution and refusal checks, leftmost targeting, and edition/scaling preservation through a stone evolution, plus regression checks on the original eighteen), the Neato pack 7/7 at v1.0.0 and 18/18 in its v1.1.0 suite (registration and tooltips for all fifteen, create/destroy/retrigger behavior for each of the nine new Jokers, the self-destroy fixes for Ice Cream Sandwich and The Banana Stand, plus regression checks on the original six), the Bunco pack 17/17 at v1.0.0 and 38/38 in its v1.1.0 suite (registration and tooltips for all fifty-one Jokers and six consumables, both exotic suits, every Spectrum-family hand plus Deal evaluated through the game's own hand classifier, the exotic gate opening and shutting, and create/destroy/level/retrigger behavior for the new Jokers), the Paperback pack 41/41 in its main suite (the original thirty-six Jokers' behavior, both suits, the Spectrum hands through the game's own classifier and the exotic gate), 34/34 in its Minor Arcana suite (type registration, all thirty-three cards, one behavior test each) and 57/57 in its expansion suite (registration, names, rarities, costs and clean tooltips for all 224 Jokers, plus behavior tests across the 188 expansion Jokers, including the three rescued tag Jokers end to end), the MoreFluff pack 56/56 in its suite (registration, names, rarities, costs and clean tooltips for all eighty-nine Jokers, plus behaviour tests for the flat and X-Mult scorers, the Letter Jokers' per-card effects, grep's deck sort, Letter D's end-of-round destruction, the retrigger and post-trigger passes, probability shaping through Ice Cube / Oops! All 5s / Letter O, blind-select and shop creation, and the sell timers), with the game's own mod suite still green (38 tests on the stock tree, 54/54 on the fork, including the suit-front gate test the Bunco pack needed and the consumable-type tests the Pokermon stones needed) and negative controls confirming the tests can fail. Hardware testing is the remaining step.
 
 ## Credits
 
@@ -222,5 +322,6 @@ Each port was loaded through the real ModLoader and exercised in Balatro3DS's ow
 - **InertSteak and the Pokermon contributors** — Pokermon, its Joker designs, text and art (GPLv3).
 - **Firch** — Bunco, its Joker designs, text and art, including the exotic suits and Spectrum hands. Bunco ships no license; this is an unofficial fan port made for personal use, published with credit. If you are Firch and want anything changed or removed, open an issue and it will be handled immediately.
 - **Nether and contributors** — Paperback, its Joker designs, text and art, the Stars and Crowns suits, the Spectrum hands and the Minor Arcana. Paperback is MIT License, Copyright (c) 2025; the license text ships in the pack (LICENSE.txt). Source: https://github.com/Balatro-Paperback/paperback
+- **notmario** — MoreFluff, its Joker designs, text and art. MoreFluff ships no license file; this is an unofficial fan port made for personal use, published with credit. If you are notmario and want anything changed or removed, open an issue and it will be handled immediately.
 - **idkhan / Gazpacho** — Balatro3DS and its mod API.
 - **LocalThunk** — Balatro.

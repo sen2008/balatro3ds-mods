@@ -1,0 +1,918 @@
+{
+ "aceupthesleeve": {
+  "file": "src/jokers/aceupthesleeve.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "aheartofcold": {
+  "file": "src/jokers/aheartofcold.lua",
+  "rarity": "3"
+ },
+ "allicantdo": {
+  "file": "src/jokers/allicantdo.lua",
+  "rarity": "3"
+ },
+ "apex_devastator": {
+  "file": "src/jokers/apex_devastator.lua",
+  "rarity": "3"
+ },
+ "applefriends": {
+  "file": "src/jokers/applefriends.lua",
+  "rarity": "2"
+ },
+ "astral_sliver": {
+  "file": "src/jokers/astral_sliver.lua",
+  "rarity": "2"
+ },
+ "aura_farm": {
+  "file": "src/jokers/aura_farm.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "badlegaldefence": {
+  "file": "src/jokers/badlegaldefence.lua",
+  "rarity": "2"
+ },
+ "balatromods": {
+  "file": "src/jokers/balatromods.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "baseball_stream": {
+  "file": "src/jokers/baseball_stream.lua",
+  "rarity": "3"
+ },
+ "basepaul_card": {
+  "file": "src/jokers/basepaul_card.lua",
+  "rarity": "1"
+ },
+ "bigshot": {
+  "file": "src/jokers/bigshot.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "blackmarket": {
+  "file": "src/jokers/blackmarket.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "bladedance": {
+  "file": "src/jokers/bladedance.lua",
+  "rarity": "2"
+ },
+ "blahaj": {
+  "file": "src/jokers/blahaj.lua",
+  "rarity": "1"
+ },
+ "blasphemy": {
+  "file": "src/jokers/blasphemy.lua",
+  "rarity": "2"
+ },
+ "bloodpact": {
+  "file": "src/jokers/bloodpact.lua",
+  "rarity": "3"
+ },
+ "blunder": {
+  "file": "src/jokers/blunder.lua",
+  "rarity": "2"
+ },
+ "bonussheet": {
+  "file": "src/jokers/bonussheet.lua",
+  "rarity": "2"
+ },
+ "bookmove": {
+  "file": "src/jokers/bookmove.lua",
+  "rarity": "3"
+ },
+ "bouncer": {
+  "file": "src/jokers/bouncer.lua",
+  "rarity": "1"
+ },
+ "bowlingball": {
+  "file": "src/jokers/bowlingball.lua",
+  "rarity": "3"
+ },
+ "boxofhands": {
+  "file": "src/jokers/boxofhands.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "brainrot": {
+  "file": "src/jokers/brainrot.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "brass": {
+  "file": "src/jokers/brass.lua",
+  "rarity": "3"
+ },
+ "bridge_from_below": {
+  "file": "src/jokers/bridge_from_below.lua",
+  "rarity": "2"
+ },
+ "brilliant": {
+  "file": "src/jokers/brilliant.lua",
+  "rarity": "2"
+ },
+ "broomcloset": {
+  "file": "src/jokers/broomcloset.lua",
+  "rarity": "2"
+ },
+ "burnerphone": {
+  "file": "src/jokers/burnerphone.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "cba": {
+  "file": "src/jokers/cba.lua",
+  "rarity": "3"
+ },
+ "clipart": {
+  "file": "src/jokers/clipart.lua",
+  "rarity": "2"
+ },
+ "clownfish": {
+  "file": "src/jokers/clownfish.lua",
+  "rarity": "1"
+ },
+ "cosmogoyf": {
+  "file": "src/jokers/cosmogoyf.lua",
+  "rarity": "2"
+ },
+ "coupon_catalogue": {
+  "file": "src/jokers/coupon_catalogue.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "crad_shuffler": {
+  "file": "src/jokers/crad_shuffler.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "crimsonglassdecomposition": {
+  "file": "src/jokers/crimsonglassdecomposition.lua",
+  "rarity": "3"
+ },
+ "crypticmod": {
+  "file": "src/jokers/crypticmod.lua",
+  "rarity": "2"
+ },
+ "css": {
+  "file": "src/jokers/css.lua",
+  "rarity": "2"
+ },
+ "cueball": {
+  "file": "src/jokers/cueball.lua",
+  "rarity": "2"
+ },
+ "deadheatpulse": {
+  "file": "src/jokers/deadheatpulse.lua",
+  "rarity": "3"
+ },
+ "diabolical": {
+  "file": "src/jokers/diabolical.lua",
+  "rarity": "2"
+ },
+ "digital_exclusive": {
+  "file": "src/jokers/digital_exclusive.lua",
+  "rarity": "3"
+ },
+ "dinner": {
+  "file": "src/jokers/dinner.lua",
+  "rarity": "2"
+ },
+ "doubledscale": {
+  "file": "src/jokers/doubledscale.lua",
+  "rarity": "3"
+ },
+ "dramaticentrance": {
+  "file": "src/jokers/dramaticentrance.lua",
+  "rarity": "2"
+ },
+ "dropkick": {
+  "file": "src/jokers/dropkick.lua",
+  "rarity": "2"
+ },
+ "emeritus_decay": {
+  "file": "src/jokers/emeritus_decay.lua",
+  "rarity": "2"
+ },
+ "emeritus_eternity": {
+  "file": "src/jokers/emeritus_eternity.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "emeritus_eventuality": {
+  "file": "src/jokers/emeritus_eventuality.lua",
+  "rarity": "3"
+ },
+ "emeritus_growth": {
+  "file": "src/jokers/emeritus_growth.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "emeritus_lore": {
+  "file": "src/jokers/emeritus_lore.lua",
+  "rarity": "2"
+ },
+ "emeritus_rebirth": {
+  "file": "src/jokers/emeritus_rebirth.lua",
+  "rarity": "3"
+ },
+ "emeritus_variety": {
+  "file": "src/jokers/emeritus_variety.lua",
+  "rarity": "2"
+ },
+ "eventhorizon": {
+  "file": "src/jokers/eventhorizon.lua",
+  "rarity": "3"
+ },
+ "expansion_pack": {
+  "file": "src/jokers/expansion_pack.lua",
+  "rarity": "1"
+ },
+ "farmmerge": {
+  "file": "src/jokers/farmmerge.lua",
+  "rarity": "2"
+ },
+ "fish": {
+  "file": "src/jokers/fish.lua",
+  "rarity": "mf_token"
+ },
+ "fived": {
+  "file": "src/jokers/fived.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "fleshprison": {
+  "file": "src/jokers/fleshprison.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "flintandsteel": {
+  "file": "src/jokers/flintandsteel.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "forge": {
+  "file": "src/jokers/forge.lua",
+  "rarity": "2"
+ },
+ "forgeslop": {
+  "file": "src/jokers/forgeslop.lua",
+  "rarity": "mf_token"
+ },
+ "fortunate_sliver": {
+  "file": "src/jokers/fortunate_sliver.lua",
+  "rarity": "2"
+ },
+ "fourd_sanctuary": {
+  "file": "src/jokers/fourd_sanctuary.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "freaky_pizza": {
+  "file": "src/jokers/freaky_pizza.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "friendinsideme": {
+  "file": "src/jokers/friendinsideme.lua",
+  "rarity": "2"
+ },
+ "fury_sliver": {
+  "file": "src/jokers/fury_sliver.lua",
+  "rarity": "3"
+ },
+ "gemalert": {
+  "file": "src/jokers/gemalert.lua",
+  "rarity": "2"
+ },
+ "gemhide_sliver": {
+  "file": "src/jokers/gemhide_sliver.lua",
+  "rarity": "2"
+ },
+ "gemstonejoker": {
+  "file": "src/jokers/gemstonejoker.lua",
+  "rarity": "2"
+ },
+ "gentlemelon": {
+  "file": "src/jokers/gentlemelon.lua",
+  "rarity": "2"
+ },
+ "ghostly_reflection": {
+  "file": "src/jokers/ghostly_reflection.lua",
+  "rarity": "2"
+ },
+ "glitterbomb": {
+  "file": "src/jokers/glitterbomb.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "globe": {
+  "file": "src/jokers/globe.lua",
+  "rarity": "2"
+ },
+ "goldencarrot": {
+  "file": "src/jokers/goldencarrot.lua",
+  "rarity": "2"
+ },
+ "grep": {
+  "file": "src/jokers/grep.lua",
+  "rarity": "3"
+ },
+ "hallofmirrors": {
+  "file": "src/jokers/hallofmirrors.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "halt": {
+  "file": "src/jokers/halt.lua",
+  "rarity": "3"
+ },
+ "hold_music": {
+  "file": "src/jokers/hold_music.lua",
+  "rarity": "2"
+ },
+ "hollow": {
+  "file": "src/jokers/hollow.lua",
+  "rarity": "1"
+ },
+ "homing_sliver": {
+  "file": "src/jokers/homing_sliver.lua",
+  "rarity": "1"
+ },
+ "hugejoker": {
+  "file": "src/jokers/hugejoker.lua",
+  "rarity": "3"
+ },
+ "hyperbeam": {
+  "file": "src/jokers/hyperbeam.lua",
+  "rarity": "2"
+ },
+ "hyperjimbo": {
+  "file": "src/jokers/hyperjimbo.lua",
+  "rarity": "3"
+ },
+ "icecube": {
+  "file": "src/jokers/icecube.lua",
+  "rarity": "2"
+ },
+ "impostor": {
+  "file": "src/jokers/impostor.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "intervention_pact": {
+  "file": "src/jokers/intervention_pact.lua",
+  "rarity": "2"
+ },
+ "jackofalltrades": {
+  "file": "src/jokers/jackofalltrades.lua",
+  "rarity": "1"
+ },
+ "jankman": {
+  "file": "src/jokers/jankman.lua",
+  "rarity": "3"
+ },
+ "jester": {
+  "file": "src/jokers/jester.lua",
+  "rarity": "1"
+ },
+ "johnbalatro": {
+  "file": "src/jokers/johnbalatro.lua",
+  "rarity": "3"
+ },
+ "johnbalatrotrue": {
+  "file": "src/jokers/johnbalatrotrue.lua",
+  "rarity": "mf_superlegendary"
+ },
+ "johnbalatro_super_ultra_mega_upgraded_deluxe": {
+  "file": "src/jokers/johnbalatrotrue.lua",
+  "rarity": "mf_john"
+ },
+ "joker_with_sets_mechanic": {
+  "file": "src/jokers/joker_with_sets_mechanic.lua",
+  "rarity": "1"
+ },
+ "jokerreacts": {
+  "file": "src/jokers/jokerreacts.lua",
+  "rarity": "2"
+ },
+ "jokesforminecrafters": {
+  "file": "src/jokers/jokesforminecrafters.lua",
+  "rarity": "1"
+ },
+ "junkmail": {
+  "file": "src/jokers/junkmail.lua",
+  "rarity": "2"
+ },
+ "junkyard": {
+  "file": "src/jokers/junkyard.lua",
+  "rarity": "2"
+ },
+ "knuckleblaster": {
+  "file": "src/jokers/knuckleblaster.lua",
+  "rarity": "2"
+ },
+ "lessfluff": {
+  "file": "src/jokers/lessfluff.lua",
+  "rarity": "3"
+ },
+ "lettergem_a": {
+  "file": "src/jokers/lettergem_a.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_b": {
+  "file": "src/jokers/lettergem_b.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_c": {
+  "file": "src/jokers/lettergem_c.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_d": {
+  "file": "src/jokers/lettergem_d.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_e": {
+  "file": "src/jokers/lettergem_e.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_f": {
+  "file": "src/jokers/lettergem_f.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_g": {
+  "file": "src/jokers/lettergem_g.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_h": {
+  "file": "src/jokers/lettergem_h.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_i": {
+  "file": "src/jokers/lettergem_i.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_j": {
+  "file": "src/jokers/lettergem_j.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_k": {
+  "file": "src/jokers/lettergem_k.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_l": {
+  "file": "src/jokers/lettergem_l.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_m": {
+  "file": "src/jokers/lettergem_m.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_n": {
+  "file": "src/jokers/lettergem_n.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_o": {
+  "file": "src/jokers/lettergem_o.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_p": {
+  "file": "src/jokers/lettergem_p.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_q": {
+  "file": "src/jokers/lettergem_q.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_r": {
+  "file": "src/jokers/lettergem_r.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_s": {
+  "file": "src/jokers/lettergem_s.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_t": {
+  "file": "src/jokers/lettergem_t.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_u": {
+  "file": "src/jokers/lettergem_u.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_v": {
+  "file": "src/jokers/lettergem_v.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_w": {
+  "file": "src/jokers/lettergem_w.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_x": {
+  "file": "src/jokers/lettergem_x.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_y": {
+  "file": "src/jokers/lettergem_y.lua",
+  "rarity": "mf_letter"
+ },
+ "lettergem_z": {
+  "file": "src/jokers/lettergem_z.lua",
+  "rarity": "mf_letter"
+ },
+ "loadeddisk": {
+  "file": "src/jokers/loadeddisk.lua",
+  "rarity": "2"
+ },
+ "lollipop": {
+  "file": "src/jokers/lollipop.lua",
+  "rarity": "1"
+ },
+ "lonewolf": {
+  "file": "src/jokers/lonewolf.lua",
+  "rarity": "1"
+ },
+ "luckycharm": {
+  "file": "src/jokers/luckycharm.lua",
+  "rarity": "1"
+ },
+ "marigold": {
+  "file": "src/jokers/marigold.lua",
+  "rarity": "4"
+ },
+ "marketable_plushie": {
+  "file": "src/jokers/marketable_plushie.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "mashupalbum": {
+  "file": "src/jokers/mashupalbum.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "mathemagics": {
+  "file": "src/jokers/mathemagics.lua",
+  "rarity": "3"
+ },
+ "megantic_sliver": {
+  "file": "src/jokers/megantic_sliver.lua",
+  "rarity": "3"
+ },
+ "might_sliver": {
+  "file": "src/jokers/might_sliver.lua",
+  "rarity": "2"
+ },
+ "mindlash_sliver": {
+  "file": "src/jokers/mindlash_sliver.lua",
+  "rarity": "2"
+ },
+ "mindsculptor": {
+  "file": "src/jokers/mindsculptor.lua",
+  "rarity": "3"
+ },
+ "miner": {
+  "file": "src/jokers/miner.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "missingjoker": {
+  "file": "src/jokers/missingjoker.lua",
+  "rarity": "2"
+ },
+ "moneyprinter": {
+  "file": "src/jokers/moneyprinter.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "monochrome": {
+  "file": "src/jokers/monochrome.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "mrloans": {
+  "file": "src/jokers/mrloans.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "mspaint": {
+  "file": "src/jokers/mspaint.lua",
+  "rarity": "1"
+ },
+ "muscle_sliver": {
+  "file": "src/jokers/muscle_sliver.lua",
+  "rarity": "1"
+ },
+ "nemesis": {
+  "file": "src/jokers/nemesis.lua",
+  "rarity": "1"
+ },
+ "old_rot_chicot": {
+  "file": "src/jokers/old_rot_chicot.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "old_rot_marigold": {
+  "file": "src/jokers/old_rot_marigold.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "rot_perkeo": {
+  "file": "src/jokers/old_rot_perkeo.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "old_rot_triangle": {
+  "file": "src/jokers/old_rot_triangle.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "old_rot_triboulet": {
+  "file": "src/jokers/old_rot_triboulet.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "rot_yorick": {
+  "file": "src/jokers/old_rot_yorick.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "onesliptoolate": {
+  "file": "src/jokers/onesliptoolate.lua",
+  "rarity": "2"
+ },
+ "oopsallfives": {
+  "file": "src/jokers/oopsallfives.lua",
+  "rarity": "mf_token"
+ },
+ "overlord": {
+  "file": "src/jokers/overlord.lua",
+  "rarity": "3"
+ },
+ "pact_of_negation": {
+  "file": "src/jokers/pact_of_negation.lua",
+  "rarity": "2"
+ },
+ "pact_of_the_titan": {
+  "file": "src/jokers/pact_of_the_titan.lua",
+  "rarity": "2"
+ },
+ "paintcan": {
+  "file": "src/jokers/paintcan.lua",
+  "rarity": "2"
+ },
+ "particleaccelerator": {
+  "file": "src/jokers/particleaccelerator.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "passando": {
+  "file": "src/jokers/passando.lua",
+  "rarity": "2"
+ },
+ "philosophical": {
+  "file": "src/jokers/philosophical.lua",
+  "rarity": "1"
+ },
+ "phyrexian_banner": {
+  "file": "src/jokers/phyrexian_banner.lua",
+  "rarity": "3"
+ },
+ "pixeljoker": {
+  "file": "src/jokers/pixeljoker.lua",
+  "rarity": "3"
+ },
+ "plasma_sliver": {
+  "file": "src/jokers/plasma_sliver.lua",
+  "rarity": "2"
+ },
+ "purple_economy_joker": {
+  "file": "src/jokers/purple_economy_joker.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "quantum_sliver": {
+  "file": "src/jokers/quantum_sliver.lua",
+  "rarity": "2"
+ },
+ "rainbowjoker": {
+  "file": "src/jokers/rainbowjoker.lua",
+  "rarity": "3"
+ },
+ "ransom_note": {
+  "file": "src/jokers/ransom_note.lua",
+  "rarity": "2"
+ },
+ "recycling": {
+  "file": "src/jokers/recycling.lua",
+  "rarity": "2"
+ },
+ "refrigerator": {
+  "file": "src/jokers/refrigerator.lua",
+  "rarity": "2"
+ },
+ "repack": {
+  "file": "src/jokers/repack.lua",
+  "rarity": "1"
+ },
+ "retrigger_joker": {
+  "file": "src/jokers/retrigger_joker.lua",
+  "rarity": "2"
+ },
+ "riding_the_dilu_horse": {
+  "file": "src/jokers/riding_the_dilu_horse.lua",
+  "rarity": "3"
+ },
+ "rosetinted": {
+  "file": "src/jokers/rosetinted.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "rot_canio": {
+  "file": "src/jokers/rot_canio.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "rot_cartomancer": {
+  "file": "src/jokers/rot_cartomancer.lua",
+  "rarity": "2"
+ },
+ "rot_chicot": {
+  "file": "src/jokers/rot_chicot.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "rot_marigold": {
+  "file": "src/jokers/rot_marigold.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "rot_triangle": {
+  "file": "src/jokers/rot_triangle.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "rot_triboulet": {
+  "file": "src/jokers/rot_triboulet.lua",
+  "rarity": "mf_rot_legendary"
+ },
+ "sapling": {
+  "file": "src/jokers/sapling.lua",
+  "rarity": "2"
+ },
+ "saturnburger": {
+  "file": "src/jokers/saturnburger.lua",
+  "rarity": "2"
+ },
+ "sealthedeal": {
+  "file": "src/jokers/sealthedeal.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "shopping_spree": {
+  "file": "src/jokers/shopping_spree.lua",
+  "rarity": "2"
+ },
+ "simplified": {
+  "file": "src/jokers/simplified.lua",
+  "rarity": "1"
+ },
+ "sinew_sliver": {
+  "file": "src/jokers/sinew_sliver.lua",
+  "rarity": "1"
+ },
+ "slaughter_pact": {
+  "file": "src/jokers/slaughter_pact.lua",
+  "rarity": "2"
+ },
+ "sliver_jockey": {
+  "file": "src/jokers/sliver_jockey.lua",
+  "rarity": "2"
+ },
+ "slotmachine": {
+  "file": "src/jokers/slotmachine.lua",
+  "rarity": "2"
+ },
+ "snake": {
+  "file": "src/jokers/snake.lua",
+  "rarity": "2"
+ },
+ "space_elevator": {
+  "file": "src/jokers/space_elevator.lua",
+  "rarity": "3"
+ },
+ "spiral": {
+  "file": "src/jokers/spiral.lua",
+  "rarity": "1"
+ },
+ "stasis_chamber": {
+  "file": "src/jokers/stasis_chamber.lua",
+  "rarity": "1"
+ },
+ "steamflogger_boss": {
+  "file": "src/jokers/steamflogger_boss.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "stifle": {
+  "file": "src/jokers/stifle.lua",
+  "rarity": "1"
+ },
+ "stonejokerjoker": {
+  "file": "src/jokers/stonejokerjoker.lua",
+  "rarity": "2"
+ },
+ "stormscale": {
+  "file": "src/jokers/stormscale.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "stylemeter": {
+  "file": "src/jokers/stylemeter.lua",
+  "rarity": "2"
+ },
+ "sudoku": {
+  "file": "src/jokers/sudoku.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "summoners_pact": {
+  "file": "src/jokers/summoners_pact.lua",
+  "rarity": "2"
+ },
+ "suspension": {
+  "file": "src/jokers/suspension.lua",
+  "rarity": "3"
+ },
+ "sword_of_steven_and_todd": {
+  "file": "src/jokers/sword_of_steven_and_todd.lua",
+  "rarity": "3"
+ },
+ "talljoker": {
+  "file": "src/jokers/talljoker.lua",
+  "rarity": "2"
+ },
+ "teacup": {
+  "file": "src/jokers/teacup.lua",
+  "rarity": "2"
+ },
+ "tealjoker": {
+  "file": "src/jokers/tealjoker.lua",
+  "rarity": "2"
+ },
+ "the_first_sliver": {
+  "file": "src/jokers/the_first_sliver.lua",
+  "rarity": "3"
+ },
+ "the_solo": {
+  "file": "src/jokers/the_solo.lua",
+  "rarity": "3"
+ },
+ "thejester": {
+  "file": "src/jokers/thejester.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "theshatteringcircle": {
+  "file": "src/jokers/theshatteringcircle.lua",
+  "rarity": "3"
+ },
+ "thewayhome": {
+  "file": "src/jokers/thewayhome.lua",
+  "rarity": "2"
+ },
+ "three_steps_ahead": {
+  "file": "src/jokers/three_steps_ahead.lua",
+  "rarity": "3"
+ },
+ "tonersoup": {
+  "file": "src/jokers/tonersoup.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "top10": {
+  "file": "src/jokers/top10.lua",
+  "rarity": "3"
+ },
+ "treasuremap": {
+  "file": "src/jokers/treasuremap.lua",
+  "rarity": "1"
+ },
+ "triangle": {
+  "file": "src/jokers/triangle.lua",
+  "rarity": "4"
+ },
+ "trianglewalker": {
+  "file": "src/jokers/trianglewalker.lua",
+  "rarity": "3"
+ },
+ "triangular": {
+  "file": "src/jokers/triangular.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "unpleasantcard": {
+  "file": "src/jokers/unpleasantcard.lua",
+  "rarity": "2"
+ },
+ "unregisteredhypercam": {
+  "file": "src/jokers/unregisteredhypercam.lua",
+  "rarity": "1"
+ },
+ "violent_outburst": {
+  "file": "src/jokers/violent_outburst.lua",
+  "rarity": "2"
+ },
+ "virtual": {
+  "file": "src/jokers/virtual.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "virulent_sliver": {
+  "file": "src/jokers/virulent_sliver.lua",
+  "rarity": "2"
+ },
+ "whiplash": {
+  "file": "src/jokers/whiplash.lua",
+  "rarity": "3"
+ },
+ "whiteboard": {
+  "file": "src/jokers/whiteboard.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "widejoker": {
+  "file": "src/jokers/widejoker.lua",
+  "rarity": "3"
+ },
+ "wilddrawfour": {
+  "file": "src/jokers/wilddrawfour.lua",
+  "rarity": "mf_oldfluff"
+ },
+ "yuckyrat": {
+  "file": "src/jokers/yuckyrat.lua",
+  "rarity": "2"
+ },
+ "zhulodok": {
+  "file": "src/jokers/zhulodok.lua",
+  "rarity": "3"
+ },
+ "name_sticker_goblin": {
+  "file": "src/jokers/crossmod/name_sticker_goblin.lua",
+  "rarity": "3"
+ }
+}

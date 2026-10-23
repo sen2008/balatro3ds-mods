@@ -1,0 +1,91 @@
+STATUS loaded ERR nil
+COUNT 89
+DEF j_mfp_badlegaldefence | Bad Legal Defence | rarity=2 | cost=6
+DEF j_mfp_baseball_stream | The Baseball Stream | rarity=3 | cost=10
+DEF j_mfp_basepaul_card | Basepaul Card | rarity=1 | cost=5
+DEF j_mfp_bigshot | [[BIG SHOT]] | rarity=5 | cost=7
+DEF j_mfp_blackmarket | Black Market | rarity=5 | cost=4
+DEF j_mfp_bladedance | Blade Dance | rarity=2 | cost=8
+DEF j_mfp_bloodpact | Contract from Below | rarity=3 | cost=9
+DEF j_mfp_bookmove | Book Move | rarity=3 | cost=10
+DEF j_mfp_bowling_ball | Bowling Ball | rarity=3 | cost=8
+DEF j_mfp_brainrot | Brainrot | rarity=5 | cost=6
+DEF j_mfp_brilliant | Brilliant | rarity=2 | cost=8
+DEF j_mfp_broomcloset | The Broom Closet | rarity=2 | cost=4
+DEF j_mfp_burnerphone | Burner Phone | rarity=5 | cost=2
+DEF j_mfp_cba | Card Buffer Advanced | rarity=3 | cost=10
+DEF j_mfp_clownfish | Clownfish | rarity=1 | cost=6
+DEF j_mfp_coupon_catalogue | Coupon Catalogue | rarity=5 | cost=7
+DEF j_mfp_dinner | DINNER! | rarity=2 | cost=5
+DEF j_mfp_dramaticentrance | Dramatic Entrance | rarity=2 | cost=6
+DEF j_mfp_expansion_pack | Expansion Pack | rarity=1 | cost=6
+DEF j_mfp_fish | Fish | rarity=8 | cost=1
+DEF j_mfp_forge | Joker Forge | rarity=2 | cost=6
+DEF j_mfp_forgeslop | Forge Residue | rarity=8 | cost=0
+DEF j_mfp_friendinsideme | Friend Inside Me | rarity=2 | cost=7
+DEF j_mfp_globe | Globe | rarity=2 | cost=6
+DEF j_mfp_goldencarrot | Golden Carrot | rarity=2 | cost=4
+DEF j_mfp_grep | grep | rarity=3 | cost=8
+DEF j_mfp_hallofmirrors | Hall of Mirrors | rarity=5 | cost=6
+DEF j_mfp_hollow | Hollow Joker | rarity=1 | cost=4
+DEF j_mfp_hugejoker | Huge Joker | rarity=3 | cost=8
+DEF j_mfp_hyperbeam | Hyper Beam | rarity=2 | cost=8
+DEF j_mfp_icecube | Ice Cube | rarity=2 | cost=6
+DEF j_mfp_impostor | Impostor | rarity=5 | cost=7
+DEF j_mfp_jack_of_all_trades | Jack of All Trades | rarity=1 | cost=6
+DEF j_mfp_jester | Jester | rarity=1 | cost=2
+DEF j_mfp_jokesforminecrafters | Jokes for Balatro Players | rarity=1 | cost=7
+DEF j_mfp_knuckleblaster | Knuckleblaster | rarity=2 | cost=6
+DEF j_mfp_lessfluff | Less Fluff | rarity=3 | cost=10
+DEF j_mfp_lettergem_a | A | rarity=6 | cost=2
+DEF j_mfp_lettergem_c | C | rarity=6 | cost=6
+DEF j_mfp_lettergem_d | D | rarity=6 | cost=4
+DEF j_mfp_lettergem_f | F | rarity=6 | cost=8
+DEF j_mfp_lettergem_g | G | rarity=6 | cost=4
+DEF j_mfp_lettergem_h | H | rarity=6 | cost=8
+DEF j_mfp_lettergem_i | I | rarity=6 | cost=2
+DEF j_mfp_lettergem_j | J | rarity=6 | cost=16
+DEF j_mfp_lettergem_k | K | rarity=6 | cost=10
+DEF j_mfp_lettergem_m | M | rarity=6 | cost=6
+DEF j_mfp_lettergem_n | N | rarity=6 | cost=2
+DEF j_mfp_lettergem_o | O | rarity=6 | cost=2
+DEF j_mfp_lettergem_q | Q | rarity=6 | cost=20
+DEF j_mfp_lettergem_s | S | rarity=6 | cost=2
+DEF j_mfp_lettergem_v | V | rarity=6 | cost=8
+DEF j_mfp_lettergem_w | W | rarity=6 | cost=8
+DEF j_mfp_lettergem_y | Y | rarity=6 | cost=8
+DEF j_mfp_lollipop | Lollipop | rarity=1 | cost=6
+DEF j_mfp_luckycharm | Lucky Charm | rarity=1 | cost=6
+DEF j_mfp_mashupalbum | Mashup Album | rarity=5 | cost=8
+DEF j_mfp_miner | Miner | rarity=5 | cost=5
+DEF j_mfp_moneyprinter | Money Printer | rarity=5 | cost=5
+DEF j_mfp_mspaint | MS Paint Joker | rarity=1 | cost=5
+DEF j_mfp_onesliptoolate | One Slip Too Late | rarity=2 | cost=5
+DEF j_mfp_oopsallfives | Oops! All 5s | rarity=8 | cost=1
+DEF j_mfp_particleaccelerator | Particle Accelerator | rarity=5 | cost=7
+DEF j_mfp_passando | Passing Balatro in 5 Minutes | rarity=2 | cost=6
+DEF j_mfp_philosophical | Philosophical Joker | rarity=1 | cost=1
+DEF j_mfp_pixel_joker | Pixel Joker | rarity=3 | cost=8
+DEF j_mfp_recycling | Recycling | rarity=2 | cost=5
+DEF j_mfp_retrigger_joker | Retrigger Joker | rarity=2 | cost=8
+DEF j_mfp_riding_the_dilu_horse | Riding the Dilu Horse | rarity=3 | cost=7
+DEF j_mfp_simplified | Simplified Joker | rarity=1 | cost=5
+DEF j_mfp_slotmachine | Big Win | rarity=2 | cost=7
+DEF j_mfp_spiral | Spiral Joker | rarity=1 | cost=5
+DEF j_mfp_steamflogger_boss | Steamflogger Boss | rarity=5 | cost=6
+DEF j_mfp_stifle | Stifle | rarity=1 | cost=4
+DEF j_mfp_stonejokerjoker | StoneJoker Joker | rarity=2 | cost=8
+DEF j_mfp_stormscale | Stormscale Scion | rarity=5 | cost=10
+DEF j_mfp_stylemeter | Style Meter | rarity=2 | cost=6
+DEF j_mfp_sudoku | Sudoku Joker | rarity=5 | cost=9
+DEF j_mfp_sword_of_steven_and_todd | Sword of Steven and Todd | rarity=3 | cost=10
+DEF j_mfp_the_solo | The Solo | rarity=3 | cost=7
+DEF j_mfp_thejester | The Jester | rarity=5 | cost=20
+DEF j_mfp_theshatteringcircle | Disintegration Loop | rarity=3 | cost=10
+DEF j_mfp_tonersoup | I Sip Toner Soup | rarity=5 | cost=8
+DEF j_mfp_top10 | Top 10 Jokers From 1 To 10 | rarity=3 | cost=10
+DEF j_mfp_treasuremap | Treasure Map | rarity=1 | cost=4
+DEF j_mfp_triangular | Triangular Joker | rarity=5 | cost=7
+DEF j_mfp_virtual | Virtual Joker | rarity=5 | cost=7
+DEF j_mfp_whiteboard | Whiteboard | rarity=5 | cost=6
+DEF j_mfp_wilddrawfour | Wild Draw Four | rarity=5 | cost=7

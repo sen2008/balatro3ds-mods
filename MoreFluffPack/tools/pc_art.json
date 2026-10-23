@@ -1,0 +1,1885 @@
+{
+ "aceupthesleeve": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   4.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "aheartofcold": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "allicantdo": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   5.0
+  ],
+  "soul_pos": [
+   6.0,
+   4.0
+  ]
+ },
+ "apex_devastator": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "applefriends": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   11.0
+  ],
+  "soul_pos": null
+ },
+ "astral_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "aura_farm": {
+  "atlas": "mf_purple",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "badlegaldefence": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "balatromods": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   8.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "baseball_stream": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "basepaul_card": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "bigshot": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   6.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "blackmarket": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   2.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "bladedance": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "blahaj": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "blasphemy": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "bloodpact": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "blunder": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "bonussheet": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "bookmove": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "bouncer": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "bowlingball": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "boxofhands": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   2.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "brainrot": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "brass": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "bridge_from_below": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "brilliant": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "broomcloset": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "burnerphone": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   5.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "cba": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "clipart": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "clownfish": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "cosmogoyf": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "coupon_catalogue": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   0.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "crad_shuffler": {
+  "atlas": "mf_purple",
+  "pos": [
+   1.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "crimsonglassdecomposition": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "crypticmod": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "css": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   4.0
+  ],
+  "soul_pos": null
+ },
+ "cueball": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "deadheatpulse": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   10.0
+  ],
+  "soul_pos": null
+ },
+ "diabolical": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "digital_exclusive": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "dinner": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "doubledscale": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "dramaticentrance": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "dropkick": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_decay": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_eternity": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   9.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_eventuality": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_growth": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   8.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_lore": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_rebirth": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "emeritus_variety": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "eventhorizon": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "expansion_pack": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "farmmerge": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   4.0
+  ],
+  "soul_pos": null
+ },
+ "fish": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "fived": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   9.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "fleshprison": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   0.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "flintandsteel": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   3.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "forge": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "forgeslop": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "fortunate_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "fourd_sanctuary": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   9.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "freaky_pizza": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   7.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "friendinsideme": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "fury_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "gemalert": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "gemhide_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "gemstonejoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "gentlemelon": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   11.0
+  ],
+  "soul_pos": null
+ },
+ "ghostly_reflection": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "glitterbomb": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   4.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "globe": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "goldencarrot": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "grep": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "hallofmirrors": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   7.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "halt": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "hold_music": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "hollow": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "homing_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "hugejoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "hyperbeam": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "hyperjimbo": {
+  "atlas": "mf_hyperjimbo",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "icecube": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   11.0
+  ],
+  "soul_pos": null
+ },
+ "impostor": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   9.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "intervention_pact": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "jackofalltrades": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "jankman": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "jester": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "johnbalatro": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "johnbalatrotrue": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   9.0
+  ],
+  "soul_pos": [
+   4.0,
+   9.0
+  ]
+ },
+ "johnbalatro_super_ultra_mega_upgraded_deluxe": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   9.0
+  ],
+  "soul_pos": [
+   4.0,
+   9.0
+  ]
+ },
+ "joker_with_sets_mechanic": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "jokerreacts": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   11.0
+  ],
+  "soul_pos": null
+ },
+ "jokesforminecrafters": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "junkmail": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "junkyard": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "knuckleblaster": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "lessfluff": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_a": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_b": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   1.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_c": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   2.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_d": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   3.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_e": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   4.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_f": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   5.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_g": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   6.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_h": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   7.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_i": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   8.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_j": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   0.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_k": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   1.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_l": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   2.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_m": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   3.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_n": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   4.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_o": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   5.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_p": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   6.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_q": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   7.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_r": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   8.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_s": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   0.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_t": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   1.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_u": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   2.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_v": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   3.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_w": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   4.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_x": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   5.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_y": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   6.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "lettergem_z": {
+  "atlas": "mf_letterjokers",
+  "pos": [
+   7.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "loadeddisk": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "lollipop": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "lonewolf": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   10.0
+  ],
+  "soul_pos": null
+ },
+ "luckycharm": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "marigold": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   4.0
+  ],
+  "soul_pos": [
+   0.0,
+   5.0
+  ]
+ },
+ "marketable_plushie": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   6.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "mashupalbum": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   1.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "mathemagics": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   12.0
+  ],
+  "soul_pos": null
+ },
+ "megantic_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "might_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "mindlash_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "mindsculptor": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "miner": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   1.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "missingjoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "moneyprinter": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   5.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "monochrome": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   8.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "mrloans": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   7.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "mspaint": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "muscle_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "nemesis": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "old_rot_chicot": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   1.0,
+   6.0
+  ],
+  "soul_pos": [
+   3.0,
+   11.0
+  ]
+ },
+ "old_rot_marigold": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   3.0,
+   6.0
+  ],
+  "soul_pos": [
+   0.0,
+   5.0
+  ]
+ },
+ "rot_perkeo": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   10.0
+  ],
+  "soul_pos": [
+   4.0,
+   11.0
+  ]
+ },
+ "old_rot_triangle": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   2.0,
+   6.0
+  ],
+  "soul_pos": [
+   9.0,
+   5.0
+  ]
+ },
+ "old_rot_triboulet": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   0.0,
+   6.0
+  ],
+  "soul_pos": [
+   1.0,
+   11.0
+  ]
+ },
+ "rot_yorick": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   10.0
+  ],
+  "soul_pos": [
+   2.0,
+   11.0
+  ]
+ },
+ "onesliptoolate": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "oopsallfives": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "overlord": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "pact_of_negation": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "pact_of_the_titan": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "paintcan": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "particleaccelerator": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   7.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "passando": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "philosophical": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "phyrexian_banner": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "pixeljoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "plasma_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "purple_economy_joker": {
+  "atlas": "mf_purple",
+  "pos": [
+   2.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "quantum_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "rainbowjoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "ransom_note": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "recycling": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "refrigerator": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   10.0
+  ],
+  "soul_pos": null
+ },
+ "repack": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "retrigger_joker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   11.0
+  ],
+  "soul_pos": null
+ },
+ "riding_the_dilu_horse": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "rosetinted": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   3.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "rot_canio": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   10.0
+  ],
+  "soul_pos": [
+   0.0,
+   11.0
+  ]
+ },
+ "rot_cartomancer": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "rot_chicot": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   10.0
+  ],
+  "soul_pos": [
+   3.0,
+   11.0
+  ]
+ },
+ "rot_marigold": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   10.0
+  ],
+  "soul_pos": [
+   0.0,
+   5.0
+  ]
+ },
+ "rot_triangle": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   10.0
+  ],
+  "soul_pos": [
+   9.0,
+   5.0
+  ]
+ },
+ "rot_triboulet": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   10.0
+  ],
+  "soul_pos": [
+   1.0,
+   11.0
+  ]
+ },
+ "sapling": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "saturnburger": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "sealthedeal": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   6.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "shopping_spree": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "simplified": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "sinew_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "slaughter_pact": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "sliver_jockey": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "slotmachine": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "snake": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "space_elevator": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "spiral": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "stasis_chamber": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "steamflogger_boss": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   5.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "stifle": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "stonejokerjoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "stormscale": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   4.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "stylemeter": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "sudoku": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   4.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "summoners_pact": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "suspension": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "sword_of_steven_and_todd": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "talljoker": {
+  "atlas": null,
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "teacup": {
+  "atlas": "mf_jokers",
+  "pos": [
+   6.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "tealjoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "the_first_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   18.0
+  ],
+  "soul_pos": null
+ },
+ "the_solo": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "thejester": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   3.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "theshatteringcircle": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   13.0
+  ],
+  "soul_pos": null
+ },
+ "thewayhome": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   8.0
+  ],
+  "soul_pos": null
+ },
+ "three_steps_ahead": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   15.0
+  ],
+  "soul_pos": null
+ },
+ "tonersoup": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   6.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "top10": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   6.0
+  ],
+  "soul_pos": [
+   7.0,
+   4.0
+  ]
+ },
+ "treasuremap": {
+  "atlas": "mf_jokers",
+  "pos": [
+   8.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "triangle": {
+  "atlas": "mf_jokers",
+  "pos": [
+   9.0,
+   4.0
+  ],
+  "soul_pos": [
+   9.0,
+   5.0
+  ]
+ },
+ "trianglewalker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   9.0
+  ],
+  "soul_pos": null
+ },
+ "triangular": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   1.0,
+   0.0
+  ],
+  "soul_pos": null
+ },
+ "unpleasantcard": {
+  "atlas": "mf_jokers",
+  "pos": [
+   0.0,
+   7.0
+  ],
+  "soul_pos": null
+ },
+ "unregisteredhypercam": {
+  "atlas": "mf_jokers",
+  "pos": [
+   7.0,
+   6.0
+  ],
+  "soul_pos": null
+ },
+ "violent_outburst": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "virtual": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   8.0,
+   2.0
+  ],
+  "soul_pos": null
+ },
+ "virulent_sliver": {
+  "atlas": "mf_jokers",
+  "pos": [
+   5.0,
+   17.0
+  ],
+  "soul_pos": null
+ },
+ "whiplash": {
+  "atlas": "mf_jokers",
+  "pos": [
+   2.0,
+   14.0
+  ],
+  "soul_pos": null
+ },
+ "whiteboard": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   0.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "widejoker": {
+  "atlas": "mf_jokers",
+  "pos": [
+   3.0,
+   3.0
+  ],
+  "soul_pos": null
+ },
+ "wilddrawfour": {
+  "atlas": "mf_oldfluff",
+  "pos": [
+   9.0,
+   1.0
+  ],
+  "soul_pos": null
+ },
+ "yuckyrat": {
+  "atlas": "mf_jokers",
+  "pos": [
+   1.0,
+   5.0
+  ],
+  "soul_pos": null
+ },
+ "zhulodok": {
+  "atlas": "mf_jokers",
+  "pos": [
+   4.0,
+   16.0
+  ],
+  "soul_pos": null
+ },
+ "name_sticker_goblin": {
+  "atlas": "mf_crossmod",
+  "pos": [
+   0.0,
+   0.0
+  ],
+  "soul_pos": null
+ }
+}

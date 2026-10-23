@@ -1,0 +1,367 @@
+{
+ "badlegaldefence": [
+  "mf_jokers",
+  7,
+  3
+ ],
+ "baseball_stream": [
+  "mf_jokers",
+  9,
+  16
+ ],
+ "basepaul_card": [
+  "mf_jokers",
+  1,
+  0
+ ],
+ "bigshot": [
+  "mf_oldfluff",
+  6,
+  1
+ ],
+ "blackmarket": [
+  "mf_oldfluff",
+  2,
+  1
+ ],
+ "bladedance": [
+  "mf_jokers",
+  5,
+  2
+ ],
+ "bloodpact": [
+  "mf_jokers",
+  2,
+  3
+ ],
+ "bookmove": [
+  "mf_jokers",
+  4,
+  7
+ ],
+ "brainrot": [
+  "mf_oldfluff",
+  0,
+  0
+ ],
+ "brilliant": [
+  "mf_jokers",
+  7,
+  7
+ ],
+ "broomcloset": [
+  "mf_jokers",
+  6,
+  6
+ ],
+ "cba": [
+  "mf_jokers",
+  9,
+  1
+ ],
+ "coupon_catalogue": [
+  "mf_oldfluff",
+  0,
+  3
+ ],
+ "dinner": [
+  "mf_jokers",
+  5,
+  9
+ ],
+ "dramaticentrance": [
+  "mf_jokers",
+  3,
+  2
+ ],
+ "expansion_pack": [
+  "mf_jokers",
+  5,
+  0
+ ],
+ "fish": [
+  "mf_jokers",
+  3,
+  12
+ ],
+ "forge": [
+  "mf_jokers",
+  8,
+  8
+ ],
+ "forgeslop": [
+  "mf_jokers",
+  9,
+  8
+ ],
+ "friendinsideme": [
+  "mf_jokers",
+  0,
+  8
+ ],
+ "globe": [
+  "mf_jokers",
+  7,
+  0
+ ],
+ "goldencarrot": [
+  "mf_jokers",
+  6,
+  0
+ ],
+ "hugejoker": [
+  "mf_jokers",
+  3,
+  3
+ ],
+ "hyperbeam": [
+  "mf_jokers",
+  6,
+  2
+ ],
+ "icecube": [
+  "mf_jokers",
+  6,
+  11
+ ],
+ "impostor": [
+  "mf_oldfluff",
+  9,
+  2
+ ],
+ "jokesforminecrafters": [
+  "mf_jokers",
+  9,
+  12
+ ],
+ "knuckleblaster": [
+  "mf_jokers",
+  1,
+  14
+ ],
+ "lettergem_a": [
+  "mf_letterjokers",
+  0,
+  0
+ ],
+ "lettergem_c": [
+  "mf_letterjokers",
+  2,
+  0
+ ],
+ "lettergem_f": [
+  "mf_letterjokers",
+  5,
+  0
+ ],
+ "lettergem_g": [
+  "mf_letterjokers",
+  6,
+  0
+ ],
+ "lettergem_h": [
+  "mf_letterjokers",
+  7,
+  0
+ ],
+ "lettergem_i": [
+  "mf_letterjokers",
+  8,
+  0
+ ],
+ "lettergem_j": [
+  "mf_letterjokers",
+  0,
+  1
+ ],
+ "lettergem_k": [
+  "mf_letterjokers",
+  1,
+  1
+ ],
+ "lettergem_m": [
+  "mf_letterjokers",
+  3,
+  1
+ ],
+ "lettergem_n": [
+  "mf_letterjokers",
+  4,
+  1
+ ],
+ "lettergem_o": [
+  "mf_letterjokers",
+  5,
+  1
+ ],
+ "lettergem_s": [
+  "mf_letterjokers",
+  0,
+  2
+ ],
+ "lettergem_v": [
+  "mf_letterjokers",
+  3,
+  2
+ ],
+ "lettergem_w": [
+  "mf_letterjokers",
+  4,
+  2
+ ],
+ "lettergem_y": [
+  "mf_letterjokers",
+  6,
+  2
+ ],
+ "luckycharm": [
+  "mf_jokers",
+  8,
+  1
+ ],
+ "lollipop": [
+  "mf_jokers",
+  7,
+  1
+ ],
+ "mashupalbum": [
+  "mf_oldfluff",
+  1,
+  2
+ ],
+ "miner": [
+  "mf_oldfluff",
+  1,
+  1
+ ],
+ "moneyprinter": [
+  "mf_oldfluff",
+  5,
+  0
+ ],
+ "oopsallfives": [
+  "mf_jokers",
+  4,
+  8
+ ],
+ "particleaccelerator": [
+  "mf_oldfluff",
+  7,
+  0
+ ],
+ "passando": [
+  "mf_jokers",
+  5,
+  8
+ ],
+ "philosophical": [
+  "mf_jokers",
+  4,
+  0
+ ],
+ "recycling": [
+  "mf_jokers",
+  2,
+  2
+ ],
+ "retrigger_joker": [
+  "mf_jokers",
+  5,
+  11
+ ],
+ "riding_the_dilu_horse": [
+  "mf_jokers",
+  3,
+  16
+ ],
+ "slotmachine": [
+  "mf_jokers",
+  2,
+  7
+ ],
+ "spiral": [
+  "mf_jokers",
+  1,
+  1
+ ],
+ "steamflogger_boss": [
+  "mf_oldfluff",
+  5,
+  6
+ ],
+ "stifle": [
+  "mf_jokers",
+  0,
+  16
+ ],
+ "stonejokerjoker": [
+  "mf_jokers",
+  3,
+  6
+ ],
+ "stormscale": [
+  "mf_oldfluff",
+  4,
+  6
+ ],
+ "stylemeter": [
+  "mf_jokers",
+  1,
+  2
+ ],
+ "sudoku": [
+  "mf_oldfluff",
+  4,
+  2
+ ],
+ "sword_of_steven_and_todd": [
+  "mf_jokers",
+  8,
+  16
+ ],
+ "thejester": [
+  "mf_oldfluff",
+  3,
+  1
+ ],
+ "theshatteringcircle": [
+  "mf_jokers",
+  9,
+  13
+ ],
+ "tonersoup": [
+  "mf_oldfluff",
+  6,
+  2
+ ],
+ "top10": [
+  "mf_jokers",
+  1,
+  6
+ ],
+ "treasuremap": [
+  "mf_jokers",
+  8,
+  3
+ ],
+ "triangular": [
+  "mf_oldfluff",
+  1,
+  0
+ ],
+ "virtual": [
+  "mf_oldfluff",
+  8,
+  2
+ ],
+ "wilddrawfour": [
+  "mf_oldfluff",
+  9,
+  1
+ ],
+ "top10_soul": [
+  "mf_jokers",
+  7,
+  4
+ ]
+}
