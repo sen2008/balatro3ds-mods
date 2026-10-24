@@ -30,6 +30,25 @@ local NAMES = {
     "magnemite", "magneton", "shellder", "cloyster", "krabby", "kingler",
     "goldeen", "seaking", "mrmime", "pinsir", "pikachu", "raichu",
     "magikarp", "gyarados", "rapidash", "articuno",
+    -- Wave 4 (v1.4.0): the remaining non-Mega Gen 1 lines.
+    "spearow", "fearow", "nidoranf", "nidorina", "nidoqueen",
+    "nidoranm", "nidorino", "nidoking", "vulpix", "ninetales",
+    "zubat", "golbat", "oddish", "gloom", "vileplume",
+    "paras", "parasect", "venonat", "venomoth", "meowth",
+    "persian", "psyduck", "golduck", "mankey", "primeape", "poliwag",
+    "poliwhirl", "poliwrath", "abra", "kadabra", "alakazam",
+    "machop", "machoke", "machamp", "bellsprout", "weepinbell", "victreebel",
+    "geodude", "graveler", "golem", "ponyta", "slowpoke", "slowbro",
+    "doduo", "dodrio", "seel", "dewgong", "grimer", "muk",
+    "gastly", "haunter", "gengar", "onix", "drowzee", "hypno",
+    "voltorb", "electrode", "exeggcute", "exeggutor", "cubone", "marowak",
+    "hitmonlee", "hitmonchan", "lickitung", "koffing", "weezing",
+    "rhyhorn", "rhydon", "tangela", "kangaskhan", "horsea", "seadra",
+    "staryu", "starmie", "scyther", "electabuzz", "magmar",
+    "tauros", "taurosh", "lapras", "eevee", "vaporeon",
+    "jolteon", "flareon", "omanyte", "omastar", "kabuto", "kabutops",
+    "aerodactyl", "zapdos", "dratini", "dragonair", "dragonite",
+    "mewtwo", "mew",
 }
 
 local function install_pack()
@@ -43,7 +62,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/PokermonPack.json", [[{
         "id": "PokermonPack", "name": "Pokermon (3DS port)", "prefix": "pokep",
-        "main_file": "pokermonpack.lua", "version": "1.3.0",
+        "main_file": "pokermonpack.lua", "version": "1.4.0",
         "author": ["InertSteak", "3DS port"]
     }]])
     love.filesystem.write(base .. "/pokermonpack.lua", main)
@@ -51,9 +70,13 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
-    for _, n in ipairs({ "firestone", "waterstone", "thunderstone", "moonstone" }) do
+    for _, n in ipairs({ "firestone", "waterstone", "thunderstone", "moonstone", "leafstone" }) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
+    for _, n in ipairs({ "zapdos", "mewtwo", "mew" }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_soul.png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_soul_negative.png", "png")
     end
     ModLoader.load_all()
     local game = bootstrap.new_game(7702)
@@ -108,11 +131,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 50 Pokemon", function()
+suite.test("pack loads and registers all 145 Pokemon", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PokermonPack
     T.assert_eq(mod.status, "loaded")
-    T.assert_eq(#mod.registered.jokers, 50)
+    T.assert_eq(#mod.registered.jokers, 145)
     local expect = {
         j_pokep_bulbasaur = { "Bulbasaur", 2, 5 }, j_pokep_charmander = { "Charmander", 2, 5 },
         j_pokep_squirtle = { "Squirtle", 2, 6 }, j_pokep_caterpie = { "Caterpie", 1, 2 },
@@ -173,6 +196,18 @@ suite.test("every tooltip formats with live values", function()
         local text = table.concat(flatten(lines), " ")
         T.assert_true(text:find("#", 1, true) == nil,
             n .. " tooltip has no raw placeholder: " .. text)
+    end
+    wipe_mods()
+end)
+
+suite.test("every Pokemon survives a blanket scoring pass", function()
+    local game = install_pack()
+    local played = { card(10, "Hearts"), card(11, "Spades", "bonus") }
+    for _, n in ipairs(NAMES) do
+        game.jokers = {}
+        local j = add(game, "j_pokep_" .. n)
+        scored(j, { played_cards = played, scoring_hand = played, full_hand = played })
+        before(j, { played_cards = played, scoring_hand = played, full_hand = played })
     end
     wipe_mods()
 end)
@@ -643,6 +678,7 @@ end)
 local STONE_IDS = {
     c_pokep_firestone = true, c_pokep_waterstone = true,
     c_pokep_thunderstone = true, c_pokep_moonstone = true,
+    c_pokep_leafstone = true,
 }
 
 local function stone_setup()
@@ -662,7 +698,7 @@ end
 suite.test("stones register under the pack's own poke_item type", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PokermonPack
-    T.assert_eq(#mod.registered.consumables, 4, "four stones register as consumables")
+    T.assert_eq(#mod.registered.consumables, 5, "five stones register as consumables")
     local entry = SMODS.ConsumableTypes["pokep_poke_item"]
     T.assert_true(entry ~= nil, "the poke_item type registers")
     T.assert_eq(entry.kind, "poke_item")
@@ -677,7 +713,7 @@ suite.test("stones register under the pack's own poke_item type", function()
         local lines = SMODS.tooltip_lines(id, def)
         T.assert_true(type(lines) == "table" and #lines >= 1, id .. " tooltip has lines")
     end
-    -- The kind's own pool is exactly the four stones.
+    -- The kind's own pool is exactly the five stones.
     for _ = 1, 40 do
         local rolled = game:random_consumable_id_of_kind("poke_item", nil, "stone")
         T.assert_true(STONE_IDS[rolled] == true, "kind pool rolls only stones: " .. tostring(rolled))
@@ -759,6 +795,93 @@ suite.test("each stone evolves its own line and refuses the others", function()
     slot = hold_stone(game, "c_pokep_moonstone")
     T.assert_true(game:use_consumable(slot, jig))
     T.assert_eq(only_joker(game).def.id, "j_pokep_wigglytuff", "Jigglypuff evolved into Wigglytuff")
+    wipe_mods()
+end)
+
+suite.test("wave 4 stones: Leaf Stone, new targets, Eevee branching", function()
+    -- Leaf Stone: Gloom -> Vileplume.
+    local game = stone_setup()
+    local gloom = add(game, "j_pokep_gloom")
+    local slot = hold_stone(game, "c_pokep_leafstone")
+    T.assert_true(game:use_consumable(slot, gloom))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_vileplume", "Gloom evolved into Vileplume")
+    wipe_mods()
+
+    -- Leaf Stone: Exeggcute -> Exeggutor.
+    game = stone_setup()
+    local eggs = add(game, "j_pokep_exeggcute")
+    slot = hold_stone(game, "c_pokep_leafstone")
+    T.assert_true(game:use_consumable(slot, eggs))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_exeggutor", "Exeggcute evolved into Exeggutor")
+    wipe_mods()
+
+    -- Leaf Stone refuses Pikachu.
+    game = stone_setup()
+    local pika = add(game, "j_pokep_pikachu")
+    slot = hold_stone(game, "c_pokep_leafstone")
+    T.assert_false(game:use_consumable(slot, pika), "Leaf Stone does not evolve Pikachu")
+    T.assert_eq(#game.consumables, 1, "the refused stone stays held")
+    wipe_mods()
+
+    -- Water Stone: Poliwhirl -> Poliwrath; Staryu -> Starmie.
+    game = stone_setup()
+    local poli = add(game, "j_pokep_poliwhirl")
+    slot = hold_stone(game, "c_pokep_waterstone")
+    T.assert_true(game:use_consumable(slot, poli))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_poliwrath", "Poliwhirl evolved into Poliwrath")
+    wipe_mods()
+
+    game = stone_setup()
+    local star = add(game, "j_pokep_staryu")
+    slot = hold_stone(game, "c_pokep_waterstone")
+    T.assert_true(game:use_consumable(slot, star))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_starmie", "Staryu evolved into Starmie")
+    wipe_mods()
+
+    -- Fire Stone: Vulpix -> Ninetales.
+    game = stone_setup()
+    local vul = add(game, "j_pokep_vulpix")
+    slot = hold_stone(game, "c_pokep_firestone")
+    T.assert_true(game:use_consumable(slot, vul))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_ninetales", "Vulpix evolved into Ninetales")
+    wipe_mods()
+
+    -- Moon Stone: Nidorina -> Nidoqueen.
+    game = stone_setup()
+    local rina = add(game, "j_pokep_nidorina")
+    slot = hold_stone(game, "c_pokep_moonstone")
+    T.assert_true(game:use_consumable(slot, rina))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_nidoqueen", "Nidorina evolved into Nidoqueen")
+    wipe_mods()
+
+    -- Eevee branches: the stone chosen decides the evolved form.
+    game = stone_setup()
+    local eevee = add(game, "j_pokep_eevee")
+    slot = hold_stone(game, "c_pokep_firestone")
+    T.assert_true(game:use_consumable(slot, eevee))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_flareon", "Eevee + Fire Stone = Flareon")
+    wipe_mods()
+
+    game = stone_setup()
+    eevee = add(game, "j_pokep_eevee")
+    slot = hold_stone(game, "c_pokep_waterstone")
+    T.assert_true(game:use_consumable(slot, eevee))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_vaporeon", "Eevee + Water Stone = Vaporeon")
+    wipe_mods()
+
+    game = stone_setup()
+    eevee = add(game, "j_pokep_eevee")
+    slot = hold_stone(game, "c_pokep_thunderstone")
+    T.assert_true(game:use_consumable(slot, eevee))
+    T.assert_eq(only_joker(game).def.id, "j_pokep_jolteon", "Eevee + Thunder Stone = Jolteon")
+    wipe_mods()
+
+    -- ...but the Moon Stone refuses Eevee.
+    game = stone_setup()
+    eevee = add(game, "j_pokep_eevee")
+    slot = hold_stone(game, "c_pokep_moonstone")
+    T.assert_false(game:use_consumable(slot, eevee), "Moon Stone does not evolve Eevee")
+    T.assert_eq(only_joker(game).def.id, "j_pokep_eevee", "nothing evolved")
     wipe_mods()
 end)
 

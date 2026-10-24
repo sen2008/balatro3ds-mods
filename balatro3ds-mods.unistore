@@ -48,63 +48,78 @@
    "All-Mod-Packs": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.3.0.zip",
-      "output": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.4.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "input": "^CryptidPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.2.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.3.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.3.0.zip",
-      "output": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.4.0.zip",
+      "output": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "input": "^PokermonPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.3.0.zip",
-      "output": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-jest-pack-v1.0.0.zip",
+      "output": "/balatro3ds-jest-pack-v1.0.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "/balatro3ds-jest-pack-v1.0.0.zip",
+      "input": "^JestPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/JestPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-jest-pack-v1.0.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.4.0.zip",
+      "output": "/balatro3ds-bunco-pack-v1.4.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.4.0.zip",
       "input": "^BuncoPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "/balatro3ds-bunco-pack-v1.4.0.zip",
       "type": "deleteFile"
      },
      {
@@ -183,7 +198,7 @@
       "type": "deleteFile"
      }
     ],
-    "size": "30 MiB"
+    "size": "53 MiB"
    },
    "info": {
     "author": "sen2008",
@@ -193,12 +208,13 @@
     "console": [
      "3DS"
     ],
-    "description": "Every published Balatro3DS mod pack in one install: Cryptid, Paperback, Pokermon, Bunco, MoreFluff, Mika's, Neato, KCVanilla and Swiss Cheese.",
+    "description": "Every published Balatro3DS mod pack in one install: Cryptid, Paperback, Pokermon, Jest, Bunco, MoreFluff, Mika's, Neato, KCVanilla and Swiss Cheese.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/CryptidPack.json",
      "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json",
      "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/PokermonPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/JestPack/JestPack.json",
      "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/BuncoPack.json",
      "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/MoreFluffPack.json",
      "/3ds/save/Balatro3DS/sdmc/mods/MikasPack/MikasPack.json",
@@ -221,21 +237,21 @@
    }
   },
   {
-   "balatro3ds-cryptid-pack-v1.3.0.zip": {
+   "balatro3ds-cryptid-pack-v1.4.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.3.0.zip",
-      "output": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.4.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "input": "^CryptidPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.4.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -249,7 +265,7 @@
     "console": [
      "3DS"
     ],
-    "description": "172 Jokers + 28 consumables from Cryptid, incl. big-number Jokers, custom rarities, Bulwark and UltPair hands.",
+    "description": "175 Jokers + 28 consumables from Cryptid, incl. big-number Jokers, custom rarities, Bulwark and UltPair hands.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/CryptidPack.json"
@@ -264,26 +280,26 @@
     "stars": 0,
     "title": "CryptidPack",
     "title_ids": [],
-    "version": "1.3.0",
+    "version": "1.4.0",
     "wiki": ""
    }
   },
   {
-   "balatro3ds-paperback-pack-v1.2.0.zip": {
+   "balatro3ds-paperback-pack-v1.3.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.2.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.3.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.3.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -297,7 +313,7 @@
     "console": [
      "3DS"
     ],
-    "description": "280 Jokers + 45 Minor Arcana from Paperback, with custom enhancements, tags and Dichrome edition.",
+    "description": "283 Jokers + 45 Minor Arcana from Paperback, with custom enhancements, tags and Dichrome edition.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json"
@@ -312,30 +328,30 @@
     "stars": 0,
     "title": "PaperbackPack",
     "title_ids": [],
-    "version": "1.2.0",
+    "version": "1.3.0",
     "wiki": ""
    }
   },
   {
-   "balatro3ds-pokermon-pack-v1.3.0.zip": {
+   "balatro3ds-pokermon-pack-v1.4.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.3.0.zip",
-      "output": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.4.0.zip",
+      "output": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "input": "^PokermonPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "file": "/balatro3ds-pokermon-pack-v1.4.0.zip",
       "type": "deleteFile"
      }
     ],
-    "size": "1 MiB"
+    "size": "6 MiB"
    },
    "info": {
     "author": "InertSteak (port: sen2008)",
@@ -345,7 +361,7 @@
     "console": [
      "3DS"
     ],
-    "description": "50 Gen 1 Pokemon Jokers with evolution, evolution stones, and an Item Pack booster.",
+    "description": "145 of 176 Gen 1 Pokemon Jokers with evolution, evolution stones (incl. Leaf Stone and Eevee's branches), and an Item Pack booster.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/PokermonPack.json"
@@ -360,26 +376,74 @@
     "stars": 0,
     "title": "PokermonPack",
     "title_ids": [],
-    "version": "1.3.0",
+    "version": "1.4.0",
     "wiki": ""
    }
   },
   {
-   "balatro3ds-bunco-pack-v1.3.0.zip": {
+   "balatro3ds-jest-pack-v1.0.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.3.0.zip",
-      "output": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-jest-pack-v1.0.0.zip",
+      "output": "/balatro3ds-jest-pack-v1.0.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "/balatro3ds-jest-pack-v1.0.0.zip",
+      "input": "^JestPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/JestPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-jest-pack-v1.0.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "18 MiB"
+   },
+   "info": {
+    "author": "All in Jest team (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "All in Jest: 337 Jokers, 52 consumables (Tarots, Moons, Hex Tarots), 8 Gold Tags, Fervent and Wood enhancements. Sidereal boosters register but stay inert (Astral cards blocked).",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/JestPack/JestPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "JestPack",
+    "title_ids": [],
+    "version": "1.0.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-bunco-pack-v1.4.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.4.0.zip",
+      "output": "/balatro3ds-bunco-pack-v1.4.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.4.0.zip",
       "input": "^BuncoPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "file": "/balatro3ds-bunco-pack-v1.4.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -393,7 +457,7 @@
     "console": [
      "3DS"
     ],
-    "description": "55 of 80 Bunco Jokers: Fleurons and Halberds suits, Spectrum hands, Fluorescent edition.",
+    "description": "62 of 80 Bunco Jokers: Fleurons and Halberds suits, Spectrum hands, Fluorescent edition.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/BuncoPack.json"
@@ -408,7 +472,7 @@
     "stars": 0,
     "title": "BuncoPack",
     "title_ids": [],
-    "version": "1.3.0",
+    "version": "1.4.0",
     "wiki": ""
    }
   },
@@ -662,7 +726,7 @@
   "dsSheetURL": "",
   "file": "balatro3ds-mods.unistore",
   "infoURL": "",
-  "revision": 1,
+  "revision": 3,
   "sheet": [
    "balatro3ds-mods.t3x"
   ],

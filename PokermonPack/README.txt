@@ -1,6 +1,9 @@
-Pokermon Pack (3DS Port) v1.3.0
-Fifty Gen 1 Pokemon Jokers from Pokermon (PC, by InertSteak) ported
-to Balatro3DS, with evolution and the evolution stones.
+Pokermon Pack (3DS Port) v1.4.0
+145 Gen 1 Pokemon Jokers from Pokermon (PC, by InertSteak) ported
+to Balatro3DS, with evolution and the evolution stones. That is the
+whole non-Mega Gen 1 roster except 8 Jokers blocked on missing
+engine pieces (listed under NOT PORTED, with reasons); the 22 Mega
+evolutions wait on a Mega framework that does not exist yet.
 
 REQUIRES THE BALATRO3DS FORK FOR EVOLUTION AND THE STONES
 Evolution replaces a Joker through the fork's Tier 1 mod API
@@ -8,7 +11,7 @@ Evolution replaces a Joker through the fork's Tier 1 mod API
 through its SMODS.ConsumableType API:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack still loads and all
-fifty Jokers work, but nothing ever evolves and no stones appear
+145 Jokers work, but nothing ever evolves and no stones appear
 (those calls do not exist there, and the pack treats that as "no
 evolution", exactly as in v1.0.0). The evolved forms below are still
 ordinary shop Jokers on both builds.
@@ -56,6 +59,36 @@ met; every stage is also a standalone shop Joker):
 - Magnemite -> Magneton (4 rounds).
 - Goldeen -> Seaking (5 rounds).
 - Magikarp -> Gyarados (8 rounds).
+Wave 4 chains (v1.4.0):
+- Spearow -> Fearow: after triggering its hand upgrade 3 times.
+- Nidoran F -> Nidorina (4 rounds); Nidoran M -> Nidorino (4 rounds).
+- Zubat -> Golbat: at +12 grown Mult.
+- Oddish -> Gloom (4 rounds).
+- Paras -> Parasect: at +8 grown Mult.
+- Venonat -> Venomoth (5 rounds).
+- Meowth -> Persian: after paying out $9 in end-of-round money.
+- Psyduck -> Golduck (5 rounds).
+- Mankey -> Primeape (5 rounds).
+- Poliwag -> Poliwhirl (5 rounds).
+- Abra -> Kadabra (5 rounds).
+- Machop -> Machoke (5 rounds).
+- Bellsprout -> Weepinbell (4 rounds).
+- Geodude -> Graveler (4 rounds).
+- Ponyta -> Rapidash: at +60 grown Chips.
+- Slowpoke -> Slowbro: after triggering on the final hand 4 times.
+- Doduo -> Dodrio (4 rounds).
+- Seel -> Dewgong (5 rounds).
+- Grimer -> Muk (5 rounds).
+- Gastly -> Haunter (3 rounds).
+- Drowzee -> Hypno: after using 7 distinct Planet cards.
+- Voltorb -> Electrode (4 rounds).
+- Cubone -> Marowak: after using 20 consumables.
+- Koffing -> Weezing (2 rounds).
+- Rhyhorn -> Rhydon (4 rounds).
+- Horsea -> Seadra: at +12 grown Mult.
+- Omanyte -> Omastar, Kabuto -> Kabutops: after triggering the
+  3+ Ancient ability 5 times.
+- Dratini -> Dragonair at +15 grown Mult -> Dragonite at +55.
 
 Item evolutions (v1.2.0, fork build only; real targeting since
 v1.3.0). The stones are Item consumables, registered under the
@@ -68,13 +101,20 @@ $4) that deals stones, as Item packs do on PC:
 - Jigglypuff -> Wigglytuff: use a Moon Stone.
 - Growlithe -> Arcanine: use a Fire Stone.
 - Shellder -> Cloyster: use a Water Stone.
+Wave 4 stone targets (v1.4.0; the Leaf Stone joins the set):
+- Vulpix -> Ninetales: Fire Stone. Eevee -> Flareon: Fire Stone.
+- Poliwhirl -> Poliwrath: Water Stone. Staryu -> Starmie: Water
+  Stone. Eevee -> Vaporeon: Water Stone.
+- Eevee -> Jolteon: Thunder Stone.
+- Nidorina -> Nidoqueen, Nidorino -> Nidoking: Moon Stone.
+- Gloom -> Vileplume, Weepinbell -> Victreebel, Exeggcute ->
+  Exeggutor: Leaf Stone.
 Using a stone evolves the Joker you CHOOSE, on the spot: open the
 Joker's tooltip (or focus it with the gamepad), then use the
 stone. The stone refuses any other Joker, and a debuffed Joker
-cannot be evolved (see port notes). The Leaf Stone is not
-included: its Gen 1 targets (Gloom, Weepinbell, Exeggcute) are
-not in the pack. Magneton does not take the Thunder Stone here:
-its PC evolution is Magnezone, which is not in the pack.
+cannot be evolved (see port notes). Magneton does not take the
+Thunder Stone here: its PC evolution is Magnezone, which is not
+in the pack.
 
 INCLUDED JOKERS
 Starters and their lines:
@@ -151,12 +191,70 @@ Others:
 - Articuno (Legendary, $20): the first scoring card gains Foil and a
   random seal if it has neither yet.
 
+Wave 4 additions (v1.4.0) -- the rest of the non-Mega Gen 1 roster.
+Effects are the PC base effects with energy stripped, as above;
+each Joker's tooltip in game carries its full text:
+- Spearow, Fearow; Nidoran F, Nidorina, Nidoqueen; Nidoran M,
+  Nidorino, Nidoking; Vulpix, Ninetales; Zubat, Golbat; Oddish,
+  Gloom, Vileplume; Paras, Parasect; Venonat, Venomoth; Meowth,
+  Persian; Psyduck, Golduck; Mankey, Primeape; Poliwag, Poliwhirl,
+  Poliwrath.
+- Abra, Kadabra, Alakazam; Machop, Machoke, Machamp; Bellsprout,
+  Weepinbell, Victreebel; Geodude, Graveler, Golem; Ponyta;
+  Slowpoke, Slowbro; Doduo, Dodrio; Seel, Dewgong; Grimer, Muk.
+- Gastly, Haunter, Gengar; Onix; Drowzee, Hypno; Voltorb,
+  Electrode; Exeggcute, Exeggutor; Cubone, Marowak; Hitmonlee,
+  Hitmonchan; Lickitung; Koffing, Weezing; Rhyhorn, Rhydon;
+  Tangela; Kangaskhan; Horsea, Seadra.
+- Staryu, Starmie; Scyther; Electabuzz; Magmar; Tauros; Tauros
+  (Herd) (only reachable by direct creation, as on PC); Lapras;
+  Eevee, Vaporeon, Jolteon, Flareon; Omanyte, Omastar; Kabuto,
+  Kabutops; Aerodactyl; Zapdos (Legendary, with its floating soul
+  layer, as are Mewtwo and Mew); Dratini, Dragonair, Dragonite;
+  Mewtwo; Mew.
+
+NOT PORTED (with the reason, refreshed for v1.4.0)
+- All 22 Mega evolutions: the Mega framework (Mega Stone held
+  items, in-battle mega state) does not exist in the fork or this
+  pack. A later wave.
+- Chansey: a successful Lucky trigger IS visible to Jokers (the
+  fork's probability_success context, identifiers lucky_mult /
+  lucky_money), but it carries no card identity, so the specific
+  card that triggered cannot be copied to hand; the fork has no
+  playing-card copy API either. (Its evolution, Blissey, is Gen 2.)
+- Jynx: duplicating a card added to the deck needs to know WHICH
+  card was added; the fork's playing_card_added context carries
+  only a count.
+- Ditto: needs a readable Perishable state on held Jokers and
+  Pokermon's Volatile (right) system; neither exists in the fork.
+- Porygon: its only effects are Energy-system effects; with energy
+  stripped pack-wide it would be an empty Joker.
+- Snorlax: scales off held Leftovers, an item consumable that is
+  not registered in this pack, so the count could never rise.
+- Moltres: levelling the DISCARDED hand needs a hand-evaluation
+  API for an arbitrary set of cards; the fork exposes none.
+- Missingno: copying a consumable into every empty Joker and
+  consumable slot is not a state the fork's card areas support,
+  and there is no consumable copy API.
+- Farfetch'd: its whole mechanic is the Leek, a reusable held
+  item; no held-item system exists in this pack.
+- Shell: not a Joker on PC either -- an aux trigger card for
+  Slowpoke's shop cameo; classified and skipped, and Slowpoke's
+  Shell evolution path is dropped with it.
+
 EVOLUTION STONES (Item consumables, $4, fork build only)
-- Fire Stone: evolves the chosen Growlithe into Arcanine.
-- Water Stone: evolves the chosen Shellder into Cloyster.
-- Thunder Stone: evolves the chosen Pikachu into Raichu.
-- Moon Stone: evolves the chosen Clefairy into Clefable, or the
-  chosen Jigglypuff into Wigglytuff.
+- Fire Stone: evolves the chosen Growlithe into Arcanine, Vulpix
+  into Ninetales, or Eevee into Flareon.
+- Water Stone: evolves the chosen Shellder into Cloyster,
+  Poliwhirl into Poliwrath, Staryu into Starmie, or Eevee into
+  Vaporeon.
+- Thunder Stone: evolves the chosen Pikachu into Raichu, or Eevee
+  into Jolteon.
+- Moon Stone: evolves the chosen Clefairy into Clefable,
+  Jigglypuff into Wigglytuff, Nidorina into Nidoqueen, or Nidorino
+  into Nidoking.
+- Leaf Stone: evolves the chosen Gloom into Vileplume, Weepinbell
+  into Victreebel, or Exeggcute into Exeggutor.
 A stone can be used only on a chosen Joker it evolves (held and
 not debuffed); using it evolves that Joker immediately, with the
 same edition/scaling carry-over as the other chains.
@@ -164,8 +262,10 @@ same edition/scaling carry-over as the other chains.
 Validated headlessly against the Balatro3DS fork source (loader +
 per-Joker tests incl. five evolution chains end to end, edition
 preservation, and stone registration, chosen-target evolution and
-Item Pack checks, 32/32; the fork's own mod suite stays 54/54) on
-2026-10-23. Not yet tested on real hardware.
+Item Pack checks; suite 34/34 incl. the Wave 4 Leaf Stone / Eevee
+branching tests, a registration count of 145 and a blanket
+no-error scoring pass over every Joker) on 2026-10-23. Not yet
+tested on real hardware.
 
 Port notes:
 - Energy is stripped everywhere; each Pokemon keeps its base effect
@@ -195,6 +295,24 @@ Port notes:
   original converts unconditionally).
 - New-form artwork is sliced from the PC mod's own Natdex atlas;
   the original 35 keep their existing pack art.
+- Wave 4 named deviations (full per-Joker record ships in the
+  porting census): Gastly line applies Negative by destroy/recreate
+  and fires at round end instead of PC's round_eval; volatile faint
+  (Voltorb line, Koffing line) is a self-gate flag instead of a
+  visible debuff; the Poli line tracks its suit per Joker instead
+  of run-global; Kadabra/Alakazam create a random Item instead of
+  the specific Twisted Spoon; cross-generation and item evolutions
+  whose targets are not Gen 1 stay unwired (Haunter, Machoke,
+  Graveler, Kadabra item lines; Onix, Seadra, Lickitung, Rhydon,
+  Tangela type/item lines; Golbat -> Crobat, Primeape ->
+  Annihilape dropped with their counters); held-item grants
+  (Ninetales' Medium, Hypno's Trance, Cubone's Thick Club) and the
+  Exeggcute line's Foresight/scry passives are dropped; Tauros's
+  shop-reroll cameo and Lapras's skip-opens-shop effect have no
+  fork equivalent and are dropped; Grimer/Muk compare deck size
+  against the size when the Joker was gained (the fork does not
+  expose the run-start size); Dodrio's temporary hand-size
+  sub-effect is dropped (hand size is a static modifier here).
 
 Original mod: https://github.com/InertSteak/Pokermon (GPLv3).
 Game: https://github.com/idkhan/Balatro3DS
