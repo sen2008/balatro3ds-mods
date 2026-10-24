@@ -1,0 +1,676 @@
+{
+ "storeContent": [
+  {
+   "Balatro3DS-fork.cia": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/Balatro3DS-fork.cia",
+      "output": "/Balatro3DS-fork.cia",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/Balatro3DS-fork.cia",
+      "type": "installCia"
+     },
+     {
+      "file": "/Balatro3DS-fork.cia",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "23 MiB"
+   },
+   "info": {
+    "author": "sen2008 (base: Gazpacho/idkhan)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "Balatro3DS build with the full modding surface: custom Jokers, consumables, rarities, suits, hands, enhancements, seals, editions, tags, boosters, decks, big numbers, score preview and save slots.",
+    "icon_index": 0,
+    "installed_files": [],
+    "last_updated": "2026-10-23",
+    "license": "gpl-3.0",
+    "llm_generation": "yes",
+    "preinstall_message": "Installs as Balatro3DS. The mod packs in this store need this build. Mods are read from /3ds/save/Balatro3DS/sdmc/mods/.",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "Balatro3DS Fork (Modding Build)",
+    "title_ids": [],
+    "version": "build-2026-10-23",
+    "wiki": ""
+   }
+  },
+  {
+   "All-Mod-Packs": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "input": "^CryptidPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.2.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "input": "^PaperbackPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "output": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "input": "^PokermonPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.3.0.zip",
+      "output": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "input": "^BuncoPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "output": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "input": "^MoreFluffPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-mikas-pack-v1.0.0.zip",
+      "output": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "input": "^MikasPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/MikasPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-neato-pack-v1.1.0.zip",
+      "output": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "input": "^NeatoPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/NeatoPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "output": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "input": "^KCVanillaPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "type": "deleteFile"
+     },
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "output": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "input": "^KCVanillaSwiss/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaSwiss/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "30 MiB"
+   },
+   "info": {
+    "author": "sen2008",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "Every published Balatro3DS mod pack in one install: Cryptid, Paperback, Pokermon, Bunco, MoreFluff, Mika's, Neato, KCVanilla and Swiss Cheese.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/CryptidPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/PokermonPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/BuncoPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/MoreFluffPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/MikasPack/MikasPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/NeatoPack/NeatoPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaPack/KCVanillaPack.json",
+     "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaSwiss/KCVanillaSwiss.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Install the Balatro3DS Fork entry first; these packs require it.",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "All Mod Packs (Bundle)",
+    "title_ids": [],
+    "version": "2026-10-23",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-cryptid-pack-v1.3.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "input": "^CryptidPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-cryptid-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "8 MiB"
+   },
+   "info": {
+    "author": "Cryptid team (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "172 Jokers + 28 consumables from Cryptid, incl. big-number Jokers, custom rarities, Bulwark and UltPair hands.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/CryptidPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "gpl-3.0",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "CryptidPack",
+    "title_ids": [],
+    "version": "1.3.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-paperback-pack-v1.2.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.2.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "input": "^PaperbackPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-paperback-pack-v1.2.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "15 MiB"
+   },
+   "info": {
+    "author": "Nether (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "280 Jokers + 45 Minor Arcana from Paperback, with custom enhancements, tags and Dichrome edition.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "mit",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "PaperbackPack",
+    "title_ids": [],
+    "version": "1.2.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-pokermon-pack-v1.3.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "output": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "input": "^PokermonPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-pokermon-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "1 MiB"
+   },
+   "info": {
+    "author": "InertSteak (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "50 Gen 1 Pokemon Jokers with evolution, evolution stones, and an Item Pack booster.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/PokermonPack/PokermonPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "PokermonPack",
+    "title_ids": [],
+    "version": "1.3.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-bunco-pack-v1.3.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-bunco-pack-v1.3.0.zip",
+      "output": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "input": "^BuncoPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-bunco-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "1 MiB"
+   },
+   "info": {
+    "author": "Firch (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "55 of 80 Bunco Jokers: Fleurons and Halberds suits, Spectrum hands, Fluorescent edition.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/BuncoPack/BuncoPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "BuncoPack",
+    "title_ids": [],
+    "version": "1.3.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-morefluff-pack-v1.3.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "output": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "input": "^MoreFluffPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-morefluff-pack-v1.3.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "3 MiB"
+   },
+   "info": {
+    "author": "notmario (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "108 of 229 MoreFluff Jokers across vanilla plus six custom rarities.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/MoreFluffPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "MoreFluffPack",
+    "title_ids": [],
+    "version": "1.3.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-mikas-pack-v1.0.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-mikas-pack-v1.0.0.zip",
+      "output": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "input": "^MikasPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/MikasPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-mikas-pack-v1.0.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "3 MiB"
+   },
+   "info": {
+    "author": "MikaSchoenmakers (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "58 of 60 Jokers, 3 consumables and 6 decks from Mika's Mod Collection.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/MikasPack/MikasPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "MikasPack",
+    "title_ids": [],
+    "version": "1.0.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-neato-pack-v1.1.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-neato-pack-v1.1.0.zip",
+      "output": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "input": "^NeatoPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/NeatoPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-neato-pack-v1.1.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "0 MiB"
+   },
+   "info": {
+    "author": "neatoqueen (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "Neato's Jokers, complete: all 15 Jokers.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/NeatoPack/NeatoPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "NeatoPack",
+    "title_ids": [],
+    "version": "1.1.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-kcvanilla-pack-v1.1.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "output": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "input": "^KCVanillaPack/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaPack/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-pack-v1.1.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "0 MiB"
+   },
+   "info": {
+    "author": "krackocloud (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "14 vanilla-style Jokers from KCVanilla.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaPack/KCVanillaPack.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "KCVanillaPack",
+    "title_ids": [],
+    "version": "1.1.0",
+    "wiki": ""
+   }
+  },
+  {
+   "balatro3ds-kcvanilla-swiss-v1.0.0.zip": {
+    "script": [
+     {
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "output": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "input": "^KCVanillaSwiss/",
+      "output": "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaSwiss/",
+      "type": "extractFile"
+     },
+     {
+      "file": "/balatro3ds-kcvanilla-swiss-v1.0.0.zip",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "0 MiB"
+   },
+   "info": {
+    "author": "krackocloud (port: sen2008)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "Swiss Cheese as a standalone mod: X1 Mult per rank gap of 1 in the played hand.",
+    "icon_index": 0,
+    "installed_files": [
+     "/3ds/save/Balatro3DS/sdmc/mods/KCVanillaSwiss/KCVanillaSwiss.json"
+    ],
+    "last_updated": "2026-10-23",
+    "license": "",
+    "llm_generation": "yes",
+    "preinstall_message": "Requires the Balatro3DS Fork build (first entry in this store).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "KCVanillaSwiss",
+    "title_ids": [],
+    "version": "1.0.0",
+    "wiki": ""
+   }
+  }
+ ],
+ "storeInfo": {
+  "author": "sen2008",
+  "bg_index": -1,
+  "bg_sheet": -1,
+  "description": "Mod packs for Balatro3DS and the fork build they run on",
+  "dsSheet": "",
+  "dsSheetURL": "",
+  "file": "balatro3ds-mods.unistore",
+  "infoURL": "",
+  "revision": 1,
+  "sheet": [
+   "balatro3ds-mods.t3x"
+  ],
+  "sheetURL": [
+   "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-mods.t3x"
+  ],
+  "title": "Balatro3DS Mods",
+  "url": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-mods.unistore",
+  "version": 3
+ }
+}
