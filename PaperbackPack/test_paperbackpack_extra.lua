@@ -1,7 +1,7 @@
 --- Tests for the PaperbackPack expansion Jokers (the 188 ported after the
 --- original 36) for the Balatro3DS fork build. Registration and tooltip
---- sanity for all 280 Jokers in the pack, plus the per-slice behavior
---- suites (PB_TESTS_0 .. PB_TESTS_4). The mod's real main file is read
+--- sanity for all 283 Jokers in the pack, plus the per-slice behavior
+--- suites (PB_TESTS_0 .. PB_TESTS_7). The mod's real main file is read
 --- from the PB_PACK_LUA env var, like the other pack suites.
 local T = require("tests.testlib")
 local bootstrap = require("tests.bootstrap")
@@ -95,6 +95,7 @@ local NAMES = {
     "milk_tea", "stardrop", "bergentrucking", "freedom_of_choice",
     "grenadine", "shinzaemon", "nigori", "aperol", "pink_joker",
     "sacred_heart", "determination",
+    "forgery", "master_plan", "photocopy",
 }
 
 local ARCANA = {
@@ -218,11 +219,11 @@ end
 -- Registration + tooltips for the whole pack
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 280 Paperback Jokers", function()
+suite.test("pack loads and registers all 283 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 280)
+    T.assert_eq(#mod.registered.jokers, 283)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -459,6 +460,9 @@ suite.test("pack loads and registers all 280 Paperback Jokers", function()
         j_pbp_pink_joker = { "Pink Joker", 1, 7 },
         j_pbp_sacred_heart = { "Sacred Heart", 3, 10 },
         j_pbp_determination = { "Determination", 3, 7 },
+        j_pbp_forgery = { "Forgery", 3, 2 },
+        j_pbp_master_plan = { "Master Plan", 3, 10 },
+        j_pbp_photocopy = { "Photocopy", 3, 10 },
     }
     for id, e in pairs(expect) do
         local def = JOKER_DEFS[id]
@@ -2008,6 +2012,149 @@ PB_TESTS_6 = function(H)
     end)
 end
 
+-- Behavior tests for the Wave 5 copy Jokers (v1.3.0): Forgery,
+-- Master Plan and Photocopy, all riding SMODS.blueprint_effect.
+-- H.scored starts at chips 10 / mult 2. Complete Breakfast is the
+-- pack's deterministic mod copy target: blueprint_compat on PC, and
+-- at joker_main it returns +50 Chips / +5 Mult.
+PB_TESTS_7 = function(H)
+    H.test("wave5: pack Jokers declare their PC blueprint_compat values", function()
+        local game = H.new_game()
+        H.assert_eq(JOKER_DEFS["j_pbp_forgery"].blueprint_compat, true)
+        H.assert_eq(JOKER_DEFS["j_pbp_master_plan"].blueprint_compat, true)
+        H.assert_eq(JOKER_DEFS["j_pbp_photocopy"].blueprint_compat, true)
+        H.assert_eq(JOKER_DEFS["j_pbp_complete_breakfast"].blueprint_compat, true,
+            "a PC-true target declares it (Wave 5 compat pass)")
+        H.assert_eq(JOKER_DEFS["j_pbp_bamboo_stick"].blueprint_compat, true)
+        H.assert_true(JOKER_DEFS["j_pbp_thornring"].blueprint_compat ~= true,
+            "ThornRing is PC blueprint_compat = false")
+        H.assert_true(JOKER_DEFS["j_pbp_a_balatro_movie"].blueprint_compat ~= true,
+            "A Balatro Movie is PC blueprint_compat = false")
+    end)
+
+    H.test("forgery: copies a held mod Joker and multiplies its Chips and Mult", function()
+        local game = H.new_game()
+        local target = H.make_joker(game, "complete_breakfast")
+        local j = H.make_joker(game, "forgery")
+        H.assert_eq(j.ability.extra.copying, "j_pbp_complete_breakfast",
+            "the reset on gaining Forgery picks the only eligible Joker")
+        H.assert_eq(j.ability.extra.copying_card, target)
+        H.assert_true(j.ability.extra.multiplier >= 1.5
+            and j.ability.extra.multiplier <= 2.5,
+            "reset multiplier in X1.5..X2.5, got "
+            .. tostring(j.ability.extra.multiplier))
+        j.ability.extra.multiplier = 2
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.chips, 110, "10 + 50 Chips x2")
+        H.assert_eq(ctx.mult, 12, "2 + 5 Mult x2")
+    end)
+
+    H.test("forgery: resets its target and multiplier after a hand", function()
+        local game = H.new_game()
+        local a = H.make_joker(game, "complete_breakfast")
+        local b = H.make_joker(game, "bamboo_stick")
+        local j = H.make_joker(game, "forgery")
+        j.ability.extra.multiplier = 1
+        H.fire(j, "on_hand_after", {})
+        local pick = j.ability.extra.copying_card
+        H.assert_true(pick == a or pick == b,
+            "after a hand the target is a held compatible Joker")
+        H.assert_eq(j.ability.extra.copying, pick.def.id)
+        H.assert_true(j.ability.extra.multiplier >= 1.5
+            and j.ability.extra.multiplier <= 2.5,
+            "the multiplier rerolled into X1.5..X2.5, got "
+            .. tostring(j.ability.extra.multiplier))
+    end)
+
+    H.test("forgery: a vanilla target fires in place, unmultiplied", function()
+        local game = H.new_game()
+        local idx = #game.jokers + 1
+        assert(game:add_joker_by_def("j_joker"))
+        local vanilla = game.jokers[idx]
+        H.assert_eq(vanilla.def.id, "j_joker", "vanilla Joker held")
+        local j = H.make_joker(game, "forgery")
+        H.assert_eq(j.ability.extra.copying_card, vanilla,
+            "the vanilla Joker is the only eligible target")
+        j.ability.extra.multiplier = 2
+        local ctx = H.scored(j, {})
+        H.assert_eq(ctx.mult, 6,
+            "the +4 lands once, in place: the documented nil-return delta")
+        H.assert_eq(ctx.chips, 10, "no Chips from a vanilla Joker")
+    end)
+
+    H.test("master plan: copies the Joker to its left (mod and vanilla)", function()
+        local game = H.new_game()
+        H.make_joker(game, "complete_breakfast")
+        local mp = H.make_joker(game, "master_plan")
+        local ctx = H.scored(mp, {})
+        H.assert_eq(ctx.chips, 60, "the left mod Joker's +50 Chips, unmodified")
+        H.assert_eq(ctx.mult, 7, "the left mod Joker's +5 Mult, unmodified")
+
+        local game2 = H.new_game()
+        local idx = #game2.jokers + 1
+        assert(game2:add_joker_by_def("j_joker"))
+        local mp2 = H.make_joker(game2, "master_plan")
+        local ctx2 = H.scored(mp2, {})
+        H.assert_eq(ctx2.mult, 6, "the left vanilla Joker's +4 fires in place")
+    end)
+
+    H.test("master plan: leftmost copies nothing", function()
+        local game = H.new_game()
+        local mp = H.make_joker(game, "master_plan")
+        H.make_joker(game, "complete_breakfast")
+        local ctx = H.scored(mp, {})
+        H.assert_eq(ctx.chips, 10)
+        H.assert_eq(ctx.mult, 2)
+    end)
+
+    H.test("photocopy: copies the rightmost Joker", function()
+        local game = H.new_game()
+        local pc_ = H.make_joker(game, "photocopy")
+        H.make_joker(game, "complete_breakfast")
+        local ctx = H.scored(pc_, {})
+        H.assert_eq(ctx.chips, 60, "the rightmost Joker's +50 Chips")
+        H.assert_eq(ctx.mult, 7, "the rightmost Joker's +5 Mult")
+    end)
+
+    H.test("photocopy: rightmost itself copies nothing", function()
+        local game = H.new_game()
+        H.make_joker(game, "complete_breakfast")
+        local pc_ = H.make_joker(game, "photocopy")
+        local ctx = H.scored(pc_, {})
+        H.assert_eq(ctx.chips, 10, "self-copy is gated by the dispatch")
+        H.assert_eq(ctx.mult, 2)
+    end)
+
+    H.test("wave5 dispatch: non-compatible and debuffed targets never fire", function()
+        local game = H.new_game()
+        local thorn = H.make_joker(game, "thornring")
+        local mp = H.make_joker(game, "master_plan")
+        H.assert_eq(SMODS.blueprint_effect(mp, thorn, { joker_main = true }),
+            nil, "ThornRing is not blueprint_compat")
+        local ctx = H.scored(mp, {})
+        H.assert_eq(ctx.mult, 2, "a non-compat left neighbour gives nothing")
+
+        local game2 = H.new_game()
+        local target = H.make_joker(game2, "complete_breakfast")
+        local mp2 = H.make_joker(game2, "master_plan")
+        local direct = SMODS.blueprint_effect(mp2, target,
+            { joker_main = true })
+        H.assert_true(type(direct) == "table" and direct.mult == 5,
+            "a compat target returns its table while up")
+        SMODS.set_joker_debuff(target, true)
+        H.assert_eq(SMODS.blueprint_effect(mp2, target,
+            { joker_main = true }), nil, "a debuffed target does not fire")
+        local ctx2 = H.scored(mp2, {})
+        H.assert_eq(ctx2.chips, 10, "and the scoring pass agrees")
+        H.assert_eq(ctx2.mult, 2)
+        SMODS.set_joker_debuff(target, false)
+        local again = SMODS.blueprint_effect(mp2, target,
+            { joker_main = true })
+        H.assert_true(type(again) == "table" and again.chips == 50,
+            "clearing the debuff restores the copy")
+    end)
+end
+
 PB_TESTS_0(H)
 PB_TESTS_1(H)
 PB_TESTS_2(H)
@@ -2015,5 +2162,6 @@ PB_TESTS_3(H)
 PB_TESTS_4(H)
 PB_TESTS_5(H)
 PB_TESTS_6(H)
+PB_TESTS_7(H)
 
 return suite

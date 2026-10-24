@@ -38,6 +38,9 @@ local NAMES = {
     "neon", "bounty_hunter",
     -- v1.3.0
     "fiendish", "head_in_the_clouds",
+    -- v1.4.0
+    "gameplan", "conquest", "myopia", "astigmatism",
+    "sledgehammer", "dwarven", "metallurgist",
 }
 
 local NEW_JOKERS = {
@@ -51,6 +54,9 @@ local NEW_JOKERS = {
     "neon", "bounty_hunter",
     -- v1.3.0
     "fiendish", "head_in_the_clouds",
+    -- v1.4.0
+    "gameplan", "conquest", "myopia", "astigmatism",
+    "sledgehammer", "dwarven", "metallurgist",
 }
 
 local function install_pack()
@@ -139,11 +145,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 55 Bunco Jokers", function()
+suite.test("pack loads and registers all 62 Bunco Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.BuncoPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 55)
+    T.assert_eq(#mod.registered.jokers, 62)
     local expect = {
         j_buncp_cassette = { "Cassette", 2, 5 }, j_buncp_mosaic = { "Mosaic Joker", 2, 4 },
         j_buncp_voxel = { "Voxel Joker", 2, 5 }, j_buncp_crop_circles = { "Crop Circles", 1, 4 },
@@ -203,6 +209,10 @@ suite.test("pack loads and registers all 55 Bunco Jokers", function()
         j_buncp_roygbiv = { "Roy G. Biv", 2, 8 }, j_buncp_rigoletto = { "Rigoletto", 4, 20 },
         j_buncp_neon = { "Neon Joker", 2, 5 }, j_buncp_bounty_hunter = { "Bounty Hunter", 1, 5 },
         j_buncp_fiendish = { "Fiendish Joker", 2, 5 }, j_buncp_head_in_the_clouds = { "Head in the Clouds", 2, 6 },
+        j_buncp_gameplan = { "Gameplan", 2, 5 }, j_buncp_conquest = { "Conquest", 2, 5 },
+        j_buncp_myopia = { "Myopia", 2, 8 }, j_buncp_astigmatism = { "Astigmatism", 2, 8 },
+        j_buncp_sledgehammer = { "Sledgehammer", 2, 5 }, j_buncp_dwarven = { "Dwarven Joker", 2, 8 },
+        j_buncp_metallurgist = { "Metallurgist", 1, 6 },
     }
     for id, e in pairs(expect_new) do
         local def = JOKER_DEFS[id]
@@ -1006,6 +1016,222 @@ suite.test("head in the clouds levels High Card on other hands' level-ups", func
     fire(head, "on_hand_level_up", { hand_name = "Flush", level = 2, amount = 1 })
     T.assert_eq(game.hand_stats[hc_idx].level, before_level + 1,
         "a missed roll leaves High Card alone")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- v1.4.0: Gameplan / Conquest (Joker debuff), Myopia / Astigmatism
+-- (suit aliasing), Sledgehammer / Dwarven / Metallurgist (center overrides)
+--------------------------------------------------------------------------------
+
+suite.test("gameplan debuffs both neighbours, pays per neighbour, lifts on sale", function()
+    local game = install_pack()
+    local left = add(game, "j_buncp_mosaic")
+    local gp = add(game, "j_buncp_gameplan")
+    local right = add(game, "j_buncp_wino")
+
+    -- Both neighbours are debuffed (the left at Gameplan's add, the
+    -- right when it joined the row); Gameplan itself is not.
+    T.assert_true(SMODS.joker_debuffed(left), "left neighbour debuffed")
+    T.assert_true(SMODS.joker_debuffed(right), "right neighbour debuffed")
+    T.assert_false(SMODS.joker_debuffed(gp), "Gameplan itself stays up")
+
+    -- Debuffed neighbours do not calculate.
+    local stone = card(9, "Clubs", "stone")
+    T.assert_eq(play_card(left, stone, { stone }).mult, 1, "Mosaic silenced by the debuff")
+    local heart = card(9, "Hearts")
+    T.assert_eq(play_card(right, heart, { heart }).chips, 0, "Wino silenced by the debuff")
+
+    -- Gameplan pays +20 Mult per neighbour that exists.
+    local ctx = scored(gp, { played_cards = { card(4) } })
+    T.assert_eq(ctx.mult, 42, "two neighbours: 2 base + 40 Mult")
+
+    -- Selling Gameplan lifts both debuffs (PC's remove hook re-evaluates).
+    game:sell_owned_joker(2)
+    T.assert_false(SMODS.joker_debuffed(left), "left neighbour freed on sale")
+    T.assert_false(SMODS.joker_debuffed(right), "right neighbour freed on sale")
+    T.assert_eq(play_card(left, stone, { stone }).mult, 7, "Mosaic calculates again")
+    wipe_mods()
+end)
+
+suite.test("conquest debuffs a random other Joker when the Blind is selected", function()
+    local game = install_pack()
+    local cq = add(game, "j_buncp_conquest")
+    local a = add(game, "j_buncp_mosaic")
+    local b = add(game, "j_buncp_wino")
+    T.assert_false(SMODS.joker_debuffed(a) or SMODS.joker_debuffed(b),
+        "nothing debuffed before a Blind is selected")
+
+    fire(cq, "on_blind_selected", {})
+    local da, db = SMODS.joker_debuffed(a), SMODS.joker_debuffed(b)
+    T.assert_true(da ~= db, "exactly one of the other Jokers is debuffed")
+    T.assert_false(SMODS.joker_debuffed(cq), "Conquest never debuffs itself")
+
+    -- The victim does not calculate; the other still does.
+    local stone = card(9, "Clubs", "stone")
+    local heart = card(9, "Hearts")
+    if da then
+        T.assert_eq(play_card(a, stone, { stone }).mult, 1, "victim Mosaic silenced")
+        T.assert_eq(play_card(b, heart, { heart }).chips, 12, "the other Joker still pays")
+    else
+        T.assert_eq(play_card(b, heart, { heart }).chips, 0, "victim Wino silenced")
+        T.assert_eq(play_card(a, stone, { stone }).mult, 7, "the other Joker still pays")
+    end
+
+    -- Conquest itself pays +200 Chips at joker_main.
+    T.assert_eq(scored(cq, { played_cards = { card(4) } }).chips, 210, "+200 Chips")
+
+    -- The next Blind re-picks: still exactly one victim among the two.
+    fire(cq, "on_blind_selected", {})
+    da, db = SMODS.joker_debuffed(a), SMODS.joker_debuffed(b)
+    T.assert_true(da ~= db, "the re-pick leaves exactly one victim")
+
+    -- Selling Conquest lifts the debuff (PC's remove hook re-evaluates).
+    game:sell_owned_joker(1)
+    T.assert_false(SMODS.joker_debuffed(a) or SMODS.joker_debuffed(b),
+        "the victim is freed when Conquest leaves")
+    wipe_mods()
+end)
+
+suite.test("myopia and astigmatism alias suits while held, undebuffed and exotic-gated", function()
+    local game = install_pack()
+    -- Exotic pool gate, as on PC (type = 'Exotic').
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_myopia.smods), "Myopia exotic-gated")
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_astigmatism.smods), "Astigmatism exotic-gated")
+
+    local proud = add(game, "j_buncp_proud")
+    local spade = card(9, "Spades")
+    T.assert_eq(play_card(proud, spade, { spade }).mult, 1, "a Spade is no Halberd yet")
+    T.assert_false(JokerEffects.is_suit("Spades", "Halberds"), "no alias without Myopia")
+
+    local myo = add(game, "j_buncp_myopia")
+    T.assert_true(JokerEffects.is_suit("Spades", "Halberds"), "Spades count as Halberds")
+    T.assert_true(JokerEffects.is_suit("Clubs", "Halberds"), "Clubs count as Halberds")
+    T.assert_false(JokerEffects.is_suit("Hearts", "Halberds"), "red suits are not aliased")
+    T.assert_false(JokerEffects.is_suit("Halberds", "Spades"), "the alias is one-way")
+    T.assert_eq(play_card(proud, spade, { spade }).mult, 7, "Proud pays on an aliased Spade")
+
+    -- A debuffed Myopia aliases nothing; clearing restores it.
+    SMODS.set_joker_debuff(myo, true)
+    T.assert_false(JokerEffects.is_suit("Spades", "Halberds"), "debuffed: no alias")
+    SMODS.set_joker_debuff(myo, false)
+    T.assert_true(JokerEffects.is_suit("Spades", "Halberds"), "cleared: alias back")
+
+    -- Selling Myopia ends the alias with no leak.
+    game:sell_owned_joker(2)
+    T.assert_false(JokerEffects.is_suit("Spades", "Halberds"), "sold: no alias")
+
+    -- Astigmatism: Hearts and Diamonds count as Fleurons (Envious pays).
+    local env = add(game, "j_buncp_envious")
+    local heart = card(9, "Hearts")
+    T.assert_eq(play_card(env, heart, { heart }).mult, 1, "a Heart is no Fleuron yet")
+    add(game, "j_buncp_astigmatism")
+    T.assert_true(JokerEffects.is_suit("Hearts", "Fleurons"), "Hearts count as Fleurons")
+    T.assert_true(JokerEffects.is_suit("Diamonds", "Fleurons"), "Diamonds count as Fleurons")
+    T.assert_eq(play_card(env, heart, { heart }).mult, 7, "Envious pays on an aliased Heart")
+    wipe_mods()
+end)
+
+local function playing_card(game, rank, suit, enhancement)
+    ensure_hand(game)
+    return SMODS.add_card { set = "Playing", rank = rank, suit = suit, enhancement = enhancement }
+end
+
+suite.test("sledgehammer raises Glass Xmult per copy, divides break odds once, reverts on sell", function()
+    local game = install_pack()
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_sledgehammer.smods),
+        "out of pool with no Glass card in the deck")
+    local base = SMODS.center_config("m_glass")
+    T.assert_eq(base.Xmult, 2, "vanilla Glass Xmult")
+    T.assert_eq(base.extra, 4, "vanilla break odds denominator")
+
+    local s1 = add(game, "j_buncp_sledgehammer")
+    local cfg = SMODS.center_config("m_glass")
+    T.assert_eq(cfg.Xmult, 3, "one copy: Xmult 3")
+    T.assert_eq(cfg.extra, 1, "one copy: odds denominator 4 / 4 = 1")
+    local glass = playing_card(game, 9, "Hearts", "glass")
+    T.assert_true(SMODS.in_pool(JOKER_DEFS.j_buncp_sledgehammer.smods),
+        "in pool once the deck holds a Glass card")
+    local gctx = { chips = 0, mult = 1 }
+    glass:emit_hand_event("card_played", gctx)
+    T.assert_eq(gctx.mult, 3, "a scored Glass card lands the overridden Xmult")
+
+    add(game, "j_buncp_sledgehammer")
+    cfg = SMODS.center_config("m_glass")
+    T.assert_eq(cfg.Xmult, 4, "a second copy adds its own Xmult")
+    T.assert_eq(cfg.extra, 1, "but the odds divide only once")
+
+    game:sell_owned_joker(2)
+    game:sell_owned_joker(1)
+    cfg = SMODS.center_config("m_glass")
+    T.assert_eq(cfg.Xmult, 2, "sold out: Xmult reverts")
+    T.assert_eq(cfg.extra, 4, "sold out: odds revert")
+    wipe_mods()
+end)
+
+suite.test("dwarven lends held Stone cards Steel's Xmult and Gold's dollars", function()
+    local game = install_pack()
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_dwarven.smods),
+        "out of pool with no Stone card in the deck")
+    local base = SMODS.center_config("m_stone")
+    T.assert_eq(base.h_x_mult, nil, "vanilla Stone has no held Xmult")
+    T.assert_eq(base.h_dollars, nil, "vanilla Stone has no held dollars")
+
+    add(game, "j_buncp_dwarven")
+    local cfg = SMODS.center_config("m_stone")
+    T.assert_eq(cfg.h_x_mult, 1.5, "Stone gains Steel's h_x_mult")
+    T.assert_eq(cfg.h_dollars, 3, "Stone gains Gold's h_dollars")
+    T.assert_eq(cfg.chips, 50, "Stone's own chips untouched")
+
+    local stone = playing_card(game, 9, "Clubs", "stone")
+    T.assert_true(SMODS.in_pool(JOKER_DEFS.j_buncp_dwarven.smods),
+        "in pool once the deck holds a Stone card")
+    local sctx = { chips = 0, mult = 2 }
+    stone:emit_hand_event("held_in_hand", sctx)
+    T.assert_eq(sctx.mult, 3, "a held Stone card multiplies with the borrowed Xmult")
+    local money = game.money
+    stone:emit_hand_event("on_round_end", { chips = 0, mult = 1 })
+    T.assert_eq(game.money, money + 3, "a held Stone card pays the borrowed dollars")
+    local pctx = { chips = 0, mult = 1 }
+    stone:emit_hand_event("card_played", pctx)
+    T.assert_eq(pctx.chips, 50, "a played Stone card still scores its own +50 Chips")
+
+    -- PC's add hook lends once per held copy: a second Dwarven doubles.
+    add(game, "j_buncp_dwarven")
+    cfg = SMODS.center_config("m_stone")
+    T.assert_eq(cfg.h_x_mult, 3, "two copies lend double Xmult, as PC stacks")
+    T.assert_eq(cfg.h_dollars, 6, "two copies lend double dollars")
+    game:sell_owned_joker(2)
+    game:sell_owned_joker(1)
+    T.assert_eq(SMODS.center_config("m_stone").h_x_mult, nil, "sold out: the loan reverts")
+    wipe_mods()
+end)
+
+suite.test("metallurgist gives held Gold cards +10 Mult per copy", function()
+    local game = install_pack()
+    T.assert_false(SMODS.in_pool(JOKER_DEFS.j_buncp_metallurgist.smods),
+        "out of pool with no Gold card in the deck")
+    add(game, "j_buncp_metallurgist")
+    T.assert_eq(SMODS.center_config("m_gold").h_mult, 10, "Gold gains h_mult 10")
+    T.assert_eq(SMODS.center_config("m_gold").h_dollars, 3, "Gold's own dollars untouched")
+
+    local gold = playing_card(game, 9, "Diamonds", "gold")
+    T.assert_true(SMODS.in_pool(JOKER_DEFS.j_buncp_metallurgist.smods),
+        "in pool once the deck holds a Gold card")
+    local hctx = { chips = 0, mult = 1 }
+    gold:emit_hand_event("held_in_hand", hctx)
+    T.assert_eq(hctx.mult, 11, "a held Gold card gives +10 Mult")
+    local money = game.money
+    gold:emit_hand_event("on_round_end", { chips = 0, mult = 1 })
+    T.assert_eq(game.money, money + 3, "Gold's own $3 still pays at round end")
+
+    add(game, "j_buncp_metallurgist")
+    local hctx2 = { chips = 0, mult = 1 }
+    gold:emit_hand_event("held_in_hand", hctx2)
+    T.assert_eq(hctx2.mult, 21, "a second copy gives +20 Mult in total")
+    game:sell_owned_joker(2)
+    game:sell_owned_joker(1)
+    T.assert_eq(SMODS.center_config("m_gold").h_mult, nil, "sold out: h_mult reverts")
     wipe_mods()
 end)
 

@@ -1,5 +1,5 @@
-Cryptid Pack (3DS Port) v1.3.0
-172 Jokers and 28 consumables from Cryptid (PC, by the Cryptid team),
+Cryptid Pack (3DS Port) v1.4.0
+175 Jokers and 28 consumables from Cryptid (PC, by the Cryptid team),
 ported to Balatro3DS: the Epic, Exotic, Candy and Cursed rarities,
 the Bulwark and UltPair poker hands, and the Code and Unique
 consumable types. v1.2.0 adds the Tier 3 wave: the big-number
@@ -8,7 +8,9 @@ the destruction Jokers, the tag Jokers, five consumables, and
 registered Green/Azure seals, Astral/Mosaic/M editions and
 Cat/Double M/Rework tags. v1.3.0 adds the Wave 1 wave:
 ://ALTTAB, Kidnapping, Necromancer, Pumpkin, Carved Pumpkin
-and Familiar Currency.
+and Familiar Currency. v1.4.0 adds the Wave 5 wave: ERROR,
+Nostalgic Googol Play Card and Old Blueprint, on the fork's
+copy/blueprint dispatch.
 
 REQUIRES THE BALATRO3DS FORK (v1.2.0)
 The pack registers custom rarities, poker hands and consumable
@@ -17,8 +19,10 @@ game's mod API cannot do. It needs the fork build and its Tier 1 +
 Tier 2 + Tier 3 mod APIs (SMODS.add_card / SMODS.destroy_joker /
 SMODS.destroy_card, SMODS.Rarity, SMODS.PokerHand,
 SMODS.ConsumableType, SMODS.Seal / SMODS.Edition / SMODS.Tag),
-and for the v1.3.0 items its Wave 1 systems (G.jokers_sold, the
-game_over context, joker_type_destroyed):
+for the v1.3.0 items its Wave 1 systems (G.jokers_sold, the
+game_over context, joker_type_destroyed), and for the v1.4.0
+items its Wave 5 systems (SMODS.copy_joker,
+SMODS.blueprint_effect, SMODS.set_joker_debuff):
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack does not load.
 The test file (test_cryptidpack.lua) stays in the mod folder; the
@@ -55,12 +59,12 @@ WHAT'S INSIDE
 - Cryptid's gameset system (Modest / Mainline / Madness difficulty
   overrides) is not ported; every effect uses its standard rules.
 
-THE 172 JOKERS, BY RARITY
-Common (49): 2D, :D, Absurd Joker, Adroit Joker, Big Cube, Blender, Blurred Joker, Bonkers Joker, Bubble M, Clicked Cookie, Crypto Coin, Cube, Cursor, Delirious Joker, Discreet Joker, Dubious Joker, Exoplanet, Fast Food M, Fidget Spinner, Foolhardy Joker, Foxy Joker, Fridge Magnet, Jolly Joker?, Kidnapping, Kooky Joker, Loopy, M Chain, Macabre Joker, Manic Joker, Megg, Meteor Shower, Monster, Morse Code, Nutty Joker, Panopticon, Pity Prize, Queen's Gambit, Red Bloon, Sacrifice, Savvy Joker, Shrewd Joker, Silly Joker, Stardust, Subtle Joker, Translucent Joker, Treacherous Joker, Triplet Rhythm, Tricksy Joker, Wacky Joker
+THE 175 JOKERS, BY RARITY
+Common (50): 2D, :D, Absurd Joker, Adroit Joker, Big Cube, Blender, Blurred Joker, Bonkers Joker, Bubble M, Clicked Cookie, Crypto Coin, Cube, Cursor, Delirious Joker, Discreet Joker, Dubious Joker, Exoplanet, Fast Food M, Fidget Spinner, Foolhardy Joker, Foxy Joker, Fridge Magnet, Jolly Joker?, Kidnapping, Kooky Joker, Loopy, M Chain, Macabre Joker, Manic Joker, Megg, Meteor Shower, Monster, Morse Code, Nutty Joker, Old Blueprint, Panopticon, Pity Prize, Queen's Gambit, Red Bloon, Sacrifice, Savvy Joker, Shrewd Joker, Silly Joker, Stardust, Subtle Joker, Translucent Joker, Treacherous Joker, Triplet Rhythm, Tricksy Joker, Wacky Joker
 Uncommon (33): AP Joker, Astral in a Bottle, Bonk, Bus Driver, Candy Basket, Candy Dagger, Chili Pepper, Consume-able, Cut, Eye of Hagane, Fading Joker, Happy House, Hunting Season, Key Change, Kitty Printer, Krusty the Clown, Mondrian, Monkey Dagger, Necromancer, Neon M, Pickle, Pirate Dagger, Poor Joker, Python, Reverse Card, Sapling, Scrabble Tile, Seal the Deal, The WHIP, Trick-or-Treat, Unjust Dagger, Wheel of Hope, Zooble
 Rare (41): ...Like Antennas to Heaven, Arsonist, Broken Home, Carved Pumpkin, Celestial Globe, Chad, Compound Interest, Dropshot, Eternal Flame, Exposed, Familiar Currency, Garden of Forking Paths, High Five, Jimball, Kaleidoscope, LeBaron James, Light Up the Night, M Stack, Mask, Motebook, Nice, Night, No Sound, No Memory, Pizza, Pizza Slice, Pot of Jokes, Pumpkin, SUS, Tax Fraud, The Clash, The Duos, The Filler, The Home, The Nuts, The Quintet, The Stronghold, The Swarm, The Unity, Universe, Weebonacci, Yarn Ball
 Legendary (4): Nostalgic Invisible Joker, Thalia and Melpomeme, Waluigi, Wario
-Epic (23): Boredom, Canvas, Caramel, Circus, Code Joker, Copy/Paste, Demicolon, Doodle M, Gold Joker, Googol Play Card, Huge, Jimbo-tron 9000, M, Mult Joker, Negative Joker, One for All, Sob, Starfruit, Supercell, Sync Catalyst, Tiny, Virgo, m
+Epic (25): Boredom, Canvas, Caramel, Circus, Code Joker, Copy/Paste, Demicolon, Doodle M, ERROR, Gold Joker, Googol Play Card, Huge, Jimbo-tron 9000, M, Mult Joker, Negative Joker, Nostalgic Googol Play Card, One for All, Sob, Starfruit, Supercell, Sync Catalyst, Tiny, Virgo, m
 Exotic (14): Circulus Pistoris, Crustulum, Duplicare, Energia, Facile, Formidiulosus, Iterum, Non Verisimile, Primus, Redeo, Speculo, Stella Mortis, Tenebris, Tredecim
 Candy (6): Brittle Candy, Candy Buttons, Candy Cane, Cotton Candy, Mellowcreme, Wrapped Candy
 Cursed (2): Monopoly Money, Rotten Egg
@@ -175,8 +179,30 @@ DEVIATIONS FROM PC
   room before charging, the same net result. PC's bankrupt_at
   challenge floor has no fork equivalent and is 0 in a normal
   run, so the port checks money directly.
+- ERROR's tooltip is descriptive here: PC's is a glitched
+  DynaText (its en-us text is one empty line) whose fragments
+  predict the next shop card via Cryptid.predict_card_for_shop,
+  and while ERROR is in the shop every card carries the
+  Glitched edition (Foil as fallback). The fork has no
+  DynaText, no shop-prediction API and no Glitched edition, so
+  the prediction and the shop aura are dropped; the tooltip
+  shows a ??? / Ready! status instead. The countdown and the
+  sell duplication themselves are PC's.
+- Nostalgic Googol Play Card drops PC's "(Must have room)"
+  line and its room check: PC's check is a precedence-broken
+  card_limit condition wrapped around a copy_card + emplace
+  that never checks the limit, so the copies here bypass the
+  Joker slot limit through SMODS.copy_joker, as PC's clone
+  does. Its floating soul layer is also dropped, following
+  this pack's Googol Play Card entry, which ships none.
+- Old Blueprint drops PC's compatible / incompatible badge
+  (a loc_vars main_end UI node; fork tooltips have none), and
+  its end-of-round destroy roll ends the beat either way: on
+  PC a successful roll queues the destruction and still
+  falls through to one last blueprint copy that beat, which
+  is not reproduced here.
 
-NOT PORTED: OTHER MISSING SYSTEMS (101)
+NOT PORTED: OTHER MISSING SYSTEMS (98)
 - ://ASSEMBLE: Adds base Mult to the hand formed by the highlighted cards via SMODS.upgrade_poker_hands with a custom function (+1 per owned Joker). The fork has no upgrade_poker_hands, and cannot identify the poker hand of an arbitrary highlighted subset (PC uses G.FUNCS.get_poker_hand_info and G.GAME.hands, incl. the cry_None hand).
 - ://CLASS: Chosen-enhancement conversion runs through Cryptid's overlay menu plus init hooks on Card:click and CardArea:emplace, and the choice list includes custom enhancements m_cry_echo, m_cry_light and m_cry_abstract. No menu or method-hook API in the fork (mod_conv only covers one fixed vanilla enhancement).
 - ://CRASH: Effect is to crash or freeze the game: use() runs a random crashes[] function that overrides love.errorhandler/love.draw, fills the screen with Crash cards, or opens a text box whose contents are run via loadstring(G.ENTERED_ACE) (arbitrary code execution). No fork equivalent; deliberately destructive.
@@ -221,7 +247,6 @@ NOT PORTED: OTHER MISSING SYSTEMS (101)
 - Clockwork Joker: requires setting a played card's enhancement to m_steel mid-hand (context.full_hand[1]:set_ability) and copy_card self-duplication when its four counters align - neither API exists in the fork
 - Digital Hallucinations: The fork's open_booster context carries no booster card or pack type (the event is emitted with an empty table), so the pack-type-dependent Negative creation cannot be implemented
 - Double Scale: whole effect is context.scaling_card plus override_scalar_value (interception of SMODS.scale_card) - that context is not raised and the fork has no scale-card system
-- ERROR: on sell it duplicates every other held Joker via copy_card (exact copies incl. ability state) using G.jokers.cards, and its tooltip needs Cryptid.predict_card_for_shop - no fork copy API or G.jokers.cards
 - Effarcire: draws the whole deck to hand via SMODS.draw_cards queued through G.E_MANAGER with G.GAME.effarcire_buffer state; fork has no draw-to-hand API, no event manager and no G.GAME
 - Emergency Chips: On-sell effect writes the current hand score (G.GAME.chips) and forces G.STATE to HAND_PLAYED; the fork exposes no current-score access or game-state control (no G.GAME)
 - Exponentia: gains ^0.03 Mult whenever an XMult effect is triggered anywhere; the gain hooks SMODS.calculate_individual_effect on PC, and the fork has no effect-application hook — its retrigger and post_trigger passes carry no effect payload or amount to count
@@ -244,10 +269,8 @@ NOT PORTED: OTHER MISSING SYSTEMS (101)
 - Nebulous Joker: effect requires the cry_None poker hand (a hand containing 0 cards); a 0-card play cannot be made or scored in the fork and None is not a registerable hand
 - Nibiru: Levels cry_None, Cryptid's no-hand-played pseudo-hand; the fork has no equivalent hand to register or level (its stats are derived from bignum hand state)
 - Nostalgic Candy: selling it permanently gains hand size via G.hand:change_size - fork h_size modifiers only apply while a Joker is held; no permanent hand-size API
-- Nostalgic Googol Play Card: sell effect creates 2 copies of the leftmost Joker via copy_card (exact duplicate incl. ability state and edition) - the fork has no copy API; SMODS.add_card only creates fresh instances
 - Number Blocks: its target rank is G.GAME.current_round.cry_nb_card, state chosen by a Cryptid override tied to The Castle - no G.GAME and no such round state in the fork
 - Oil Lamp: Requires Cryptid.manipulate (library value-multiplication of the Joker to the right); no fork equivalent
-- Old Blueprint: core effect is SMODS.blueprint_effect (copies the Joker to the right), which has no fork equivalent; its calculate and loc_vars also read G.jokers.cards
 - Old Membership Card: effect scales with Cryptid.member_count, the live Cryptid Discord member count fetched over HTTPS - Cryptid library state with no fork equivalent
 - On the Flip Side: Requires the cry_double_sided edition on other Jokers; Double-Sided is a flip/merge card system with other-side state (see Meld), not a registrable edition effect
 - POINTER://: Opens Cryptid's collection overlay to create an arbitrary chosen card (G.GAME.USING_POINTER state, overlay_menu UI, a Card:click hook, pointer_create_card); the fork has no overlay-menu or click-hook API for mods

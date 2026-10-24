@@ -155,6 +155,13 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Dummy sprites for the Wave 5 (v1.3.0) copy Jokers.
+    for _, n in ipairs({
+        "forgery", "master_plan", "photocopy",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
     ModLoader.load_all()
     local game = bootstrap.new_game(7721)
     -- A headless game has no hand or deck until a run starts them.
@@ -238,11 +245,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 280 Paperback Jokers", function()
+suite.test("pack loads and registers all 283 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 280)
+    T.assert_eq(#mod.registered.jokers, 283)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },

@@ -1,7 +1,7 @@
 --[[
     BuncoPack - Bunco content ported to Balatro3DS.
 
-    Fifty-five of Bunco's eighty Jokers, both exotic suits, the four
+    Sixty-two of Bunco's eighty Jokers, both exotic suits, the four
     Spectrum-family poker hands plus Registration Plate's Deal, and six
     consumables (the four Spectrum Planets, The Sky, The Abyss), ported
     from Bunco by Firch (PC / Steamodded + Lovely). The v1.1.0 additions
@@ -3081,5 +3081,390 @@ SMODS.Joker {
                 end
             end
         end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- v1.4.0: Wave 5 top-ups, on the fork's Wave 5 seats. Gameplan and
+-- Conquest ride the mod Joker debuff (SMODS.set_joker_debuff); Myopia and
+-- Astigmatism are pure suit_aliases declarations; Sledgehammer, Dwarven
+-- and Metallurgist are pure center_overrides declarations. Everything
+-- below needs the fork's Wave 5 mod API.
+--------------------------------------------------------------------------------
+
+--- Is `j` a held Gameplan? (Def id check; the row holds instances.)
+local function buncp_is_gameplan(j)
+    return j and j.def and j.def.id == "j_buncp_gameplan"
+end
+
+--- The Jokers currently debuffed BY a Gameplan (weak keys: a Joker that
+--- leaves play drops out on its own). PC derives Gameplan's debuff from
+--- position inside its global set_debuff predicate, re-evaluated every
+--- frame; the fork's debuff is a stored flag, so the pack re-derives it
+--- at every sync point instead (see buncp_sync_gameplans). Tracking
+--- which debuffs are Gameplan's own keeps the sync from ever lifting a
+--- debuff another source (Conquest, a boss, a sticker) put there.
+local buncp_gameplan_claims = setmetatable({}, { __mode = "k" })
+
+--- Re-derive every Gameplan debuff from the current row, PC-style: a
+--- Joker is debuffed when an immediate neighbour is a Gameplan that is
+--- not itself debuffed (through any channel). Called from Gameplan's
+--- add_to_deck / remove_from_deck and its calculate at setting_blind,
+--- before, card_added and joker_debuffed, and from Conquest after it
+--- moves its own victim, which covers every way the row or a debuff
+--- state can change while the pack is in play. One honest residue: if
+--- Gameplan itself is debuffed while its neighbours are claimed, no
+--- sync runs until the next sync point, because a debuffed Joker hears
+--- no contexts -- PC's per-frame predicate lifts them instantly.
+local function buncp_sync_gameplans()
+    if not (G and G.jokers and SMODS and SMODS.set_joker_debuff) then return end
+    local desired = {}
+    for i, j in ipairs(G.jokers) do
+        if buncp_is_gameplan(j) and not SMODS.joker_debuffed(j) then
+            for _, nb in ipairs({ G.jokers[i - 1], G.jokers[i + 1] }) do
+                if nb then desired[nb] = true end
+            end
+        end
+    end
+    for j in pairs(buncp_gameplan_claims) do
+        if not desired[j] then
+            buncp_gameplan_claims[j] = nil
+            SMODS.set_joker_debuff(j, false)
+        end
+    end
+    for j in pairs(desired) do
+        if not buncp_gameplan_claims[j] and not j.mod_debuffed then
+            SMODS.set_joker_debuff(j, true)
+            if j.mod_debuffed then buncp_gameplan_claims[j] = true end
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Gameplan: Jokers next to this one are debuffed, and each neighbour
+-- gives +20 Mult. PC has no debuff code in the Joker at all: Bunco's
+-- global set_debuff predicate debuffs any Joker whose neighbour is a
+-- non-debuffed Gameplan, and Gameplan's update()/remove() hooks just
+-- ask the blind to re-evaluate every Joker. The port re-derives the
+-- same state with buncp_sync_gameplans above. Gameplan's own scoring
+-- is its joker_main: +20 Mult per neighbour that exists, debuffed or
+-- not, exactly as PC counts the slots.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "gameplan",
+    loc_txt = {
+        name = "Gameplan",
+        text = {
+            "{C:attention}Jokers{} next to this Joker",
+            "are {C:red}debuffed{} and",
+            "give {C:mult}+#1#{} Mult",
+        },
+    },
+    config = { extra = { mult = 20 } },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "gameplan.png",
+    negative_sprite = "gameplan_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
+    end,
+    add_to_deck = function(self, card)
+        buncp_sync_gameplans()
+    end,
+    remove_from_deck = function(self, card)
+        buncp_sync_gameplans()
+    end,
+    calculate = function(self, card, context)
+        if not context.blueprint and (context.setting_blind or context.before
+            or context.card_added or context.joker_debuffed) then
+            buncp_sync_gameplans()
+        end
+        if context.joker_main then
+            local my_pos = nil
+            for i, j in ipairs((G and G.jokers) or {}) do
+                if j == card then my_pos = i break end
+            end
+            if not my_pos then return end
+            local mult = 0
+            if G.jokers[my_pos - 1] then mult = mult + card.ability.extra.mult end
+            if G.jokers[my_pos + 1] then mult = mult + card.ability.extra.mult end
+            if mult ~= 0 then return { mult = mult } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Conquest: +200 Chips; when a Blind is selected, debuffs a random
+-- other Joker. PC picks the victim in its setting_blind calculate
+-- (never under Blueprint) and stores the Joker object in
+-- ability.extra.joker; Bunco's set_debuff predicate then debuffs
+-- whatever Joker that field points at, so the victim stays down until
+-- the next Blind re-picks or Conquest leaves. The port keeps the same
+-- shape on the fork's stored flag: the pick is applied with
+-- SMODS.set_joker_debuff at setting_blind (the seat the fork designs
+-- the debuff_joker return for, called directly so the previous victim
+-- can be lifted in the same pass), and the victim is tracked in a
+-- runtime map, not ability, so no live Joker reference ever enters a
+-- save (the debuff flag itself saves on the victim, as the fork has
+-- it). PC's pick is math.random; the port's is the run's seeded
+-- pseudorandom, the pack's usual surface.
+--------------------------------------------------------------------------------
+
+local buncp_conquest_victims = setmetatable({}, { __mode = "k" })
+
+local function buncp_conquest_lift(card)
+    local victim = buncp_conquest_victims[card]
+    buncp_conquest_victims[card] = nil
+    if victim and victim.mod_debuffed then
+        SMODS.set_joker_debuff(victim, false)
+    end
+end
+
+SMODS.Joker {
+    key = "conquest",
+    loc_txt = {
+        name = "Conquest",
+        text = {
+            "{C:chips}+#1#{} Chips,",
+            "{C:red}debuffs{} random Joker",
+            "when {C:attention}Blind{} is selected",
+        },
+    },
+    config = { extra = { chips = 200 } },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "conquest.png",
+    negative_sprite = "conquest_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.chips } }
+    end,
+    remove_from_deck = function(self, card)
+        buncp_conquest_lift(card)
+        buncp_sync_gameplans()
+    end,
+    calculate = function(self, card, context)
+        if context.setting_blind and not context.blueprint then
+            buncp_conquest_lift(card)
+            local targets = {}
+            for _, j in ipairs((G and G.jokers) or {}) do
+                if j ~= card then targets[#targets + 1] = j end
+            end
+            if #targets > 0 then
+                local victim = targets[SMODS.pseudorandom("buncp_conquest", 1, #targets)]
+                buncp_conquest_victims[card] = victim
+                SMODS.set_joker_debuff(victim, true)
+                buncp_sync_gameplans()
+                return { message = "Debuffed!" }
+            end
+            buncp_sync_gameplans()
+        end
+        if context.joker_main then
+            return { chips = card.ability.extra.chips }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Myopia / Astigmatism: no calculate at all, on PC or here. PC patches
+-- Card:is_suit globally (Lovely): while a non-debuffed copy is held,
+-- Spades and Clubs also count as Halberds (Myopia), Hearts and Diamonds
+-- also count as Fleurons (Astigmatism). The fork's suit_aliases field
+-- is that patch at its single is_suit choke, derived from the held row
+-- on every check, so selling or debuffing the Joker ends the alias
+-- with no cleanup. Both are Exotic Jokers on PC, so the pack's exotic
+-- pool gate applies. One honest limit, the fork's own: hand-type Flush
+-- grouping reads suits directly, not through is_suit, so the alias
+-- does not forge Flushes out of mixed printed suits (on PC the global
+-- patch sits inside Card:is_suit, which PC's flush grouping also
+-- consults, so a Spades/Clubs mix can flush as Halberds there).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "myopia",
+    loc_txt = {
+        name = "Myopia",
+        text = {
+            "{C:attention}Spades{} and {C:attention}Clubs{}",
+            "count as {C:attention}Halberds{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = buncp_exotic_pool,
+    sprite = "myopia.png",
+    negative_sprite = "myopia_negative.png",
+    suit_aliases = { Spades = "Halberds", Clubs = "Halberds" },
+}
+
+SMODS.Joker {
+    key = "astigmatism",
+    loc_txt = {
+        name = "Astigmatism",
+        text = {
+            "{C:attention}Hearts{} and {C:attention}Diamonds{}",
+            "count as {C:attention}Fleurons{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = buncp_exotic_pool,
+    sprite = "astigmatism.png",
+    negative_sprite = "astigmatism_negative.png",
+    suit_aliases = { Hearts = "Fleurons", Diamonds = "Fleurons" },
+}
+
+--------------------------------------------------------------------------------
+-- The center-override trio. PC implements all three with add/remove
+-- hooks that rewrite a vanilla center's config (and patch every live
+-- card to match); the fork never materialised a per-card copy, so the
+-- same numbers are declared as center_overrides and folded over the
+-- base config at every read, reversible by construction. All three
+-- also carry PC's custom_in_pool gate: the Joker only appears while
+-- your deck holds a card of its enhancement.
+--------------------------------------------------------------------------------
+
+local function buncp_deck_has_enhancement(enhancement)
+    for _, data in ipairs(buncp_full_deck_data()) do
+        if data.enhancement == enhancement then return true end
+    end
+    return false
+end
+
+--------------------------------------------------------------------------------
+-- Sledgehammer: Glass Cards give +X1 Mult per held copy, but the break
+-- odds denominator is divided by 4 (4 -> 1: guaranteed to break, as
+-- PC's text says) once, no matter how many copies are held. PC's add
+-- hook adds plus_xmult unconditionally and divides extra only when it
+-- is the first Sledgehammer in the row (its find_card guard), and its
+-- remove hook mirrors that; the fork's ops say the same thing
+-- directly: add per copy, divide with once = true. PC also re-applies
+-- the pair from Game:start_run for loaded runs; the fork's read-time
+-- fold needs no re-application.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "sledgehammer",
+    loc_txt = {
+        name = "Sledgehammer",
+        text = {
+            "{C:attention}Glass Cards{} give +{X:mult,C:white}X#1#{} Mult",
+            "but are guaranteed to break",
+        },
+    },
+    config = { extra = { plus_xmult = 1, div_chance_denom = 4 } },
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = function(self, args) return buncp_deck_has_enhancement("glass") end,
+    sprite = "sledgehammer.png",
+    negative_sprite = "sledgehammer_negative.png",
+    center_overrides = {
+        { center = "m_glass", field = "Xmult", add = 1 },
+        { center = "m_glass", field = "extra", divide = 4, once = true },
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.plus_xmult } }
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Dwarven: Stone Cards held in hand have the abilities of Steel and
+-- Gold Cards: Stone gains Steel's h_x_mult (X1.5) and Gold's h_dollars
+-- ($3), lent with add_from, which reads the other centers' BASE
+-- values. PC's add hook lends both values once per held copy (two
+-- Dwarvens lend double), so the entries are per-copy here too, no
+-- once flag. Stone's own +50 Chips when played is untouched, and the
+-- lent fields only wake Stone's held / round-end readers while an
+-- override supplies them (the fork's reader wiring).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "dwarven",
+    loc_txt = {
+        name = "Dwarven Joker",
+        text = {
+            "{C:attention}Stone Cards{} held in hand",
+            "have the abilities of",
+            "{C:attention}Steel{} and {C:attention}Gold Cards{}",
+        },
+    },
+    config = { extra = {} },
+    rarity = 2,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = function(self, args) return buncp_deck_has_enhancement("stone") end,
+    sprite = "dwarven.png",
+    negative_sprite = "dwarven_negative.png",
+    center_overrides = {
+        { center = "m_stone", field = "h_x_mult", add_from = { center = "m_steel", field = "h_x_mult" } },
+        { center = "m_stone", field = "h_dollars", add_from = { center = "m_gold", field = "h_dollars" } },
+    },
+}
+
+--------------------------------------------------------------------------------
+-- Metallurgist: Gold Cards give +10 Mult while held in hand, per held
+-- copy. PC's add hook writes h_mult onto the Gold center config (its
+-- per-card patch of already-dealt Gold cards starts them at 0 -- a PC
+-- quirk the read-time fold does not reproduce: here every held Gold
+-- card pays, dealt before or after). Gold's own $3 at round end is
+-- untouched.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "metallurgist",
+    loc_txt = {
+        name = "Metallurgist",
+        text = {
+            "{C:attention}Gold Cards{} give {C:mult}+#1#{} Mult",
+            "while held in hand",
+        },
+    },
+    config = { extra = { mult = 10 } },
+    rarity = 1,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    in_pool = function(self, args) return buncp_deck_has_enhancement("gold") end,
+    sprite = "metallurgist.png",
+    negative_sprite = "metallurgist_negative.png",
+    center_overrides = {
+        { center = "m_gold", field = "h_mult", add = 10 },
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
     end,
 }

@@ -1,1 +1,14 @@
-{"author":["Muse (port)","Firch (original mod)"],"description":"Fifty-five Jokers, both exotic suits, the Spectrum-family poker hands (Spectrum, Straight Spectrum, Spectrum House, Spectrum Five) plus Deal, six consumables, and the Fluorescent edition ported from Bunco by Firch. The v1.1.0 additions need the Balatro3DS fork's Tier 1 + Tier 2 mod APIs (create/destroy cards, retrigger returns, SMODS.Suit, SMODS.PokerHand) and the fork's suit-pool gate for random card fronts; v1.2.0 (Neon, Bounty Hunter, Fluorescent) uses Tier 3 (SMODS.Edition, setting_ability, money_altered). Fluorescent's PC immunities are not implemented (fork editions are config-only); the edition has no stats and its tooltip says so. v1.3.0 (Fiendish, Head in the Clouds, and Bounty Hunter's tax moved to the honest pre-gain transform) uses Wave 1 (money_transform, level_up_hand).","display_name":"Bunco Pack","id":"BuncoPack","main_file":"buncopack.lua","name":"Bunco Pack","prefix":"buncp","priority":0,"version":"1.3.0"}
+{
+    "author": [
+        "Muse (port)",
+        "Firch (original mod)"
+    ],
+    "description": "Sixty-two Jokers, both exotic suits, the Spectrum-family poker hands (Spectrum, Straight Spectrum, Spectrum House, Spectrum Five) plus Deal, six consumables, and the Fluorescent edition ported from Bunco by Firch. The v1.1.0 additions need the Balatro3DS fork's Tier 1 + Tier 2 mod APIs (create/destroy cards, retrigger returns, SMODS.Suit, SMODS.PokerHand) and the fork's suit-pool gate for random card fronts; v1.2.0 (Neon, Bounty Hunter, Fluorescent) uses Tier 3 (SMODS.Edition, setting_ability, money_altered). Fluorescent's PC immunities are not implemented (fork editions are config-only); the edition has no stats and its tooltip says so. v1.3.0 (Fiendish, Head in the Clouds, and Bounty Hunter's tax moved to the honest pre-gain transform) uses Wave 1 (money_transform, level_up_hand). v1.4.0 (Gameplan, Conquest, Myopia, Astigmatism, Sledgehammer, Dwarven, Metallurgist) uses Wave 5 (mod Joker debuff, suit_aliases, center_overrides); suit aliases do not forge Flushes here (hand grouping reads printed suits), and Gameplan's neighbour debuff re-syncs at blind select / hand start / Joker gains rather than every frame.",
+    "display_name": "Bunco Pack",
+    "id": "BuncoPack",
+    "main_file": "buncopack.lua",
+    "name": "Bunco Pack",
+    "prefix": "buncp",
+    "priority": 0,
+    "version": "1.4.0"
+}

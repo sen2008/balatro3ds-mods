@@ -1,7 +1,7 @@
 --[[
     CryptidPack - Cryptid content ported to Balatro3DS.
 
-    172 Jokers and 28 consumables ported from Cryptid by the Cryptid
+    175 Jokers and 28 consumables ported from Cryptid by the Cryptid
     team / SpectralPack (PC / Steamodded + Talisman, GPLv3, source
     v0.5.17c). Requires the Balatro3DS fork build
     (https://github.com/sen2008/balatro3ds-fork): custom rarities,
@@ -12,7 +12,9 @@
     and the destroying_card / debuff_card / money_altered /
     tag_added contexts). The v1.3.0 additions need the fork's
     Wave 1 systems (G.jokers_sold, the game_over context with a
-    saved = true return, and joker_type_destroyed).
+    saved = true return, and joker_type_destroyed). The v1.4.0
+    additions need the fork's Wave 5 systems (SMODS.copy_joker
+    and SMODS.blueprint_effect).
 
     Port notes:
       * The Talisman bignum wrapper (lenient_bignum / to_big) is
@@ -10956,6 +10958,218 @@ SMODS.Consumable {
             end
         else
             G:addTag(typ)
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wave 5 (v1.4.0): the copy/blueprint trio, on the fork's Wave 5
+-- seats (SMODS.copy_joker, an exact copy_card clone that bypasses
+-- the Joker slot limit, and SMODS.blueprint_effect, Steamodded's
+-- copy dispatch). PC sources: items/epic.lua (ERROR, Nostalgic
+-- Googol Play Card) and items/misc_joker.lua (Old Blueprint).
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- ERROR: arms after a random 1-10 round countdown, then duplicates
+-- every other held Joker when sold.
+-- PORT NOTE: PC (items/epic.lua) keeps sell_rounds / active in
+-- extra, rolls the countdown at end_of_round with
+-- pseudorandom("cry_error") * 10 + 1, and on selling_self copies
+-- every held Joker whose name is not "cry-Error" (so other ERRORs
+-- are never copied) through copy_card + emplace, which never check
+-- the slot limit; SMODS.copy_joker is the same rule here. PC's
+-- tooltip is a glitched DynaText (its en-us text is a single empty
+-- line) that predicts the next shop card via
+-- Cryptid.predict_card_for_shop, and while in the shop every card
+-- is Glitched (falling back to Foil): the fork has no DynaText, no
+-- shop-prediction API and no Glitched edition, so the tooltip here
+-- is descriptive with a Ready! / ??? status line, the prediction
+-- and the shop aura are dropped (see README DEVIATIONS), and the
+-- juice-until-armed effect is a "???" / "Ready!" message.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "error",
+    loc_txt = {
+        name = "ERROR",
+        text = {
+            "After a {C:attention}random{} number of rounds,",
+            "{C:attention}duplicates{} every other {C:attention}Joker{}",
+            "when {C:attention}sold{}",
+            "{C:inactive}(Status: #1#){}",
+        },
+    },
+    config = { extra = { sell_rounds = 0, active = false } },
+    rarity = "epic",
+    cost = 1,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "error.png",
+    negative_sprite = "error_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.active and "Ready!" or "???" } }
+    end,
+    calculate = function(self, card, context)
+        local extra = card.ability.extra
+        if context.end_of_round and not context.blueprint
+            and not context.individual and not context.repetition
+            and not context.retrigger_joker and not extra.active then
+            if extra.sell_rounds == 0 then
+                extra.sell_rounds = SMODS.pseudorandom("cryp_error", 1, 10)
+            end
+            extra.sell_rounds = extra.sell_rounds - 1
+            if extra.sell_rounds == 0 then
+                extra.active = true
+                return { message = "Ready!" }
+            end
+            return { message = "???" }
+        end
+        if context.selling_self and extra.active
+            and not context.blueprint and not context.retrigger_joker then
+            local targets = {}
+            for _, j in ipairs(crypT_held_jokers()) do
+                if j ~= card and crypT_joker_id(j) ~= "j_cryp_error" then
+                    targets[#targets + 1] = j
+                end
+            end
+            local made = 0
+            if SMODS.copy_joker then
+                for _, j in ipairs(targets) do
+                    if SMODS.copy_joker(j) then made = made + 1 end
+                end
+            end
+            if made > 0 then return { message = "Duplicated!" } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Nostalgic Googol Play Card: sell this card to create 2 copies of
+-- the leftmost Joker.
+-- PORT NOTE: PC (items/epic.lua, key altgoogol) holds the count in
+-- a top-level config copies = 2 (mainline gameset), checks the
+-- leftmost held Joker is not itself a Nostalgic Googol Play Card,
+-- and copy_cards it twice. The fork removes the sold Joker before
+-- selling_self fires, so held[1] is already the leftmost other
+-- Joker; the ~= card check is kept for the PC shape. PC's room
+-- check is a precedence-broken card_limit condition wrapped around
+-- a copy_card + emplace that never checks the limit, so it is not
+-- reproduced: the copies bypass the slot limit through
+-- SMODS.copy_joker, and PC's "(Must have room)" line is dropped
+-- (see README DEVIATIONS). PC's soul layer is dropped, following
+-- this pack's Googol Play Card entry, which ships none either.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "altgoogol",
+    loc_txt = {
+        name = "Nostalgic Googol Play Card",
+        text = {
+            "Sell this card to create",
+            "{C:attention}#1#{} copies of the leftmost {C:attention}Joker{}",
+            "{C:inactive}Does not copy Nostalgic Googol Play Cards{}",
+        },
+    },
+    config = { copies = 2 },
+    rarity = "epic",
+    cost = 10,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "altgoogol.png",
+    negative_sprite = "altgoogol_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.copies } }
+    end,
+    calculate = function(self, card, context)
+        if context.selling_self and not context.blueprint
+            and not context.retrigger_joker then
+            local leftmost = crypT_held_jokers()[1]
+            if leftmost and leftmost ~= card
+                and crypT_joker_id(leftmost) ~= "j_cryp_altgoogol"
+                and SMODS.copy_joker then
+                local made = 0
+                for _ = 1, card.ability.copies do
+                    if SMODS.copy_joker(leftmost) then made = made + 1 end
+                end
+                if made > 0 then return { message = "Duplicated!" } end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Old Blueprint: copies the ability of the Joker to its right;
+-- 1 in 4 chance this card is destroyed at end of round.
+-- PORT NOTE: PC (items/misc_joker.lua) falls through every context
+-- to SMODS.blueprint_effect(card, <Joker to the right>, context),
+-- which is the fork's own dispatch here, compat / debuff / one-level
+-- rules included. The destroy roll is PC's end_of_round branch
+-- (game_over == false, main_eval, 1 in odds via
+-- SMODS.pseudorandom_probability), resolved with SMODS.destroy_joker
+-- at the same beat (the Broken Home pattern): a Safe! roll copies
+-- nothing that beat on PC either, and PC's successful roll falls
+-- through to one last copy while its destruction is queued, which
+-- is not reproduced. PC's loc_vars compatible / incompatible badge
+-- (a main_end UI node) has no fork tooltip equivalent and is
+-- dropped.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "oldblueprint",
+    loc_txt = {
+        name = "Old Blueprint",
+        text = {
+            "Copies ability of",
+            "{C:attention}Joker{} to the right",
+            "{C:green}#1# in #2#{} chance this",
+            "card is destroyed",
+            "at end of round",
+        },
+    },
+    config = { extra = { odds = 4 } },
+    rarity = 1,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = false,
+    perishable_compat = true,
+    sprite = "oldblueprint.png",
+    negative_sprite = "oldblueprint_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local num, den = SMODS.get_probability_vars(card, 1,
+            card.ability.extra.odds, "cryp_oldblueprint")
+        return { vars = { num, den } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round and context.game_over == false
+            and context.main_eval and not context.blueprint
+            and not context.individual and not context.repetition
+            and not context.retrigger_joker then
+            if SMODS.pseudorandom_probability(card, "cryp_oldblueprint", 1,
+                card.ability.extra.odds, "cryp_oldblueprint") then
+                if SMODS.destroy_joker then SMODS.destroy_joker(card) end
+                return { message = "Destroyed!" }
+            end
+            return { message = "Safe!" }
+        end
+        if SMODS.blueprint_effect then
+            local held = crypT_held_jokers()
+            for i, j in ipairs(held) do
+                if j == card then
+                    if held[i + 1] then
+                        return SMODS.blueprint_effect(card, held[i + 1], context)
+                    end
+                    break
+                end
+            end
         end
     end,
 }

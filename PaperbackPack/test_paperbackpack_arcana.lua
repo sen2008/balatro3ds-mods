@@ -184,6 +184,13 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Dummy sprites for the Wave 5 (v1.3.0) copy Jokers.
+    for _, n in ipairs({
+        "forgery", "master_plan", "photocopy",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
     ModLoader.load_all()
     local game = bootstrap.new_game(9182)
     game.hand = Hand(game)

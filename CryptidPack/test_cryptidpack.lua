@@ -193,6 +193,9 @@ local JOKER_EXPECT = {
     ["pumpkin"] = { name = "Pumpkin", cost = 10, rarity = 3 },
     ["carved_pumpkin"] = { name = "Carved Pumpkin", cost = 10, rarity = 3 },
     ["familiar_currency"] = { name = "Familiar Currency", cost = 0, rarity = 3 },
+    ["error"] = { name = "ERROR", cost = 1, rarity = "epic" },
+    ["altgoogol"] = { name = "Nostalgic Googol Play Card", cost = 10, rarity = "epic" },
+    ["oldblueprint"] = { name = "Old Blueprint", cost = 6, rarity = 1 },
 }
 
 local CONSUMABLE_EXPECT = {
@@ -661,6 +664,12 @@ local SPRITE_STEMS = {
     "familiar_currency_negative",
     "alttab",
     "alttab_negative",
+    "error",
+    "error_negative",
+    "altgoogol",
+    "altgoogol_negative",
+    "oldblueprint",
+    "oldblueprint_negative",
 }
 
 
@@ -675,7 +684,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/CryptidPack.json", [[{
         "id": "CryptidPack", "name": "Cryptid Pack", "prefix": "cryp",
-        "main_file": "cryptidpack.lua", "version": "1.3.0",
+        "main_file": "cryptidpack.lua", "version": "1.4.0",
         "author": ["Cryptid team", "3DS port"]
     }]])
     love.filesystem.write(base .. "/cryptidpack.lua", main)
@@ -755,11 +764,11 @@ end
 -- Registration: rarities, hands, consumable types, every item + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads: 172 Jokers, 28 consumables, rarities, hands, types", function()
+suite.test("pack loads: 175 Jokers, 28 consumables, rarities, hands, types", function()
     local game = install_pack()
     local mod = ModLoader.by_id.CryptidPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 172, "172 Jokers register")
+    T.assert_eq(#mod.registered.jokers, 175, "175 Jokers register")
     T.assert_eq(#mod.registered.consumables, 28, "28 consumables register")
 
     T.assert_eq(SMODS.Rarities["cryp_epic"].weight, 0.3, "epic weight")
@@ -2019,6 +2028,138 @@ suite.test("alttab creates the current blind's skip tag", function()
     use_slot(game, hold_consumable(game, "alttab"))
     T.assert_eq(#game.tags, 1, "one tag is gained")
     T.assert_eq(game.tags[1].type, "uncommon", "it is the Small Blind's skip Tag")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 5 (v1.4.0): copy_joker / blueprint_effect trio
+--------------------------------------------------------------------------------
+
+suite.test("ERROR arms on its countdown and does not duplicate before it is armed", function()
+    local game = install_pack()
+    local err = add(game, "j_cryp_error")
+    add(game, "j_cryp_cursor")
+    fire(err, "on_joker_sold", { joker = err })
+    T.assert_eq(#game.jokers, 2, "unarmed: selling duplicates nothing")
+    local rounds = 0
+    while not err.ability.extra.active and rounds < 10 do
+        fire(err, "on_round_end", {})
+        rounds = rounds + 1
+    end
+    T.assert_true(err.ability.extra.active, "armed within the 1-10 round countdown")
+    T.assert_eq(err.ability.extra.sell_rounds, 0, "the countdown reached 0")
+    wipe_mods()
+end)
+
+suite.test("ERROR duplicates every other Joker with its live state when sold armed", function()
+    local game = install_pack()
+    local err = add(game, "j_cryp_error")
+    local err2 = add(game, "j_cryp_error")
+    local cursor = add(game, "j_cryp_cursor")
+    add(game, "j_joker")
+    cursor.ability.extra.chips = 99
+    err.ability.extra.active = true
+    fire(err, "on_joker_sold", { joker = err })
+    -- The harness only drives the context (the sold ERROR stays listed);
+    -- copies of the Cursor and the plain Joker are appended, and no
+    -- ERROR is ever copied, exactly as PC's name check has it.
+    T.assert_eq(#game.jokers, 6, "both other Jokers were duplicated")
+    local copies = {}
+    for i = 5, 6 do copies[game.jokers[i].def.id] = game.jokers[i] end
+    T.assert_true(copies["j_cryp_cursor"] ~= nil, "the Cursor was copied")
+    T.assert_eq(copies["j_cryp_cursor"].ability.extra.chips, 99,
+        "the copy carries the live +99 Chips state, not a fresh +0")
+    T.assert_true(copies["j_cryp_cursor"] ~= cursor, "the copy is a new Joker")
+    T.assert_true(copies["j_joker"] ~= nil, "the vanilla Joker was copied")
+    local errors = 0
+    for _, j in ipairs(game.jokers) do
+        if j.def.id == "j_cryp_error" then errors = errors + 1 end
+    end
+    T.assert_eq(errors, 2, "no ERROR was duplicated")
+    wipe_mods()
+end)
+
+suite.test("nostalgic googol sells into exactly 2 copies of the leftmost Joker", function()
+    local game = install_pack()
+    local cursor = add(game, "j_cryp_cursor")
+    local alt = add(game, "j_cryp_altgoogol")
+    add(game, "j_joker")
+    cursor.ability.extra.chips = 42
+    fire(alt, "on_joker_sold", { joker = alt })
+    T.assert_eq(#game.jokers, 5, "exactly 2 copies were created")
+    local first, second = game.jokers[4], game.jokers[5]
+    T.assert_eq(first.def.id, "j_cryp_cursor", "the copies are of the leftmost Joker")
+    T.assert_eq(second.def.id, "j_cryp_cursor", "both copies are")
+    T.assert_true(first ~= cursor and second ~= cursor and first ~= second,
+        "the copies are distinct new Jokers")
+    T.assert_eq(first.ability.extra.chips, 42, "the copies carry the live state")
+    T.assert_eq(second.ability.extra.chips, 42, "both do")
+    wipe_mods()
+end)
+
+suite.test("nostalgic googol does not copy itself or an empty row", function()
+    local game = install_pack()
+    local alt = add(game, "j_cryp_altgoogol")
+    add(game, "j_cryp_cursor")
+    -- The harness leaves the sold card listed, so the leftmost Joker
+    -- here is the Nostalgic Googol itself, which PC refuses to copy.
+    fire(alt, "on_joker_sold", { joker = alt })
+    T.assert_eq(#game.jokers, 2, "leftmost is itself: nothing is copied")
+    wipe_mods()
+    game = install_pack()
+    local solo = add(game, "j_cryp_altgoogol")
+    fire(solo, "on_joker_sold", { joker = solo })
+    T.assert_eq(#game.jokers, 1, "no other Joker: nothing is copied")
+    wipe_mods()
+end)
+
+suite.test("old blueprint copies the Joker to its right through blueprint_effect", function()
+    local game = install_pack()
+    local oldbp = add(game, "j_cryp_oldblueprint")
+    add(game, "j_cryp_dubious")
+    local ctx = scored(oldbp, { played_cards = { card(5) } })
+    T.assert_eq(ctx.chips, 30, "the neighbour's +20 Chips land at Old Blueprint's slot")
+    wipe_mods()
+    game = install_pack()
+    local oldbp2 = add(game, "j_cryp_oldblueprint")
+    add(game, "j_joker")
+    local ctx2 = scored(oldbp2, { played_cards = { card(5) } })
+    T.assert_eq(ctx2.mult, 6, "a vanilla neighbour fires in place (+4 Mult)")
+    wipe_mods()
+    game = install_pack()
+    local lonely = add(game, "j_cryp_oldblueprint")
+    local ctx3 = scored(lonely, { played_cards = { card(5) } })
+    T.assert_eq(ctx3.chips, 10, "rightmost with no neighbour copies nothing")
+    T.assert_eq(ctx3.mult, 2, "and pays nothing of its own")
+    wipe_mods()
+end)
+
+suite.test("old blueprint is refused by a debuffed or incompatible neighbour", function()
+    local game = install_pack()
+    local oldbp = add(game, "j_cryp_oldblueprint")
+    local dubious = add(game, "j_cryp_dubious")
+    SMODS.set_joker_debuff(dubious, true)
+    local ctx = scored(oldbp, { played_cards = { card(5) } })
+    T.assert_eq(ctx.chips, 10, "a debuffed neighbour does not fire")
+    SMODS.set_joker_debuff(dubious, false)
+    local ctx2 = scored(oldbp, { played_cards = { card(5) } })
+    T.assert_eq(ctx2.chips, 30, "undebuffed, the neighbour fires again")
+    wipe_mods()
+    game = install_pack()
+    local oldbp2 = add(game, "j_cryp_oldblueprint")
+    add(game, "j_cryp_pot_of_jokes")
+    local ctx3 = scored(oldbp2, { played_cards = { card(5) } })
+    T.assert_eq(ctx3.chips, 10, "a non-blueprint_compat neighbour does not fire")
+    T.assert_eq(ctx3.mult, 2, "nothing is paid")
+    wipe_mods()
+end)
+
+suite.test("old blueprint is destroyed on a 1-in-1 end-of-round roll", function()
+    local game = install_pack()
+    local oldbp = add(game, "j_cryp_oldblueprint")
+    oldbp.ability.extra.odds = 1
+    fire(oldbp, "on_round_end", {})
+    T.assert_eq(#game.jokers, 0, "odds of 1: the destroy roll always lands")
     wipe_mods()
 end)
 

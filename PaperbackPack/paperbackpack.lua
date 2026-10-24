@@ -127,6 +127,7 @@ end
 
 SMODS.Joker {
     key = "aurora_borealis",
+    blueprint_compat = true,
     name = "Aurora Borealis",
     rarity = 2,
     cost = 6,
@@ -150,6 +151,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "bicycle",
+    blueprint_compat = true,
     name = "Bicycle",
     rarity = 2,
     cost = 6,
@@ -172,6 +174,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "emergency_broadcast",
+    blueprint_compat = true,
     name = "Emergency Broadcast",
     rarity = 1,
     cost = 6,
@@ -195,6 +198,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "find_jimbo",
+    blueprint_compat = true,
     name = "Find Jimbo",
     rarity = 1,
     cost = 4,
@@ -234,6 +238,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "guns_blazin",
+    blueprint_compat = true,
     name = "Guns Blazin'",
     rarity = 2,
     cost = 8,
@@ -255,6 +260,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "insurance_policy",
+    blueprint_compat = true,
     name = "Insurance Policy",
     rarity = 2,
     cost = 6,
@@ -280,6 +286,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "malibu",
+    blueprint_compat = true,
     name = "Malibu",
     rarity = 2,
     cost = 7,
@@ -311,6 +318,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "trust_us",
+    blueprint_compat = true,
     name = "Trust Us!",
     rarity = 2,
     cost = 6,
@@ -334,6 +342,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "attacking_vertical",
+    blueprint_compat = true,
     name = "Attacking Vertical",
     rarity = 3,
     cost = 8,
@@ -364,6 +373,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "better_call_jimbo",
+    blueprint_compat = true,
     name = "Better Call Jimbo",
     rarity = 3,
     cost = 8,
@@ -387,6 +397,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "calling_card",
+    blueprint_compat = true,
     name = "Calling Card",
     rarity = 2,
     cost = 6,
@@ -414,6 +425,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "claw",
+    blueprint_compat = true,
     name = "Claw",
     rarity = 1,
     cost = 3,
@@ -443,6 +455,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "giga_size",
+    blueprint_compat = true,
     name = "GIGA SIZE",
     rarity = 3,
     cost = 8,
@@ -472,6 +485,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "grand_strategy",
+    blueprint_compat = true,
     name = "Grand Strategy",
     rarity = 3,
     cost = 8,
@@ -497,6 +511,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "jacks",
+    blueprint_compat = true,
     name = "Jacks",
     rarity = 1,
     cost = 5,
@@ -525,6 +540,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "jestrica",
+    blueprint_compat = true,
     name = "Jestrica",
     rarity = 1,
     cost = 5,
@@ -560,6 +576,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "magic_mushroom",
+    blueprint_compat = true,
     name = "Magic Mushroom",
     rarity = 3,
     cost = 8,
@@ -589,6 +606,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "mismatched_sock",
+    blueprint_compat = true,
     name = "Mismatched Sock",
     rarity = 2,
     cost = 6,
@@ -620,6 +638,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "nazar",
+    blueprint_compat = true,
     name = "Nazar",
     rarity = 1,
     cost = 5,
@@ -649,6 +668,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "planchette",
+    blueprint_compat = true,
     name = "Planchette",
     rarity = 2,
     cost = 6,
@@ -677,6 +697,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "satellite_array",
+    blueprint_compat = true,
     name = "Satellite Array",
     rarity = 2,
     cost = 7,
@@ -709,6 +730,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "technology",
+    blueprint_compat = true,
     name = "Technology",
     rarity = 2,
     cost = 8,
@@ -747,6 +769,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "toppins",
+    blueprint_compat = true,
     name = "Toppins",
     rarity = 1,
     cost = 5,
@@ -775,6 +798,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "union_card",
+    blueprint_compat = true,
     name = "Union Card",
     rarity = 3,
     cost = 8,
@@ -797,6 +821,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "the_quiet",
+    blueprint_compat = true,
     name = "The Quiet",
     rarity = 3,
     cost = 8,
@@ -824,6 +849,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "pocket_pair",
+    blueprint_compat = true,
     name = "Pocket Pair",
     rarity = 1,
     cost = 5,
@@ -853,6 +879,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "rosary_beads",
+    blueprint_compat = true,
     name = "Rosary Beads",
     rarity = 1,
     cost = 4,
@@ -877,6 +904,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "surfer",
+    blueprint_compat = true,
     name = "Surfer",
     rarity = 2,
     cost = 7,
@@ -912,6 +940,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "the_girl_from_024",
+    blueprint_compat = true,
     name = "The Girl From 024",
     rarity = 2,
     cost = 7,
@@ -947,6 +976,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "tian_tian",
+    blueprint_compat = true,
     name = "Tian Tian",
     rarity = 3,
     cost = 7,
@@ -977,6 +1007,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "time_regression_mix",
+    blueprint_compat = true,
     name = "Time Regression Mix",
     rarity = 1,
     cost = 3,
@@ -1052,6 +1083,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "unionized_labor",
+    blueprint_compat = true,
     name = "Unionized Labor",
     rarity = 2,
     cost = 7,
@@ -1075,6 +1107,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "park_postcard",
+    blueprint_compat = true,
     name = "Park Postcard",
     rarity = 3,
     cost = 8,
@@ -1105,6 +1138,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "river",
+    blueprint_compat = true,
     name = "River",
     rarity = 2,
     cost = 7,
@@ -1140,6 +1174,7 @@ SMODS.Joker {
 
 SMODS.Joker {
     key = "langely",
+    blueprint_compat = true,
     name = "L'angely",
     rarity = 4,
     cost = 20,
@@ -2534,6 +2569,7 @@ do
 -- 56_leaf_clover
 SMODS.Joker {
     key = "56_leaf_clover",
+    blueprint_compat = true,
     name = "56 Leaf Clover",
     rarity = 2,
     cost = 6,
@@ -2592,6 +2628,7 @@ SMODS.Joker {
 -- shadowmantle
 SMODS.Joker {
     key = "shadowmantle",
+    blueprint_compat = true,
     name = "ShadowMantle",
     rarity = 3,
     cost = 8,
@@ -2873,6 +2910,7 @@ SMODS.Joker {
 -- ampersand
 SMODS.Joker {
     key = "ampersand",
+    blueprint_compat = true,
     name = "&",
     rarity = 1,
     cost = 3,
@@ -2929,6 +2967,7 @@ SMODS.Joker {
 -- apple
 SMODS.Joker {
     key = "apple",
+    blueprint_compat = true,
     name = "Apple",
     rarity = 1,
     cost = 1,
@@ -2972,6 +3011,7 @@ SMODS.Joker {
 -- autumn_leaves
 SMODS.Joker {
     key = "autumn_leaves",
+    blueprint_compat = true,
     name = "Autumn Leaves",
     rarity = 2,
     cost = 6,
@@ -2998,6 +3038,7 @@ SMODS.Joker {
 -- b_soda
 SMODS.Joker {
     key = "b_soda",
+    blueprint_compat = true,
     name = "B-Soda",
     rarity = 1,
     cost = 4,
@@ -3039,6 +3080,7 @@ SMODS.Joker {
 -- bamboo_stick
 SMODS.Joker {
     key = "bamboo_stick",
+    blueprint_compat = true,
     name = "Bamboo Stick",
     rarity = 1,
     cost = 7,
@@ -3066,6 +3108,7 @@ SMODS.Joker {
 -- banana_man
 SMODS.Joker {
     key = "banana_man",
+    blueprint_compat = true,
     name = "Banana Man",
     rarity = 3,
     cost = 8,
@@ -3097,6 +3140,7 @@ SMODS.Joker {
 -- basic_energy
 SMODS.Joker {
     key = "basic_energy",
+    blueprint_compat = true,
     name = "Basic Joker Energy",
     rarity = 2,
     cost = 6,
@@ -3142,6 +3186,7 @@ SMODS.Joker {
 -- big_misser
 SMODS.Joker {
     key = "big_misser",
+    blueprint_compat = true,
     name = "Big Misser",
     rarity = 2,
     cost = 6,
@@ -3176,6 +3221,7 @@ SMODS.Joker {
 -- birches
 SMODS.Joker {
     key = "birches",
+    blueprint_compat = true,
     name = "Birches",
     rarity = 2,
     cost = 6,
@@ -3242,6 +3288,7 @@ SMODS.Joker {
 -- black_forest_cake
 SMODS.Joker {
     key = "black_forest_cake",
+    blueprint_compat = true,
     name = "Black Forest Cake",
     rarity = 1,
     cost = 3,
@@ -3282,6 +3329,7 @@ SMODS.Joker {
 -- black_knife
 SMODS.Joker {
     key = "black_knife",
+    blueprint_compat = true,
     name = "Black Knife",
     rarity = 3,
     cost = 9,
@@ -3413,6 +3461,7 @@ SMODS.Joker {
 -- blade_dance
 SMODS.Joker {
     key = "blade_dance",
+    blueprint_compat = true,
     name = "Blade Dance",
     rarity = 2,
     cost = 6,
@@ -3465,6 +3514,7 @@ SMODS.Joker {
 -- blazing_trails
 SMODS.Joker {
     key = "blazing_trails",
+    blueprint_compat = true,
     name = "Blazing Trails",
     rarity = 2,
     cost = 6,
@@ -3497,6 +3547,7 @@ SMODS.Joker {
 -- blue_bonnets
 SMODS.Joker {
     key = "blue_bonnets",
+    blueprint_compat = true,
     name = "Blue Bonnets",
     rarity = 2,
     cost = 6,
@@ -3523,6 +3574,7 @@ SMODS.Joker {
 -- blue_curacao
 SMODS.Joker {
     key = "blue_curacao",
+    blueprint_compat = true,
     name = "Blue Curaçao",
     rarity = 2,
     cost = 6,
@@ -3553,6 +3605,7 @@ SMODS.Joker {
 -- blue_marble
 SMODS.Joker {
     key = "blue_marble",
+    blueprint_compat = true,
     name = "Blue Marble",
     rarity = 1,
     cost = 3,
@@ -3711,6 +3764,7 @@ SMODS.Joker {
 -- cakepop
 SMODS.Joker {
     key = "cakepop",
+    blueprint_compat = true,
     name = "Cakepop",
     rarity = 1,
     cost = 6,
@@ -3736,6 +3790,7 @@ SMODS.Joker {
 -- caramel_apple
 SMODS.Joker {
     key = "caramel_apple",
+    blueprint_compat = true,
     name = "Caramel Apple",
     rarity = 1,
     cost = 6,
@@ -3880,6 +3935,7 @@ SMODS.Joker {
 -- champagne
 SMODS.Joker {
     key = "champagne",
+    blueprint_compat = true,
     name = "Champagne",
     rarity = 1,
     cost = 5,
@@ -3917,6 +3973,7 @@ SMODS.Joker {
 -- charred_marshmallow
 SMODS.Joker {
     key = "charred_marshmallow",
+    blueprint_compat = true,
     name = "Charred Marshmallow",
     rarity = 1,
     cost = 6,
@@ -3942,6 +3999,7 @@ SMODS.Joker {
 -- cherry_blossoms
 SMODS.Joker {
     key = "cherry_blossoms",
+    blueprint_compat = true,
     name = "Cherry Blossoms",
     rarity = 2,
     cost = 6,
@@ -4039,6 +4097,7 @@ SMODS.Joker {
 -- complete_breakfast
 SMODS.Joker {
     key = "complete_breakfast",
+    blueprint_compat = true,
     name = "Complete Breakfast",
     rarity = 1,
     cost = 4,
@@ -4078,6 +4137,7 @@ SMODS.Joker {
 -- deadringer
 SMODS.Joker {
     key = "deadringer",
+    blueprint_compat = true,
     name = "Deadringer",
     rarity = 3,
     cost = 7,
@@ -4150,6 +4210,7 @@ SMODS.Joker {
 -- der_fluschutze
 SMODS.Joker {
     key = "der_fluschutze",
+    blueprint_compat = true,
     name = "Der Fluschütze",
     rarity = 3,
     cost = 9,
@@ -4197,6 +4258,7 @@ SMODS.Joker {
 -- der_freischutz
 SMODS.Joker {
     key = "der_freischutz",
+    blueprint_compat = true,
     name = "Der Freischütz",
     rarity = 2,
     cost = 6,
@@ -4251,6 +4313,7 @@ SMODS.Joker {
 -- derecho
 SMODS.Joker {
     key = "derecho",
+    blueprint_compat = true,
     name = "Derecho",
     rarity = 2,
     cost = 6,
@@ -4328,6 +4391,7 @@ SMODS.Joker {
 -- disco
 SMODS.Joker {
     key = "disco",
+    blueprint_compat = true,
     name = "Disco Joker",
     rarity = 2,
     cost = 7,
@@ -4366,6 +4430,7 @@ SMODS.Joker {
 -- donor_card
 SMODS.Joker {
     key = "donor_card",
+    blueprint_compat = true,
     name = "Donor Card",
     rarity = 2,
     cost = 6,
@@ -4422,6 +4487,7 @@ SMODS.Joker {
 -- doppler_radar
 SMODS.Joker {
     key = "doppler_radar",
+    blueprint_compat = true,
     name = "Doppler Radar",
     rarity = 2,
     cost = 7,
@@ -4601,6 +4667,7 @@ end
 -- dreamsicle
 SMODS.Joker {
     key = "dreamsicle",
+    blueprint_compat = true,
     name = "Dreamsicle",
     rarity = 1,
     cost = 6,
@@ -4677,6 +4744,7 @@ SMODS.Joker {
 -- epic_sauce
 SMODS.Joker {
     key = "epic_sauce",
+    blueprint_compat = true,
     name = "Epic Sauce",
     rarity = 3,
     cost = 8,
@@ -4716,6 +4784,7 @@ SMODS.Joker {
 -- evergreens
 SMODS.Joker {
     key = "evergreens",
+    blueprint_compat = true,
     name = "Evergreens",
     rarity = 2,
     cost = 6,
@@ -4798,6 +4867,7 @@ SMODS.Joker {
 -- first_contact
 SMODS.Joker {
     key = "first_contact",
+    blueprint_compat = true,
     name = "First Contact",
     rarity = 3,
     cost = 8,
@@ -4828,6 +4898,7 @@ SMODS.Joker {
 -- forlorn
 SMODS.Joker {
     key = "forlorn",
+    blueprint_compat = true,
     name = "Forlorn",
     rarity = 1,
     cost = 6,
@@ -4868,6 +4939,7 @@ SMODS.Joker {
 -- fraudulent_joker
 SMODS.Joker {
     key = "fraudulent_joker",
+    blueprint_compat = true,
     name = "Fraudulent Joker",
     rarity = 1,
     cost = 5,
@@ -4891,6 +4963,7 @@ SMODS.Joker {
 -- freezer
 SMODS.Joker {
     key = "freezer",
+    blueprint_compat = true,
     name = "Freezer",
     rarity = 3,
     cost = 7,
@@ -4963,6 +5036,7 @@ SMODS.Joker {
 -- full_moon
 SMODS.Joker {
     key = "full_moon",
+    blueprint_compat = true,
     name = "Full Moon",
     rarity = 2,
     cost = 7,
@@ -5008,6 +5082,7 @@ SMODS.Joker {
 -- furioso
 SMODS.Joker {
     key = "furioso",
+    blueprint_compat = true,
     name = "Furioso",
     rarity = 2,
     cost = 6,
@@ -5054,6 +5129,7 @@ SMODS.Joker {
 -- gambit
 SMODS.Joker {
     key = "gambit",
+    blueprint_compat = true,
     name = "Gambit",
     rarity = 2,
     cost = 6,
@@ -5142,6 +5218,7 @@ SMODS.Joker {
 -- golden_egg
 SMODS.Joker {
     key = "golden_egg",
+    blueprint_compat = true,
     name = "Golden Egg",
     rarity = 3,
     cost = 8,
@@ -5175,6 +5252,7 @@ SMODS.Joker {
 -- great_wave
 SMODS.Joker {
     key = "great_wave",
+    blueprint_compat = true,
     name = "Great Wave",
     rarity = 3,
     cost = 8,
@@ -5195,6 +5273,7 @@ SMODS.Joker {
 -- hamsa
 SMODS.Joker {
     key = "hamsa",
+    blueprint_compat = true,
     name = "Hamsa",
     rarity = 1,
     cost = 5,
@@ -5274,6 +5353,7 @@ SMODS.Joker {
 -- hatred
 SMODS.Joker {
     key = "hatred",
+    blueprint_compat = true,
     name = "HATRED",
     rarity = 2,
     cost = 5,
@@ -5353,6 +5433,7 @@ SMODS.Joker {
 -- heretical_joker
 SMODS.Joker {
     key = "heretical_joker",
+    blueprint_compat = true,
     name = "Heretical Joker",
     rarity = 1,
     cost = 5,
@@ -5376,6 +5457,7 @@ SMODS.Joker {
 -- high_speed_rail
 SMODS.Joker {
     key = "high_speed_rail",
+    blueprint_compat = true,
     name = "High Speed Rail",
     rarity = 1,
     cost = 3,
@@ -5476,6 +5558,7 @@ SMODS.Joker {
 -- hotel_guest
 SMODS.Joker {
     key = "hotel_guest",
+    blueprint_compat = true,
     name = "Hotel Guest",
     rarity = 3,
     cost = 5,
@@ -5516,6 +5599,7 @@ SMODS.Joker {
 -- i_wish_that_i_could_fall
 SMODS.Joker {
     key = "i_wish_that_i_could_fall",
+    blueprint_compat = true,
     name = "I Wish That I Could Fall",
     rarity = 3,
     cost = 7,
@@ -5550,6 +5634,7 @@ SMODS.Joker {
 -- ice_cube
 SMODS.Joker {
     key = "ice_cube",
+    blueprint_compat = true,
     name = "Ice Cube",
     rarity = 1,
     cost = 4,
@@ -5618,6 +5703,7 @@ SMODS.Joker {
 -- its_tv_time
 SMODS.Joker {
     key = "its_tv_time",
+    blueprint_compat = true,
     name = "It's TV Time!",
     rarity = 1,
     cost = 5,
@@ -5759,6 +5845,7 @@ SMODS.Joker {
 -- jimbos_inferno
 SMODS.Joker {
     key = "jimbos_inferno",
+    blueprint_compat = true,
     name = "Jimbo's Inferno",
     rarity = 1,
     cost = 5,
@@ -5796,6 +5883,7 @@ SMODS.Joker {
 -- jimbos_joyous_joker_jamboree
 SMODS.Joker {
     key = "jimbos_joyous_joker_jamboree",
+    blueprint_compat = true,
     name = "Jimbo's Joyous Joker Jamboree",
     rarity = 2,
     cost = 6,
@@ -5825,6 +5913,7 @@ SMODS.Joker {
 -- joke_master
 SMODS.Joker {
     key = "joke_master",
+    blueprint_compat = true,
     name = "Joke Master",
     rarity = 1,
     cost = 3,
@@ -5860,6 +5949,7 @@ SMODS.Joker {
 -- joker_cd_i
 SMODS.Joker {
     key = "joker_cd_i",
+    blueprint_compat = true,
     name = "Joker CD-i",
     rarity = 1,
     cost = 3,
@@ -5932,6 +6022,7 @@ SMODS.Joker {
 -- joker_crossing
 SMODS.Joker {
     key = "joker_crossing",
+    blueprint_compat = true,
     name = "Joker Crossing",
     rarity = 2,
     cost = 8,
@@ -5968,6 +6059,7 @@ SMODS.Joker {
 -- joker_duty
 SMODS.Joker {
     key = "joker_duty",
+    blueprint_compat = true,
     name = "Joker Duty",
     rarity = 1,
     cost = 6,
@@ -6000,6 +6092,7 @@ SMODS.Joker {
 -- joker_jacks
 SMODS.Joker {
     key = "joker_jacks",
+    blueprint_compat = true,
     name = "Joker Jacks",
     rarity = 1,
     cost = 6,
@@ -6042,6 +6135,7 @@ SMODS.Joker {
 -- journal
 SMODS.Joker {
     key = "journal",
+    blueprint_compat = true,
     name = "Journal",
     rarity = 2,
     cost = 6,
@@ -6116,6 +6210,7 @@ SMODS.Joker {
 -- king_me
 SMODS.Joker {
     key = "king_me",
+    blueprint_compat = true,
     name = "King Me",
     rarity = 1,
     cost = 6,
@@ -6154,6 +6249,7 @@ SMODS.Joker {
 -- legacy
 SMODS.Joker {
     key = "legacy",
+    blueprint_compat = true,
     name = "Legacy",
     rarity = 3,
     cost = 8,
@@ -6192,6 +6288,7 @@ SMODS.Joker {
 -- loaded_dice
 SMODS.Joker {
     key = "loaded_dice",
+    blueprint_compat = true,
     name = "Loaded Dice",
     rarity = 1,
     cost = 6,
@@ -6228,6 +6325,7 @@ SMODS.Joker {
 -- lone_digger
 SMODS.Joker {
     key = "lone_digger",
+    blueprint_compat = true,
     name = "Lone Digger",
     rarity = 3,
     cost = 8,
@@ -6256,6 +6354,7 @@ SMODS.Joker {
 -- lurid_joker
 SMODS.Joker {
     key = "lurid_joker",
+    blueprint_compat = true,
     name = "Lurid Joker",
     rarity = 1,
     cost = 3,
@@ -6279,6 +6378,7 @@ SMODS.Joker {
 -- man
 SMODS.Joker {
     key = "man",
+    blueprint_compat = true,
     name = "Man",
     rarity = 2,
     cost = 7,
@@ -6539,6 +6639,7 @@ local pb3_temp = setmetatable({}, { __mode = "k" })
 -- marble_soda
 SMODS.Joker {
     key = "marble_soda",
+    blueprint_compat = true,
     name = "Marble Soda",
     rarity = 2,
     cost = 6,
@@ -6635,6 +6736,7 @@ SMODS.Joker {
 -- matcha
 SMODS.Joker {
     key = "matcha",
+    blueprint_compat = true,
     name = "Matcha",
     rarity = 1,
     cost = 3,
@@ -6677,6 +6779,7 @@ SMODS.Joker {
 -- written to G.discards (the round's remaining discards) directly.
 SMODS.Joker {
     key = "meeple",
+    blueprint_compat = true,
     name = "Meeple",
     rarity = 1,
     cost = 6,
@@ -6756,6 +6859,7 @@ SMODS.Joker {
 -- "The Joker" precedent), so the XMult gain and the destruction both land.
 SMODS.Joker {
     key = "mind_electric",
+    blueprint_compat = true,
     name = "The Mind Electric",
     rarity = 3,
     cost = 3,
@@ -6796,6 +6900,7 @@ SMODS.Joker {
 -- counted, through on_shop_buy like every other purchase).
 SMODS.Joker {
     key = "moneyback",
+    blueprint_compat = true,
     name = "Moneyback",
     rarity = 1,
     cost = 6,
@@ -6838,6 +6943,7 @@ SMODS.Joker {
 -- against the raw round_score/blind target guard for completeness.
 SMODS.Joker {
     key = "moribund",
+    blueprint_compat = true,
     name = "Moribund",
     rarity = 2,
     cost = 6,
@@ -6878,6 +6984,7 @@ SMODS.Joker {
 -- moving_out
 SMODS.Joker {
     key = "moving_out",
+    blueprint_compat = true,
     name = "Moving Out",
     rarity = 1,
     cost = 4,
@@ -6924,6 +7031,7 @@ SMODS.Joker {
 -- nazca_lines
 SMODS.Joker {
     key = "nazca_lines",
+    blueprint_compat = true,
     name = "Nazca Lines",
     rarity = 1,
     cost = 6,
@@ -6972,6 +7080,7 @@ SMODS.Joker {
 -- ncj
 SMODS.Joker {
     key = "ncj",
+    blueprint_compat = true,
     name = "NoCopyrightJokers",
     rarity = 1,
     cost = 5,
@@ -7008,6 +7117,7 @@ SMODS.Joker {
 -- nigiri
 SMODS.Joker {
     key = "nigiri",
+    blueprint_compat = true,
     name = "Nigiri",
     rarity = 3,
     cost = 6,
@@ -7061,6 +7171,7 @@ SMODS.Joker {
 -- is_joker_destroyed check does.
 SMODS.Joker {
     key = "off_switch",
+    blueprint_compat = true,
     name = "OFF Switch",
     rarity = 4,
     cost = 13,
@@ -7137,6 +7248,7 @@ SMODS.Joker {
 -- one_shift_more
 SMODS.Joker {
     key = "one_shift_more",
+    blueprint_compat = true,
     name = "One Shift More",
     rarity = 2,
     cost = 7,
@@ -7177,6 +7289,7 @@ SMODS.Joker {
 -- paralyzed
 SMODS.Joker {
     key = "paralyzed",
+    blueprint_compat = true,
     name = "Paralyzed",
     rarity = 2,
     cost = 7,
@@ -7206,6 +7319,7 @@ SMODS.Joker {
 -- remove_playing_cards (destroyed cards arrive as raw card data).
 SMODS.Joker {
     key = "paranoia",
+    blueprint_compat = true,
     name = "Paranoia",
     rarity = 3,
     cost = 8,
@@ -7246,6 +7360,7 @@ SMODS.Joker {
 -- pear
 SMODS.Joker {
     key = "pear",
+    blueprint_compat = true,
     name = "Pear",
     rarity = 1,
     cost = 4,
@@ -7288,6 +7403,7 @@ SMODS.Joker {
 -- pedrillo
 SMODS.Joker {
     key = "pedrillo",
+    blueprint_compat = true,
     name = "Pedrillo",
     rarity = 4,
     cost = 20,
@@ -7318,6 +7434,7 @@ SMODS.Joker {
 -- percussion_ensemble
 SMODS.Joker {
     key = "percussion_ensemble",
+    blueprint_compat = true,
     name = "Percussion Ensemble",
     rarity = 2,
     cost = 7,
@@ -7364,6 +7481,7 @@ SMODS.Joker {
 -- pointy_stick
 SMODS.Joker {
     key = "pointy_stick",
+    blueprint_compat = true,
     name = "Pointy Stick",
     rarity = 1,
     cost = 7,
@@ -7395,6 +7513,7 @@ SMODS.Joker {
 -- round end when it triggered.
 SMODS.Joker {
     key = "ponzu",
+    blueprint_compat = true,
     name = "Ponzu",
     rarity = 1,
     cost = 6,
@@ -7440,6 +7559,7 @@ SMODS.Joker {
 -- pool_table
 SMODS.Joker {
     key = "pool_table",
+    blueprint_compat = true,
     name = "Pool Table",
     rarity = 3,
     cost = 8,
@@ -7471,6 +7591,7 @@ SMODS.Joker {
 -- pop_stick
 SMODS.Joker {
     key = "pop_stick",
+    blueprint_compat = true,
     name = "Pop-Stick",
     rarity = 1,
     cost = 7,
@@ -7498,6 +7619,7 @@ SMODS.Joker {
 -- popsicle_stick
 SMODS.Joker {
     key = "popsicle_stick",
+    blueprint_compat = true,
     name = "Popsicle Stick",
     rarity = 1,
     cost = 7,
@@ -7528,6 +7650,7 @@ SMODS.Joker {
 -- 7 scores and destroyed directly at the after pass.
 SMODS.Joker {
     key = "power_surge",
+    blueprint_compat = true,
     name = "Power Surge",
     rarity = 3,
     cost = 8,
@@ -7567,6 +7690,7 @@ SMODS.Joker {
 -- prescript
 SMODS.Joker {
     key = "prescript",
+    blueprint_compat = true,
     name = "Prescript",
     rarity = 2,
     cost = 6,
@@ -7638,6 +7762,7 @@ SMODS.Joker {
 -- fallback variant (Chips per unique suit) is dropped.
 SMODS.Joker {
     key = "pride_flag",
+    blueprint_compat = true,
     name = "Pride Flag",
     rarity = 1,
     cost = 6,
@@ -7677,6 +7802,7 @@ SMODS.Joker {
 -- prince_of_darkness
 SMODS.Joker {
     key = "prince_of_darkness",
+    blueprint_compat = true,
     name = "Prince of Darkness",
     rarity = 2,
     cost = 7,
@@ -7822,6 +7948,7 @@ SMODS.Joker {
 -- pyrite
 SMODS.Joker {
     key = "pyrite",
+    blueprint_compat = true,
     name = "Pyrite",
     rarity = 2,
     cost = 7,
@@ -7902,6 +8029,7 @@ SMODS.Joker {
 -- (PC removes temporary from all Jokers when sold).
 SMODS.Joker {
     key = "red_key",
+    blueprint_compat = true,
     name = "Red Key",
     rarity = 2,
     cost = 7,
@@ -7942,6 +8070,7 @@ SMODS.Joker {
 -- red_sun_in_the_sky
 SMODS.Joker {
     key = "red_sun_in_the_sky",
+    blueprint_compat = true,
     name = "Red Sun in the Sky",
     rarity = 1,
     cost = 5,
@@ -7974,6 +8103,7 @@ SMODS.Joker {
 -- redscreen
 SMODS.Joker {
     key = "redscreen",
+    blueprint_compat = true,
     name = "Redscreen",
     rarity = 2,
     cost = 6,
@@ -8023,6 +8153,7 @@ SMODS.Joker {
 -- reference_card
 SMODS.Joker {
     key = "reference_card",
+    blueprint_compat = true,
     name = "Reference Card",
     rarity = 2,
     cost = 6,
@@ -8126,6 +8257,7 @@ SMODS.Joker {
 -- Stars give Mult, chance to be eaten at round end) is ported directly.
 SMODS.Joker {
     key = "rock_candy",
+    blueprint_compat = true,
     name = "Rock Candy",
     rarity = 1,
     cost = 6,
@@ -8165,6 +8297,7 @@ SMODS.Joker {
 -- Joker itself (alone it gives X1.5, two Sticks give X2.25, and so on).
 SMODS.Joker {
     key = "rockin_stick",
+    blueprint_compat = true,
     name = "Rockin' Stick",
     rarity = 1,
     cost = 7,
@@ -8194,6 +8327,7 @@ SMODS.Joker {
 -- roulette
 SMODS.Joker {
     key = "roulette",
+    blueprint_compat = true,
     name = "Roulette",
     rarity = 2,
     cost = 7,
@@ -8236,6 +8370,7 @@ SMODS.Joker {
 -- royalty_free
 SMODS.Joker {
     key = "royalty_free",
+    blueprint_compat = true,
     name = "Royalty Free",
     rarity = 1,
     cost = 4,
@@ -8275,6 +8410,7 @@ SMODS.Joker {
 -- half is ported: +Mult for each playing card destroyed.
 SMODS.Joker {
     key = "sacrificial_lamb",
+    blueprint_compat = true,
     name = "Sacrificial Lamb",
     rarity = 1,
     cost = 6,
@@ -8307,6 +8443,7 @@ SMODS.Joker {
 -- sake_cup
 SMODS.Joker {
     key = "sake_cup",
+    blueprint_compat = true,
     name = "Sake Cup",
     rarity = 3,
     cost = 8,
@@ -8342,6 +8479,7 @@ SMODS.Joker {
 -- scorecard
 SMODS.Joker {
     key = "scorecard",
+    blueprint_compat = true,
     name = "Scorecard",
     rarity = 2,
     cost = 7,
@@ -8389,6 +8527,7 @@ SMODS.Joker {
 -- seven_stars
 SMODS.Joker {
     key = "seven_stars",
+    blueprint_compat = true,
     name = "Seven Stars",
     rarity = 3,
     cost = 8,
@@ -8452,6 +8591,7 @@ SMODS.Joker {
 -- shooting_star
 SMODS.Joker {
     key = "shooting_star",
+    blueprint_compat = true,
     name = "Shooting Star",
     rarity = 2,
     cost = 6,
@@ -8489,6 +8629,7 @@ SMODS.Joker {
 -- decided by the 1-in-2 roll.
 SMODS.Joker {
     key = "showdown",
+    blueprint_compat = true,
     name = "Showdown",
     rarity = 1,
     cost = 5,
@@ -8523,6 +8664,7 @@ SMODS.Joker {
 -- shugi_bukuro
 SMODS.Joker {
     key = "shugi_bukuro",
+    blueprint_compat = true,
     name = "Shūgi Bukuro",
     rarity = 1,
     cost = 6,
@@ -8550,6 +8692,7 @@ SMODS.Joker {
 -- shuttle
 SMODS.Joker {
     key = "shuttle",
+    blueprint_compat = true,
     name = "Shuttle",
     rarity = 1,
     cost = 6,
@@ -8746,6 +8889,7 @@ end
 -- silent_assassin
 SMODS.Joker {
     key = "silent_assassin",
+    blueprint_compat = true,
     name = "Silent Assassin",
     rarity = 1,
     cost = 8,
@@ -8787,6 +8931,7 @@ SMODS.Joker {
 -- sinister_minds
 SMODS.Joker {
     key = "sinister_minds",
+    blueprint_compat = true,
     name = "Sinister Minds",
     rarity = 3,
     cost = 8,
@@ -8836,6 +8981,7 @@ SMODS.Joker {
 -- skydiver
 SMODS.Joker {
     key = "skydiver",
+    blueprint_compat = true,
     name = "Skydiver",
     rarity = 2,
     cost = 6,
@@ -8893,6 +9039,7 @@ SMODS.Joker {
 -- small_scale_onshore_wind
 SMODS.Joker {
     key = "small_scale_onshore_wind",
+    blueprint_compat = true,
     name = "Small Scale Onshore Wind",
     rarity = 1,
     cost = 6,
@@ -8929,6 +9076,7 @@ SMODS.Joker {
 -- soft_taco
 SMODS.Joker {
     key = "soft_taco",
+    blueprint_compat = true,
     name = "Soft Taco",
     rarity = 2,
     cost = 6,
@@ -8996,6 +9144,7 @@ SMODS.Joker {
 -- solar_system
 SMODS.Joker {
     key = "solar_system",
+    blueprint_compat = true,
     name = "Solar System",
     rarity = 2,
     cost = 8,
@@ -9024,6 +9173,7 @@ SMODS.Joker {
 -- solemn_lament
 SMODS.Joker {
     key = "solemn_lament",
+    blueprint_compat = true,
     name = "Solemn Lament",
     rarity = 3,
     cost = 8,
@@ -9065,6 +9215,7 @@ SMODS.Joker {
 -- stamp
 SMODS.Joker {
     key = "stamp",
+    blueprint_compat = true,
     name = "Stamp",
     rarity = 3,
     cost = 8,
@@ -9105,6 +9256,7 @@ SMODS.Joker {
 -- sticky_stick
 SMODS.Joker {
     key = "sticky_stick",
+    blueprint_compat = true,
     name = "Sticky Stick",
     rarity = 1,
     cost = 7,
@@ -9135,6 +9287,7 @@ SMODS.Joker {
 -- field the fork's scoring reads (Minor Arcana ten_of_wands precedent).
 SMODS.Joker {
     key = "stout",
+    blueprint_compat = true,
     name = "Stout",
     rarity = 2,
     cost = 6,
@@ -9207,6 +9360,7 @@ SMODS.Joker {
 -- summoning_circle
 SMODS.Joker {
     key = "summoning_circle",
+    blueprint_compat = true,
     name = "Summoning Circle",
     rarity = 3,
     cost = 8,
@@ -9257,6 +9411,7 @@ SMODS.Joker {
 -- The fork counts the hand in progress, so the first hand reads 1 played.
 SMODS.Joker {
     key = "superjoker",
+    blueprint_compat = true,
     name = "SUPERJOKER",
     rarity = 2,
     cost = 5,
@@ -9285,6 +9440,7 @@ SMODS.Joker {
 -- sweet_stick
 SMODS.Joker {
     key = "sweet_stick",
+    blueprint_compat = true,
     name = "Sweet Stick",
     rarity = 1,
     cost = 7,
@@ -9312,6 +9468,7 @@ SMODS.Joker {
 -- takoyaki
 SMODS.Joker {
     key = "takoyaki",
+    blueprint_compat = true,
     name = "Takoyaki",
     rarity = 1,
     cost = 6,
@@ -9358,6 +9515,7 @@ SMODS.Joker {
 -- tanghulu
 SMODS.Joker {
     key = "tanghulu",
+    blueprint_compat = true,
     name = "Tanghulu",
     rarity = 1,
     cost = 6,
@@ -9403,6 +9561,7 @@ SMODS.Joker {
 -- telamon
 SMODS.Joker {
     key = "telamon",
+    blueprint_compat = true,
     name = "Telamon",
     rarity = 2,
     cost = 6,
@@ -9497,6 +9656,7 @@ SMODS.Joker {
 -- the_dynasty
 SMODS.Joker {
     key = "the_dynasty",
+    blueprint_compat = true,
     name = "The Dynasty",
     rarity = 3,
     cost = 8,
@@ -9525,6 +9685,7 @@ SMODS.Joker {
 -- the_normal_joker
 SMODS.Joker {
     key = "the_normal_joker",
+    blueprint_compat = true,
     name = "The Normal Joker",
     rarity = 3,
     cost = 8,
@@ -9549,6 +9710,7 @@ SMODS.Joker {
 -- the_one_who_waits
 SMODS.Joker {
     key = "the_one_who_waits",
+    blueprint_compat = true,
     name = "The One Who Waits",
     rarity = 3,
     cost = 8,
@@ -9604,6 +9766,7 @@ SMODS.Joker {
 -- the_sun
 SMODS.Joker {
     key = "the_sun",
+    blueprint_compat = true,
     name = "The Sun",
     rarity = 1,
     cost = 3,
@@ -9845,6 +10008,7 @@ SMODS.Joker {
 -- towering_pillar_of_hats
 SMODS.Joker {
     key = "towering_pillar_of_hats",
+    blueprint_compat = true,
     name = "Towering Pillar of Hats",
     rarity = 1,
     cost = 6,
@@ -9885,6 +10049,7 @@ SMODS.Joker {
 -- trans_flag
 SMODS.Joker {
     key = "trans_flag",
+    blueprint_compat = true,
     name = "Trans Flag",
     rarity = 1,
     cost = 6,
@@ -9916,6 +10081,7 @@ SMODS.Joker {
 -- Tarot at 1 in 2 and Minor Arcana at 1 in 4 (no Planet roll).
 SMODS.Joker {
     key = "triple_moon_goddess",
+    blueprint_compat = true,
     name = "Triple Moon Goddess",
     rarity = 2,
     cost = 6,
@@ -9971,6 +10137,7 @@ SMODS.Joker {
 -- tropic_birds
 SMODS.Joker {
     key = "tropic_birds",
+    blueprint_compat = true,
     name = "Tropic Birds",
     rarity = 1,
     cost = 6,
@@ -10035,6 +10202,7 @@ SMODS.Joker {
 -- twenty_first_century
 SMODS.Joker {
     key = "twenty_first_century",
+    blueprint_compat = true,
     name = "21st Century Joker",
     rarity = 3,
     cost = 10,
@@ -10089,6 +10257,7 @@ SMODS.Joker {
 local pb4_ultra_temp = {}
 SMODS.Joker {
     key = "ultra_rare",
+    blueprint_compat = true,
     name = "Ultra Rare",
     rarity = 3,
     cost = 9,
@@ -10187,6 +10356,7 @@ SMODS.Joker {
 -- pays the current XMult, then the XMult grows; resets after the hand.
 SMODS.Joker {
     key = "wheat_field",
+    blueprint_compat = true,
     name = "Wheat Field",
     rarity = 2,
     cost = 6,
@@ -10225,6 +10395,7 @@ SMODS.Joker {
 -- destroys the winning played hand, per the destroy-ordering contract.
 SMODS.Joker {
     key = "whitebeard",
+    blueprint_compat = true,
     name = "Whitebeard",
     rarity = 3,
     cost = 8,
@@ -10294,6 +10465,7 @@ SMODS.Joker {
 -- wild_prize
 SMODS.Joker {
     key = "wild_prize",
+    blueprint_compat = true,
     name = "Wild Prize!",
     rarity = 1,
     cost = 7,
@@ -10346,6 +10518,7 @@ SMODS.Joker {
 -- Loan Shark precedent), so the port increments that field.
 SMODS.Joker {
     key = "wish_you_were_here",
+    blueprint_compat = true,
     name = "Wish You Were Here",
     rarity = 2,
     cost = 6,
@@ -10380,6 +10553,7 @@ SMODS.Joker {
 -- yacht
 SMODS.Joker {
     key = "yacht",
+    blueprint_compat = true,
     name = "Yacht",
     rarity = 1,
     cost = 5,
@@ -10415,6 +10589,7 @@ SMODS.Joker {
 -- yacht_dice
 SMODS.Joker {
     key = "yacht_dice",
+    blueprint_compat = true,
     name = "Yacht Dice",
     rarity = 3,
     cost = 8,
@@ -10505,6 +10680,7 @@ SMODS.Joker {
 -- zealous_joker
 SMODS.Joker {
     key = "zealous_joker",
+    blueprint_compat = true,
     name = "Zealous Joker",
     rarity = 1,
     cost = 3,
@@ -11168,6 +11344,7 @@ SMODS.Joker {
 -- festive_joker
 SMODS.Joker {
     key = "festive_joker",
+    blueprint_compat = true,
     name = "Festive Joker",
     rarity = 2,
     cost = 6,
@@ -11215,6 +11392,7 @@ SMODS.Joker {
 -- greeting_card
 SMODS.Joker {
     key = "greeting_card",
+    blueprint_compat = true,
     name = "Greeting Card",
     rarity = 1,
     cost = 4,
@@ -11242,6 +11420,7 @@ SMODS.Joker {
 -- happy_accident
 SMODS.Joker {
     key = "happy_accident",
+    blueprint_compat = true,
     name = "Happy Accident",
     rarity = 2,
     cost = 7,
@@ -11447,6 +11626,7 @@ SMODS.Joker {
 -- spotty_joker
 SMODS.Joker {
     key = "spotty_joker",
+    blueprint_compat = true,
     name = "Spotty Joker",
     rarity = 2,
     cost = 3,
@@ -11484,6 +11664,7 @@ SMODS.Joker {
 -- teapot
 SMODS.Joker {
     key = "teapot",
+    blueprint_compat = true,
     name = "Teapot",
     rarity = 1,
     cost = 5,
@@ -11516,6 +11697,7 @@ SMODS.Joker {
 -- watercolor_joker
 SMODS.Joker {
     key = "watercolor_joker",
+    blueprint_compat = true,
     name = "Watercolor Joker",
     rarity = 2,
     cost = 7,
@@ -11622,6 +11804,7 @@ end
 -- blue_star
 SMODS.Joker {
     key = "blue_star",
+    blueprint_compat = true,
     name = "Blue Star",
     rarity = 3,
     cost = 8,
@@ -11661,6 +11844,7 @@ SMODS.Joker {
 -- chocolate_joker
 SMODS.Joker {
     key = "chocolate_joker",
+    blueprint_compat = true,
     name = "Chocolate Joker",
     rarity = 2,
     cost = 8,
@@ -11688,6 +11872,7 @@ SMODS.Joker {
 -- crispy_taco
 SMODS.Joker {
     key = "crispy_taco",
+    blueprint_compat = true,
     name = "Crispy Taco",
     rarity = 2,
     cost = 6,
@@ -11730,6 +11915,7 @@ SMODS.Joker {
 -- `before`, the same card at the same point of the hand.
 SMODS.Joker {
     key = "deck_of_cards",
+    blueprint_compat = true,
     name = "Deck of Cards",
     rarity = 2,
     cost = 7,
@@ -11767,6 +11953,7 @@ SMODS.Joker {
 -- nachos
 SMODS.Joker {
     key = "nachos",
+    blueprint_compat = true,
     name = "Nachos",
     rarity = 1,
     cost = 6,
@@ -11801,6 +11988,7 @@ SMODS.Joker {
 -- oracle
 SMODS.Joker {
     key = "oracle",
+    blueprint_compat = true,
     name = "Oracle",
     rarity = 2,
     cost = 6,
@@ -11838,6 +12026,7 @@ SMODS.Joker {
 -- quartz
 SMODS.Joker {
     key = "quartz",
+    blueprint_compat = true,
     name = "Quartz",
     rarity = 2,
     cost = 7,
@@ -11878,6 +12067,7 @@ SMODS.Joker {
 -- trigger counts.
 SMODS.Joker {
     key = "ready_to_fly",
+    blueprint_compat = true,
     name = "Ready to Fly",
     rarity = 3,
     cost = 6,
@@ -11970,6 +12160,7 @@ if SMODS.Joker then
 -- angel_investor
 SMODS.Joker {
     key = "angel_investor",
+    blueprint_compat = true,
     name = "Angel Investor",
     rarity = 1,
     cost = 4,
@@ -11996,6 +12187,7 @@ SMODS.Joker {
 -- the same pair the skip tooltip uses.
 SMODS.Joker {
     key = "book_of_life",
+    blueprint_compat = true,
     name = "Book of Life",
     rarity = 3,
     cost = 8,
@@ -12041,6 +12233,7 @@ SMODS.Joker {
 -- j_and_js
 SMODS.Joker {
     key = "j_and_js",
+    blueprint_compat = true,
     name = "J&J's",
     rarity = 2,
     cost = 6,
@@ -12080,6 +12273,7 @@ SMODS.Joker {
 -- jimbo_adventure
 SMODS.Joker {
     key = "jimbo_adventure",
+    blueprint_compat = true,
     name = "Jimbo Adventure",
     rarity = 1,
     cost = 4,
@@ -12105,6 +12299,7 @@ SMODS.Joker {
 -- per Ace, the same total.
 SMODS.Joker {
     key = "jokers_11",
+    blueprint_compat = true,
     name = "Joker's 11",
     rarity = 3,
     cost = 8,
@@ -12139,6 +12334,7 @@ SMODS.Joker {
 -- shopkeep
 SMODS.Joker {
     key = "shopkeep",
+    blueprint_compat = true,
     name = "Shopkeep",
     rarity = 3,
     cost = 10,
@@ -12181,6 +12377,7 @@ SMODS.Joker {
 -- own target hand per Joker, re-rolled at each blind select.
 SMODS.Joker {
     key = "spirit_box",
+    blueprint_compat = true,
     name = "Spirit Box",
     rarity = 2,
     cost = 7,
@@ -12226,6 +12423,7 @@ SMODS.Joker {
 -- read identically; held tags copy on gain rather than on use.
 SMODS.Joker {
     key = "stereoscopic_specs",
+    blueprint_compat = true,
     name = "Stereoscopic Specs",
     rarity = 3,
     cost = 8,
@@ -12257,6 +12455,7 @@ SMODS.Joker {
 -- the_wonder_of_you
 SMODS.Joker {
     key = "the_wonder_of_you",
+    blueprint_compat = true,
     name = "The Wonder of You",
     rarity = 2,
     cost = 9,
@@ -12284,6 +12483,7 @@ SMODS.Joker {
 -- let_it_happen
 SMODS.Joker {
     key = "let_it_happen",
+    blueprint_compat = true,
     name = "Let it Happen",
     rarity = 3,
     cost = 8,
@@ -12330,6 +12530,7 @@ SMODS.Joker {
 -- nesting cap, and would pay once per level.
 SMODS.Joker {
     key = "coin_collection",
+    blueprint_compat = true,
     name = "Coin Collection",
     rarity = 1,
     cost = 6,
@@ -12365,6 +12566,7 @@ SMODS.Joker {
 -- there, which is the same state a fresh Joker is in.
 SMODS.Joker {
     key = "frutiger_aero",
+    blueprint_compat = true,
     name = "Frutiger Aero",
     rarity = 1,
     cost = 6,
@@ -12408,6 +12610,7 @@ SMODS.Joker {
 -- the fuse reset rides along, as PC's does.
 SMODS.Joker {
     key = "cream_liqueur",
+    blueprint_compat = true,
     name = "Cream Liqueur",
     rarity = 1,
     cost = 4,
@@ -12451,6 +12654,7 @@ local function pb5_off_addon(key, name, sprite, config, loc, calc)
         name = name,
         rarity = 4,
         cost = 1,
+        blueprint_compat = true,
         sprite = sprite .. ".png",
         negative_sprite = sprite .. "_negative.png",
         soul_sprite = sprite .. "_soul.png",
@@ -12559,6 +12763,7 @@ SMODS.Joker {
 -- and can also count a seal change made on an already-enhanced card.
 SMODS.Joker {
     key = "watermelon",
+    blueprint_compat = true,
     name = "Watermelon",
     rarity = 2,
     cost = 6,
@@ -12609,6 +12814,7 @@ SMODS.Joker {
 -- drawn, and in `before` as the scale lands).
 SMODS.Joker {
     key = "weather_radio",
+    blueprint_compat = true,
     name = "Weather Radio",
     rarity = 3,
     cost = 9,
@@ -12715,6 +12921,7 @@ end
 -- da_capo
 SMODS.Joker {
     key = "da_capo",
+    blueprint_compat = true,
     name = "Da Capo",
     rarity = 3,
     cost = 8,
@@ -12759,6 +12966,7 @@ SMODS.Joker {
 -- jester_of_nihil
 SMODS.Joker {
     key = "jester_of_nihil",
+    blueprint_compat = true,
     name = "Jester of Nihil",
     rarity = 3,
     cost = 7,
@@ -12851,6 +13059,7 @@ SMODS.Joker {
 -- the revive stays unported in this wave. The scaling is exact.
 SMODS.Joker {
     key = "unholy_alliance",
+    blueprint_compat = true,
     name = "Unholy Alliance",
     rarity = 1,
     cost = 6,
@@ -13107,6 +13316,7 @@ end
 -- milk_tea
 SMODS.Joker {
     key = "milk_tea",
+    blueprint_compat = true,
     name = "Milk Tea",
     rarity = 2,
     cost = 6,
@@ -13154,6 +13364,7 @@ SMODS.Joker {
 -- balances 2%, compounding card by card, as on PC.
 SMODS.Joker {
     key = "stardrop",
+    blueprint_compat = true,
     name = "Stardrop",
     rarity = 2,
     cost = 7,
@@ -13201,6 +13412,7 @@ local function pb6_suit_drink(key, name, suit, amount, upgrade, base,
         name = name,
         rarity = 2,
         cost = 6,
+        blueprint_compat = true,
         sprite = key .. ".png",
         negative_sprite = key .. "_negative.png",
         config = { extra = { amount = amount, suit = suit,
@@ -13257,6 +13469,7 @@ pb6_suit_drink("aperol", "Aperol", "Diamonds", 1,
 -- usual seat for destruction, so they still score the hand.
 SMODS.Joker {
     key = "bergentrucking",
+    blueprint_compat = true,
     name = "Bergentrücking",
     rarity = 3,
     cost = 8,
@@ -13317,6 +13530,7 @@ SMODS.Joker {
 -- the next hand, the same timing as the drink grants above.
 SMODS.Joker {
     key = "freedom_of_choice",
+    blueprint_compat = true,
     name = "Freedom of Choice",
     rarity = 3,
     cost = 8,
@@ -13348,6 +13562,7 @@ SMODS.Joker {
 -- shinzaemon
 SMODS.Joker {
     key = "shinzaemon",
+    blueprint_compat = true,
     name = "Shinzaemon",
     rarity = 4,
     cost = 20,
@@ -13386,6 +13601,7 @@ SMODS.Joker {
 -- left alone.
 SMODS.Joker {
     key = "pink_joker",
+    blueprint_compat = true,
     name = "Pink Joker",
     rarity = 1,
     cost = 7,
@@ -13439,6 +13655,7 @@ SMODS.Joker {
 -- but still grants the repetition; the port does the same.
 SMODS.Joker {
     key = "sacred_heart",
+    blueprint_compat = true,
     name = "Sacred Heart",
     rarity = 3,
     cost = 10,
@@ -13552,3 +13769,276 @@ SMODS.Consumable {
 end -- SMODS.Consumable (Wave 1 arcana)
 
 end -- Wave 1 expansion block
+
+--------------------------------------------------------------------------------
+-- Wave 5 expansion (v1.3.0): the three copy Jokers, riding the fork's
+-- SMODS.blueprint_effect dispatch (Wave 5 Part A). Ported from
+-- Paperback's MIT-licensed sources. Sub-effect deviations are marked
+-- with PORT NOTE comments.
+--
+-- Supporting change in this wave: every ported Joker in this file now
+-- declares its PC `blueprint_compat` value (true inserted at its def;
+-- PC false stays undeclared, which is the fork's default false too).
+-- Earlier waves never declared the field, so no pack Joker could be
+-- copied at all -- by a vanilla Blueprint, or by the three copiers
+-- below, whose PC target pools are exactly the blueprint-compatible
+-- Jokers. The factory-registered Jokers (the OFF Switch addons and
+-- the suit drinks, all PC true) declare it in their factories.
+--------------------------------------------------------------------------------
+do
+
+local function pb7_game() return rawget(_G, "G") end
+
+-- Held Jokers as a plain list (the game keeps G.jokers as a list; some
+-- contexts expose a .cards sub-table instead).
+local function pb7_jokers()
+    local g = pb7_game()
+    if not g then return {} end
+    local list = g.jokers
+    if type(list) == "table" and type(list.cards) == "table" then
+        return list.cards
+    end
+    if type(list) == "table" then return list end
+    return {}
+end
+
+local function pb7_joker_id(j)
+    if type(j) ~= "table" then return nil end
+    if j.def and j.def.id then return j.def.id end
+    return j.def_id or j.id or j.center_key or j.key
+end
+
+-- The Joker at a relative offset from card in the held row, or nil.
+local function pb7_neighbor(card, off)
+    for i, j in ipairs(pb7_jokers()) do
+        if j == card then return pb7_jokers()[i + off] end
+    end
+    return nil
+end
+
+--------------------------------------------------------------------------------
+-- Forgery helpers: PC's PB_UTIL.reset_forgery / modify_forgery_effect /
+-- is_valid_forgery_effect, ported pack-side (the pack's PB_UTIL
+-- emulation convention). The valid-effects list and the mod-effect
+-- renames are PC's, verbatim.
+--------------------------------------------------------------------------------
+
+local PB7_FORGERY_VALID = {
+    chips = true, h_chips = true, chip_mod = true,
+    x_chips = true, xchips = true, Xchip_mod = true,
+    mult = true, h_mult = true, mult_mod = true,
+    x_mult = true, Xmult = true, xmult = true,
+    x_mult_mod = true, Xmult_mod = true,
+}
+
+local PB7_FORGERY_MOD = {
+    chip_mod = "chips",
+    Xchip_mod = "x_chips",
+    mult_mod = "mult",
+    x_mult_mod = "x_mult",
+    Xmult_mod = "x_mult",
+}
+
+-- PC PB_UTIL.modify_forgery_effect: copy the return, multiply every
+-- numeric valid effect by card's multiplier, folding the `*_mod`
+-- spellings into their canonical field. PORT NOTE: PC also drops the
+-- return's `message` when it is exactly the text the unmultiplied mod
+-- effect would have shown (so the multiplied popup replaces it); the
+-- fork builds return messages itself and a mod return's message here
+-- is a literal string, never that generated text, so PC's comparison
+-- can never match and that step is omitted.
+local function pb7_modify_forgery_effect(card, effects)
+    local new_effects = {}
+    for k, v in pairs(effects) do new_effects[k] = v end
+    for key, value in pairs(effects) do
+        if PB7_FORGERY_VALID[key] and type(value) == "number" then
+            local eff_type = PB7_FORGERY_MOD[key]
+            if eff_type then new_effects[key] = nil end
+            new_effects[eff_type or key] =
+                value * card.ability.extra.multiplier
+        end
+    end
+    return new_effects
+end
+
+-- PC PB_UTIL.reset_forgery: pick a random held blueprint-compatible
+-- Joker other than Forgery itself (the eligible pool keeps duplicates,
+-- as PC's does), reroll the multiplier as max_multiplier minus a
+-- 0..1 roll (so X1.5..X2.5 at PC's max of 2.5), and store the picked
+-- Joker's key -- nil when nothing is eligible. PORT NOTE: PC stores
+-- the center key and re-finds a random duplicate of it on every
+-- calculate (SMODS.find_card + pseudorandom_element); the port stores
+-- the picked Joker itself. The two differ only when several copies of
+-- the same Joker are held: PC may switch between the duplicates from
+-- hand to hand, the port keeps the one it rolled until the next
+-- reset.
+local function pb7_reset_forgery(card)
+    local e = card.ability.extra
+    local eligible = {}
+    for _, j in ipairs(pb7_jokers()) do
+        if j ~= card and j.def and j.def.blueprint_compat then
+            eligible[#eligible + 1] = j
+        end
+    end
+    e.multiplier = e.max_multiplier
+        - SMODS.pseudorandom("forgery_multiplier", 0, 1000000) / 1000000
+    local pick = nil
+    if #eligible > 0 then
+        pick = eligible[SMODS.pseudorandom("forgery", 1, #eligible)]
+    end
+    e.copying = pick and pb7_joker_id(pick) or nil
+    e.copying_card = pick
+end
+
+--------------------------------------------------------------------------------
+-- forgery
+-- PORT NOTE: PC's unlock check (owning two of the same Joker) and its
+-- shop disguise (generate_ui / set_card_type_badge showing Forgery as
+-- a basic Joker in the shop) have no fork equivalent; following the
+-- pack's convention for such features, Forgery registers plainly
+-- (unlocked, under its own name and Rare badge everywhere). PC's
+-- set_ability resets the copy target whenever a copy is created,
+-- including shop cards; the port resets when the Joker is gained
+-- (add_to_deck) and after each hand, PC's two in-run moments.
+-- PORT NOTE (vanilla targets): a copied MOD Joker's return is
+-- multiplied here, as on PC. A copied VANILLA Joker fires in place
+-- through the fork's delegate and blueprint_effect returns nil, so
+-- its effect lands exactly once, unmultiplied -- the fork's
+-- documented limit (MODDING.md, "Copying Jokers"); PC multiplies
+-- vanilla returns too, because Steamodded gives every Joker a
+-- calculate return.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "forgery",
+    name = "Forgery",
+    rarity = 3,
+    cost = 2,
+    blueprint_compat = true,
+    sprite = "forgery.png",
+    negative_sprite = "forgery_negative.png",
+    config = { extra = { copying = nil, copying_card = nil,
+        max_multiplier = 2.5, multiplier = 1 } },
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        local target_name = "None"
+        if e.copying_card and e.copying_card.def
+            and e.copying_card.def.name then
+            target_name = e.copying_card.def.name
+        elseif e.copying then
+            local def = JOKER_DEFS and JOKER_DEFS[e.copying]
+            if def and def.name then target_name = def.name end
+        end
+        return { vars = { e.max_multiplier - 1, e.max_multiplier,
+            target_name, e.multiplier } }
+    end,
+    loc_txt = { name = "Forgery", text = {
+        "Copies ability of a random {C:attention}Joker",
+        "every hand, if it gives {X:mult,C:white}XMult{},",
+        "{C:mult}Mult{} or {C:chips}Chips{}, multiply its values",
+        "between {X:attention,C:white}X#1#{} and {X:attention,C:white}X#2#",
+        "{C:inactive}(Currently {C:attention}#3#{C:inactive} at {X:attention,C:white}X#4#{C:inactive})",
+    } },
+    add_to_deck = function(self, card, from_debuff)
+        if not from_debuff then pb7_reset_forgery(card) end
+    end,
+    calculate = function(self, card, context)
+        local e = card.ability.extra
+        local ret = nil
+        if e.copying_card ~= nil then
+            -- PC re-finds the target by key each calculate and clears
+            -- `copying` when no Joker with that key is held any more.
+            local held = false
+            for _, j in ipairs(pb7_jokers()) do
+                if j == e.copying_card then held = true break end
+            end
+            if not held then
+                local any = false
+                for _, j in ipairs(pb7_jokers()) do
+                    if j ~= card and pb7_joker_id(j) == e.copying then
+                        any = true
+                        break
+                    end
+                end
+                if not any then
+                    e.copying = nil
+                    e.copying_card = nil
+                end
+            end
+            if e.copying_card and not context.no_blueprint then
+                local other_ret = SMODS.blueprint_effect(card,
+                    e.copying_card, context)
+                if other_ret then
+                    ret = pb7_modify_forgery_effect(card, other_ret)
+                end
+            end
+        end
+        -- Swaps the copied Joker after a hand is played (PC: the
+        -- `after` pass, skipped when Forgery itself is being copied).
+        if not context.blueprint and context.after then
+            pb7_reset_forgery(card)
+            if ret then
+                ret.message = "Reset!"
+            else
+                ret = { message = "Reset!" }
+            end
+        end
+        return ret
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- master_plan: copies the Joker to its left (PC, verbatim dispatch).
+-- PORT NOTE: PC's challenge unlock (win the 15 Minute City challenge)
+-- has no fork equivalent; Master Plan registers plainly, unlocked.
+-- Its PC compatibility badge (loc_vars main_end) is a UI extra the
+-- fork's tooltips do not carry; the description text is PC's.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "master_plan",
+    name = "Master Plan",
+    rarity = 3,
+    cost = 10,
+    blueprint_compat = true,
+    sprite = "master_plan.png",
+    negative_sprite = "master_plan_negative.png",
+    loc_txt = { name = "Master Plan", text = {
+        "Copies ability of",
+        "{C:attention}Joker{} to the left",
+    } },
+    calculate = function(self, card, context)
+        return SMODS.blueprint_effect(card, pb7_neighbor(card, -1),
+            context)
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- photocopy: copies the rightmost Joker (PC, verbatim dispatch --
+-- when Photocopy itself is rightmost, the target is itself and the
+-- dispatch's self-gate returns nil, as on PC).
+-- PORT NOTE: PC's unlock check (owning two of the same Joker) has no
+-- fork equivalent; Photocopy registers plainly, unlocked. Its PC
+-- compatibility badge is omitted for the same reason as Master
+-- Plan's.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "photocopy",
+    name = "Photocopy",
+    rarity = 3,
+    cost = 10,
+    blueprint_compat = true,
+    sprite = "photocopy.png",
+    negative_sprite = "photocopy_negative.png",
+    loc_txt = { name = "Photocopy", text = {
+        "Copies the ability",
+        "of rightmost {C:attention}Joker{}",
+    } },
+    calculate = function(self, card, context)
+        local list = pb7_jokers()
+        return SMODS.blueprint_effect(card, list[#list], context)
+    end,
+}
+
+end -- Wave 5 expansion block

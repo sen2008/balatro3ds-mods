@@ -1,5 +1,5 @@
-Paperback Pack (3DS Port) v1.2.0
-280 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
+Paperback Pack (3DS Port) v1.3.0
+283 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
 Spectrum-family poker hands, 45 of the 56 Minor Arcana consumables,
 Paperback's eight custom enhancements, five of its custom tags and
 its Dichrome edition, from Paperback (PC, by Nether and
@@ -16,7 +16,8 @@ SMODS.ConsumableType, SMODS.Enhancement, SMODS.Tag, SMODS.Booster,
 SMODS.Edition), plus the Wave 1 additions the v1.2.0 Jokers ride:
 partial balance (a numeric balance return), the permanent card
 fields (SMODS.set_perma / SMODS.get_perma) and the game_over /
-saved context:
+saved context, plus the Wave 5 copy dispatch
+(SMODS.blueprint_effect) the v1.3.0 Jokers ride:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack will not load
 correctly; use the fork build.
@@ -83,7 +84,7 @@ sprites: the PC snapshot this port is built from contains only
 the Jokers and Minor Arcana atlases, so those registrations use
 the fork's fallback art.
 
-INCLUDED JOKERS (280 of 316)
+INCLUDED JOKERS (283 of 316)
 
 
 Common (97):
@@ -293,7 +294,7 @@ Uncommon (104):
 - Watercolor Joker ($7): Scored Soaked cards give X1.5 Chips
 - Watermelon ($6): This Joker gains X0.1 Mult when a card's enhancement changes, and loses X0.1 Mult for each card destroyed. Destroyed below X1 (Currently X Mult)
 
-Rare (72):
+Rare (75):
 - 21st Century Joker ($10): When Big Blind or Boss Blind is cleared, destroy Joker to the left and create a new Joker of equal or higher rarity (Cannot upgrade to Legendary Jokers)
 - 57 Leaf Clover ($7): + to all listed probabilities (Currently +)
 - Attacking Vertical ($8): Scored 9s and 5s give X Mult Gains +X0.25 Mult when a Boss Blind is defeated
@@ -356,6 +357,9 @@ Rare (72):
 - Determination ($7): Prevents death, on death -1 Ante, -1 hand size and self-destructs
 - Freedom of Choice ($8): If played hand contains a Five of a Kind, scoring cards permanently gain X0.05 Mult
 - Sacred Heart ($10): If played hand is a Flush Five, give the first scored card 1 permanent retrigger and destroy all other scored cards
+- Forgery ($2): Copies ability of a random Joker every hand, if it gives XMult, Mult or Chips, multiply its values between X1.5 and X2.5 (Currently at X)
+- Master Plan ($10): Copies ability of Joker to the left
+- Photocopy ($10): Copies the ability of rightmost Joker
 
 Legendary (7):
 - L'angely ($20): Earn half the sell value of all Jokers when defeating a Big Blind Earn the full sell value when defeating a Boss Blind
@@ -468,7 +472,49 @@ Wave 1 (v1.2.0) deviations, also marked PORT NOTE in the code:
   (the Journal pattern), since the fork's after context carries
   no hand name.
 
-NOT PORTED (36 Jokers, each on its named blocker)
+Wave 5 (v1.3.0) deviations, also marked PORT NOTE in the code:
+- The three copy Jokers (Forgery, Master Plan, Photocopy) ride
+  the fork's SMODS.blueprint_effect dispatch. Master Plan and
+  Photocopy are PC's one-line dispatches (Joker to the left /
+  rightmost Joker); their PC compatibility badges are UI extras
+  the fork's tooltips do not carry, and their PC unlock checks
+  (challenge win / owning a duplicate Joker) have no fork
+  equivalent, so all three register plainly, unlocked.
+- Forgery's multiplier math is PC's PB_UTIL.modify_forgery_effect
+  ported pack-side, valid-effects list included: every numeric
+  chips / x_chips / mult / x_mult return (including the *_mod
+  spellings, folded into their canonical field) is multiplied by
+  a per-reset multiplier of max_multiplier minus a 0..1 roll,
+  X1.5..X2.5 at PC's max of 2.5. PC drops a copied return's
+  message when it is exactly the unmultiplied mod-effect text;
+  that comparison can never match here (the fork builds return
+  messages itself), so it is omitted.
+- Forgery's target choice is PC's reset_forgery with one storage
+  delta: PC stores the target's key and re-finds a random
+  duplicate of it on every calculate, so with several copies of
+  one Joker held it may switch between them hand to hand; the
+  port stores the picked Joker itself until the next reset
+  (when gained, and after each hand). PC's set_ability also
+  resets on shop cards; the port's reset moments are gaining
+  the Joker and after each hand.
+- Forgery's shop disguise on PC (it shows as a basic Joker with
+  a Common badge in the shop) has no fork equivalent and is not
+  ported: Forgery shows as itself everywhere.
+- Vanilla targets (all three copiers): a copied vanilla Joker
+  fires in place through the fork's delegate and the dispatch
+  returns nil, so its effect lands exactly once, UNMULTIPLIED
+  by Forgery. On PC Steamodded gives every Joker a calculate
+  return, so Forgery multiplies vanilla returns too. This is
+  the fork's documented engine limit (MODDING.md, "Copying
+  Jokers"), not a pack choice.
+- Supporting change: every ported Joker now declares its PC
+  blueprint_compat value (PC false stays undeclared; the fork's
+  default is false too). Earlier waves never declared the
+  field, so no pack Joker could be copied at all - by a vanilla
+  Blueprint, or by the copiers above, whose PC target pools
+  are exactly the blueprint-compatible Jokers.
+
+NOT PORTED (33 Jokers, each on its named blocker)
 - Paperclips (4): Chip Clip, Clippy, Clothespin, Manilla Folder.
   On PC a paperclip is per-card state stored on the playing card
   itself (card.ability.paperback_<color>_clip), with eleven clip
@@ -498,8 +544,6 @@ NOT PORTED (36 Jokers, each on its named blocker)
   NormalJKR, Protocol, Shopping Center, Touch Tone Joker,
   Ouija Board (no shop price/rate APIs), plus Chaplin and
   Everything Must Go (no voucher grant/redeem API).
-- Copy effects (3): Forgery, Master Plan, Photocopy (they ride
-  SMODS.blueprint_effect, which the fork does not provide).
 - Other single blockers: Burning Pact (draws cards; no
   draw-cards API), Jimbocards (writes the run's global inflation
   directly), Lager (grants a permanent per-card odds bonus with
@@ -523,11 +567,14 @@ behavior, the suits, the Spectrum hands through the game's own
 classifier, the exotic gate), arcana suite 45/45 (type
 registration, all 45 cards, the enhancement conversions, the
 tag-granting cards, the boosters, Joker targeting, Two of
-Swords), expansion suite 111/111 (registration, names, rarities,
-costs and clean tooltips for all 280 Jokers, plus behavior tests
-across the expansion Jokers, including all 45 Tier 3 additions
-and the 14 Wave 1 behavior tests). Hardware testing is the
-remaining step.
+Swords), expansion suite 120/120 (registration, names, rarities,
+costs and clean tooltips for all 283 Jokers, plus behavior tests
+across the expansion Jokers, including all 45 Tier 3 additions,
+the 14 Wave 1 behavior tests and the 9 Wave 5 tests: Forgery
+copying and multiplying a held mod Joker, Forgery's post-hand
+reset, Master Plan and Photocopy dispatching, the vanilla
+in-place delta, and debuffed / non-compatible targets never
+firing). Hardware testing is the remaining step.
 
 CREDITS
 - Nether and contributors - Paperback, its Joker designs, text

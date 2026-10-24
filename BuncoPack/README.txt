@@ -1,5 +1,5 @@
-Bunco Pack (3DS Port) v1.3.0
-Fifty-five of Bunco's eighty Jokers, both exotic suits, the four
+Bunco Pack (3DS Port) v1.4.0
+Sixty-two of Bunco's eighty Jokers, both exotic suits, the four
 Spectrum-family poker hands plus Deal, six consumables, and the
 Fluorescent edition, from Bunco (PC, by Firch) ported to
 Balatro3DS.
@@ -17,7 +17,10 @@ Hunter, the Fluorescent edition) use Tier 3
 (SMODS.Edition, the setting_ability and money_altered contexts).
 The v1.3.0 additions (Fiendish, Head in the Clouds, and Bounty
 Hunter's tax moved onto it) use the fork's Wave 1 contexts
-(money_transform, level_up_hand):
+(money_transform, level_up_hand). The v1.4.0 additions (Gameplan,
+Conquest, Myopia, Astigmatism, Sledgehammer, Dwarven,
+Metallurgist) use the fork's Wave 5 seats (mod Joker debuff,
+suit_aliases, center_overrides):
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack still loads and the
 original nineteen Jokers work (without their exotic-suit branches),
@@ -46,7 +49,7 @@ Halberds. Registration Plate picks five ranks from your deck each
 round; playing exactly those ranks scores as the Deal hand, which
 carries the Chips and Mult of every poker hand played this run.
 
-INCLUDED JOKERS (55 of 80)
+INCLUDED JOKERS (62 of 80)
 Original nineteen: Cassette, Mosaic, Voxel, Crop Circles,
 Prehistoric, Shepherd, Dogs Playing Poker, Nil Bill, Slothful,
 Hierarchy of Needs, Headshot, Protester, Disproportionality,
@@ -96,11 +99,33 @@ New in v1.3.0:
 - Head in the Clouds (Uncommon, $6) [fork only]: 1 in 3 chance to upgrade High Card when you upgrade any poker hand; only appears once High Card is above level 1.
 - Bounty Hunter's tax now rides the money_transform seat (see
   port notes): the gain itself lands $1 short, exactly as on PC.
+New in v1.4.0:
+- Gameplan (Uncommon, $5) [fork only]: Jokers next to this one
+  are debuffed, and each neighbour gives +20 Mult.
+- Conquest (Uncommon, $5) [fork only]: +200 Chips; when a Blind
+  is selected, debuffs a random other Joker.
+- Myopia (Uncommon, $8) [fork only]: Spades and Clubs count as
+  Halberds. No calculate, as on PC.
+- Astigmatism (Uncommon, $8) [fork only]: Hearts and Diamonds
+  count as Fleurons. No calculate, as on PC.
+- Sledgehammer (Uncommon, $5) [fork only]: Glass Cards give +X1
+  Mult per held copy, but the break odds denominator is divided
+  by 4 (1 in 4 becomes 1 in 1: guaranteed to break, as PC's text
+  says), once no matter how many copies are held. Only appears
+  while your deck holds a Glass Card.
+- Dwarven (Uncommon, $8) [fork only]: Stone Cards held in hand
+  have the abilities of Steel and Gold Cards (X1.5 Mult and $3
+  at round end, per held copy). Only appears while your deck
+  holds a Stone Card.
+- Metallurgist (Common, $6) [fork only]: Gold Cards give +10
+  Mult while held in hand, per held copy. Only appears while
+  your deck holds a Gold Card.
 
 Validated headlessly against the Balatro3DS fork source (pack suite
-43/43, including suit/hand evaluation, the exotic gate,
+49/49, including suit/hand evaluation, the exotic gate,
 create/destroy behavior, the v1.2.0 edition grant and money tax,
-and the v1.3.0 money transforms and hand-level reactions)
+the v1.3.0 money transforms and hand-level reactions, and the
+v1.4.0 Joker debuffs, suit aliases and center overrides)
 on 2026-10-23. Not yet tested on real hardware.
 
 Port notes:
@@ -137,12 +162,38 @@ Port notes:
   shrinking remainder in slot order (a later copy stands down
   once the gain is gone). At v1.2.0 the tax landed as a separate
   -$1 money event after the gain; that deviation is gone.
+- Myopia / Astigmatism DEVIATION (suit aliasing): on PC the two
+  patch Card:is_suit globally, and PC's hand grouping consults
+  is_suit, so aliased suits can complete a Flush there (a
+  Spades/Clubs mix can flush as Halberds). Here the alias lives
+  at the fork's is_suit choke, which every suit CHECK reads, but
+  hand-type Flush grouping reads printed suits directly: mixed
+  printed suits do not become a Flush on the port. Scoring
+  effects that check suits (Proud, Envious, Cassette, the
+  Spectrum test) see the alias exactly as on PC.
+- Gameplan's debuff is positional on PC, re-derived every frame
+  by a global predicate. The fork's debuff is a stored flag, so
+  the pack re-derives it at blind select, hand start, Joker
+  gains/changes and on Gameplan's own entry/exit. One residue:
+  if Gameplan itself is debuffed by another effect, its
+  neighbours' debuffs lift at the next re-derivation point
+  rather than instantly (a debuffed Joker hears no contexts).
+  Conquest's victim is picked with the run's seeded pseudorandom
+  (PC uses math.random) and tracked for the session only; the
+  debuff itself saves on the victim as the fork has it.
+- Sledgehammer, Dwarven and Metallurgist rewrite vanilla center
+  configs on PC with add/remove hooks that also patch every live
+  card. The fork folds the same numbers over the base config at
+  every read instead, so there is nothing to patch: cards dealt
+  before the Joker arrived behave the same as cards dealt after.
+  (One PC quirk not reproduced: Metallurgist's per-card patch
+  starts already-dealt Gold cards at +0 Mult; here they pay the
+  full +10, like Gold cards dealt later and like the center
+  itself on PC.) Dwarven's loan stacks per held copy, as PC's
+  add hook stacks; Sledgehammer's odds divide is once per row,
+  as PC's first-copy guard has it.
 
-NOT PORTED (25 of 80 Jokers)
-- Gameplan, Conquest: both debuff JOKERS (Gameplan its two
-  neighbours, Conquest a random other Joker). Tier 3 debuff
-  (SMODS.set_debuff / debuff_card) covers playing cards only;
-  there is no mod-settable Joker debuff to build them on.
+NOT PORTED (18 of 80 Jokers)
 - JMJB, Aristocrat: rewrite or extend Booster Pack contents (only
   Enhanced cards in Standard Packs; one extra pack choice). The
   open_booster context still carries no payload, and SMODS.Booster
@@ -158,17 +209,10 @@ NOT PORTED (25 of 80 Jokers)
   cards (with Pica, all highlighted cards) are PLAYED instead of
   discarded, then destroyed after scoring unless Hardtack is
   held. There is no discard-to-play redirect or discard veto.
-- Sledgehammer, Dwarven, Metallurgist: add/remove hooks that
-  rewrite the vanilla Glass, Stone and Gold center configs.
-  Registered enhancements do not touch vanilla centers.
 - Doorhanger, Running Joke: Doorhanger rewrites the rarity of
   every card as it is created (a create_card patch); Running Joke
   inserts a free Negative Joker offer into the shop at shop
   start. There is no shop-offer insertion API for Jokers.
-- Myopia, Astigmatism: no calculate at all on PC; global
-  Card:is_suit patches make Spades/Clubs count as Halberds and
-  Hearts/Diamonds count as Fleurons everywhere. No global
-  is_suit patch surface exists.
 - Trigger Finger, Vandalism, Cellphone: Trigger Finger needs
   the highlight_card context plus forcing a play; Vandalism
   needs cards drawn and kept face down (the fork turns played
