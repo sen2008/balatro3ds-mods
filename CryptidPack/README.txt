@@ -1,4 +1,4 @@
-Cryptid Pack (3DS Port) v1.4.0
+Cryptid Pack (3DS Port) v1.4.1
 175 Jokers and 28 consumables from Cryptid (PC, by the Cryptid team),
 ported to Balatro3DS: the Epic, Exotic, Candy and Cursed rarities,
 the Bulwark and UltPair poker hands, and the Code and Unique
@@ -10,7 +10,9 @@ Cat/Double M/Rework tags. v1.3.0 adds the Wave 1 wave:
 ://ALTTAB, Kidnapping, Necromancer, Pumpkin, Carved Pumpkin
 and Familiar Currency. v1.4.0 adds the Wave 5 wave: ERROR,
 Nostalgic Googol Play Card and Old Blueprint, on the fork's
-copy/blueprint dispatch.
+copy/blueprint dispatch. v1.4.1 renames the "m" Joker's sprites
+to m_lower.*: on a real SD card (FAT, case-insensitive) m.png and
+M.png were the same file, so both Jokers showed the "m" art.
 
 REQUIRES THE BALATRO3DS FORK (v1.2.0)
 The pack registers custom rarities, poker hands and consumable

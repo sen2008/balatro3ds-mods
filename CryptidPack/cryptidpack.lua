@@ -4917,8 +4917,8 @@ SMODS.Joker {
     blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = false,
-    sprite = "m.png",
-    negative_sprite = "m_negative.png",
+    sprite = "m_lower.png",
+    negative_sprite = "m_lower_negative.png",
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.extra, card.ability.extra.x_mult } }
     end,
