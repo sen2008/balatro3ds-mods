@@ -1,7 +1,7 @@
 --[[
     CryptidPack - Cryptid content ported to Balatro3DS.
 
-    175 Jokers and 28 consumables ported from Cryptid by the Cryptid
+    176 Jokers and 31 consumables ported from Cryptid by the Cryptid
     team / SpectralPack (PC / Steamodded + Talisman, GPLv3, source
     v0.5.17c). Requires the Balatro3DS fork build
     (https://github.com/sen2008/balatro3ds-fork): custom rarities,
@@ -14,7 +14,10 @@
     Wave 1 systems (G.jokers_sold, the game_over context with a
     saved = true return, and joker_type_destroyed). The v1.4.0
     additions need the fork's Wave 5 systems (SMODS.copy_joker
-    and SMODS.blueprint_effect).
+    and SMODS.blueprint_effect). The v1.5.0 additions need the
+    fork's Wave 6 shop / voucher / booster APIs
+    (SMODS.multiply_shop_prices, SMODS.queue_next_booster_bonus,
+    SMODS.unredeem_voucher / grant_voucher).
 
     Port notes:
       * The Talisman bignum wrapper (lenient_bignum / to_big) is
@@ -11170,6 +11173,226 @@ SMODS.Joker {
                     break
                 end
             end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.5.0): the shop / voucher / booster unblocks.
+-- ://DELETE stays blocked: PC banishes a highlighted shop card so
+-- it never appears again, and this fork has neither a shop-item
+-- picker for consumables nor banish state in its pools (see
+-- README.txt). ://KEYGEN stays blocked on Cryptid stickers and
+-- Code program state.
+--------------------------------------------------------------------------------
+
+-- ://DIVIDE: halve all listed prices in the current shop. PC walks
+-- the three shop areas multiplying each card's misprint_cost_fac
+-- by 0.5 (bulk use: 0.5^n); the fork's price_fac is the same
+-- multiplier on the same three shelves.
+SMODS.Consumable {
+    set = "Code",
+    key = "divide",
+    loc_txt = {
+        name = "://DIVIDE",
+        text = {
+            "{C:purple}Halve{} all listed prices",
+            "in current shop",
+        },
+    },
+    config = {},
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "divide.png",
+    negative_sprite = "divide_negative.png",
+    can_use = function(self, card)
+        return G and G.STATE == G.STATES.SHOP
+    end,
+    use = function(self, card, area, copier)
+        SMODS.multiply_shop_prices(0.5)
+    end,
+}
+
+-- ://OFFBYONE (PC key "oboe"): the next Booster Pack opened has
+-- +1 card and +1 choice per use. PC accumulates G.GAME.cry_oboe
+-- and its booster hooks read it when a pack opens; the fork's
+-- next-booster bonus queue is the same seat, consumed by the next
+-- pack opened.
+SMODS.Consumable {
+    set = "Code",
+    key = "oboe",
+    loc_txt = {
+        name = "://OFFBYONE",
+        text = {
+            "Next {C:purple}Booster Pack{} has",
+            "{C:purple}#1#{} extra card and",
+            "{C:purple}#1#{} extra choice",
+            "{C:inactive}(Currently {C:purple}+#2#{C:inactive})",
+        },
+    },
+    config = { extra = { choices = 1 } },
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "oboe.png",
+    negative_sprite = "oboe_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local ch = (card and card.ability and card.ability.extra
+            and card.ability.extra.choices)
+            or (self.config.extra and self.config.extra.choices) or 1
+        local cur = (G and G.next_booster_bonus
+            and G.next_booster_bonus.cards) or 0
+        return { vars = { math.floor(ch), cur } }
+    end,
+    can_use = function(self, card) return true end,
+    use = function(self, card, area, copier)
+        local ch = math.floor((card.ability and card.ability.extra
+            and card.ability.extra.choices) or 1)
+        SMODS.queue_next_booster_bonus(ch, ch)
+    end,
+}
+
+-- Trade: lose a random leaf Voucher, gain 2 random Vouchers.
+-- PC's usable set is the redeemed vouchers no other redeemed
+-- voucher requires (its "leaves"), minus eternal ones; this fork's
+-- vouchers cannot be eternal, so the leaf rule alone decides. PC
+-- reads Steamodded's `requires`; the fork's vanilla voucher defs
+-- carry the same link as `depends_on`, so both spellings count.
+-- The two gains are drawn without replacement from the shop
+-- candidate pool (PC draws with replacement from its pool and can
+-- hand back the voucher just lost, since unredeeming returns it
+-- to the pool; the fork's pool does the same, so it can be drawn
+-- here too).
+
+local function crypW6_voucher_requires(id)
+    local out = {}
+    local vdef = VOUCHER_DEFS and VOUCHER_DEFS[id]
+    if vdef and vdef.depends_on then out[#out + 1] = vdef.depends_on end
+    local center = SMODS.Centers and SMODS.Centers[id]
+    if center and type(center.requires) == "table" then
+        for _, r in ipairs(center.requires) do out[#out + 1] = r end
+    end
+    return out
+end
+
+local function crypW6_voucher_leaves(game)
+    local redeemed = {}
+    for k, v in pairs(game.vouchers or {}) do
+        if type(v) == "string" then redeemed[v] = true
+        elseif v == true and type(k) == "string" then redeemed[k] = true end
+    end
+    local required = {}
+    for id in pairs(redeemed) do
+        for _, r in ipairs(crypW6_voucher_requires(id)) do
+            if r ~= id and redeemed[r] then required[r] = true end
+        end
+    end
+    local leaves = {}
+    for id in pairs(redeemed) do
+        if not required[id] then leaves[#leaves + 1] = id end
+    end
+    table.sort(leaves)
+    return leaves
+end
+
+SMODS.Consumable {
+    set = "Spectral",
+    key = "trade",
+    loc_txt = {
+        name = "Trade",
+        text = {
+            "{C:attention}Lose{} a random Voucher,",
+            "gain {C:attention}2{} random Vouchers",
+        },
+    },
+    config = {},
+    cost = 4,
+    unlocked = true,
+    discovered = true,
+    sprite = "trade.png",
+    negative_sprite = "trade_negative.png",
+    can_use = function(self, card)
+        if not G then return false end
+        return #crypW6_voucher_leaves(G) > 0
+    end,
+    use = function(self, card, area, copier)
+        local leaves = crypW6_voucher_leaves(G)
+        if #leaves == 0 then return end
+        local lose = leaves[G:random("cry_trade", 1, #leaves)]
+        SMODS.unredeem_voucher(lose)
+        local pool = G:_shop_voucher_candidate_ids({})
+        for _ = 1, 2 do
+            if #pool == 0 then break end
+            local idx = G:random("cry_trade_redeem", 1, #pool)
+            local id = table.remove(pool, idx)
+            SMODS.grant_voucher(id)
+        end
+    end,
+}
+
+-- Digital Hallucinations: when a Booster Pack is opened, 1 in 2
+-- chance to create a random Negative card matching the pack's
+-- type. PC branches on the pack's display name and on a per-pack
+-- cry_digital_hallucinations hook no fork pack declares; the port
+-- branches on the fork's booster view instead: Joker packs make a
+-- Negative Joker, Standard packs a Negative playing card (to the
+-- deck), and consumable packs a Negative consumable of the pack's
+-- kind -- the last is the general form of PC's Arcana / Celestial /
+-- Spectral branches, so it also covers packs of registered kinds.
+-- Mixed mod packs have no PC branch and create nothing.
+SMODS.Joker {
+    key = "digitalhallucinations",
+    loc_txt = {
+        name = "Digital Hallucinations",
+        text = {
+            "When a {C:attention}Booster Pack{} is opened,",
+            "{C:green}#1# in #2#{} chance to create",
+            "a random {C:dark_edition}Negative{} card",
+            "corresponding to its {C:attention}type{}",
+        },
+    },
+    config = { odds = 2 },
+    rarity = 2, cost = 8, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "digitalhallucinations.png",
+    negative_sprite = "digitalhallucinations_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 1, (card and card.ability and card.ability.odds)
+            or (self.config and self.config.odds) or 2 } }
+    end,
+    calculate = function(self, card, context)
+        if not (context.open_booster and context.booster) then return end
+        local odds = (card.ability and card.ability.odds) or 2
+        if not SMODS.pseudorandom_probability(card, "cryp_digi",
+                1, odds, "digitalhallucinations") then
+            return
+        end
+        local view = context.booster
+        if view.pool_kind == "jokers" then
+            local offer = G:_roll_shop_queue_joker_offer("booster", true, {})
+            if offer and offer.id then
+                SMODS.add_card({ set = "Joker", key = offer.id,
+                    edition = "negative" })
+            end
+            return { message = "+ Joker" }
+        elseif view.pool_kind == "playing" then
+            local suits = { "Hearts", "Diamonds", "Clubs", "Spades" }
+            SMODS.add_card({ set = "Playing", area = "deck",
+                rank = G:random("cryp_digi_rank", 2, 14),
+                suit = suits[SMODS.pseudorandom("cryp_digi_suit", 1, 4)],
+                edition = "negative" })
+            return { message = "+ Playing Card" }
+        elseif view.pool_kind == "consumable" and view.consumable_kind then
+            if G:can_add_consumable({}) then
+                local id = G:random_consumable_id_of_kind(
+                    view.consumable_kind, {}, "cryp_digi")
+                if id then
+                    SMODS.add_card({ set = view.consumable_kind, key = id,
+                        edition = "negative" })
+                end
+            end
+            return { message = "+ Consumable" }
         end
     end,
 }

@@ -670,6 +670,15 @@ local SPRITE_STEMS = {
     "altgoogol_negative",
     "oldblueprint",
     "oldblueprint_negative",
+    -- v1.5.0 (Wave 6)
+    "divide",
+    "divide_negative",
+    "oboe",
+    "oboe_negative",
+    "trade",
+    "trade_negative",
+    "digitalhallucinations",
+    "digitalhallucinations_negative",
 }
 
 
@@ -684,7 +693,7 @@ local function install_pack()
     love.filesystem.createDirectory(base)
     love.filesystem.write(base .. "/CryptidPack.json", [[{
         "id": "CryptidPack", "name": "Cryptid Pack", "prefix": "cryp",
-        "main_file": "cryptidpack.lua", "version": "1.4.0",
+        "main_file": "cryptidpack.lua", "version": "1.5.0",
         "author": ["Cryptid team", "3DS port"]
     }]])
     love.filesystem.write(base .. "/cryptidpack.lua", main)
@@ -764,12 +773,12 @@ end
 -- Registration: rarities, hands, consumable types, every item + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads: 175 Jokers, 28 consumables, rarities, hands, types", function()
+suite.test("pack loads: 176 Jokers, 31 consumables, rarities, hands, types", function()
     local game = install_pack()
     local mod = ModLoader.by_id.CryptidPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 175, "175 Jokers register")
-    T.assert_eq(#mod.registered.consumables, 28, "28 consumables register")
+    T.assert_eq(#mod.registered.jokers, 176, "176 Jokers register")
+    T.assert_eq(#mod.registered.consumables, 31, "31 consumables register")
 
     T.assert_eq(SMODS.Rarities["cryp_epic"].weight, 0.3, "epic weight")
     T.assert_eq(SMODS.Rarities["cryp_exotic"].weight, 0, "exotic weight 0 (never in shop)")
@@ -2178,6 +2187,104 @@ suite.test("alttab rolls a random tag on a boss blind and a cat tag with kitty p
     use_slot(game, hold_consumable(game, "alttab"))
     T.assert_eq(game.tags[#game.tags].type, "cry_cat",
         "a held Kitty Printer makes it a Cat Tag")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.5.0)
+--------------------------------------------------------------------------------
+
+suite.test("wave6 divide: shop prices halve per use", function()
+    local game = install_pack()
+    game:enter_shop_after_blind()
+    game.STATE = game.STATES.SHOP
+    local offer = game.shop_offers[1]
+    local before = game:get_shop_offer_price(offer)
+    T.assert_true(before > 0, "the offer has a price")
+    assert(game:add_consumable("c_cryp_divide"))
+    T.assert_true(game:use_consumable(1))
+    T.assert_eq(game:get_shop_offer_price(offer),
+        math.floor(before * 0.5 + 0.5), "one use halves the price")
+    assert(game:add_consumable("c_cryp_divide"))
+    T.assert_true(game:use_consumable(1))
+    T.assert_eq(game:get_shop_offer_price(offer),
+        math.floor(before * 0.25 + 0.5), "two uses quarter it (0.5^2)")
+    wipe_mods()
+end)
+
+suite.test("wave6 offbyone: the next pack gains cards and picks", function()
+    local game = install_pack()
+    game.STATE = game.STATES.SHOP
+    assert(game:add_consumable("c_cryp_oboe"))
+    assert(game:add_consumable("c_cryp_oboe"))
+    T.assert_true(game:use_consumable(1))
+    T.assert_true(game:use_consumable(1))
+    T.assert_eq(game.next_booster_bonus.cards, 2, "two uses stack")
+    T.assert_eq(game.next_booster_bonus.picks, 2)
+    game:begin_booster_session({ kind = "booster", pack = "buffoon",
+        size = "normal", price = 4, name = "Buffoon Pack",
+        card_count = 2, picks_granted = 1 })
+    local s = game.booster_session
+    T.assert_eq(#s.choices, 4, "2 dealt + 2 bonus cards")
+    T.assert_eq(s.picks_remaining, 3, "1 pick + 2 bonus picks")
+    T.assert_eq(game.next_booster_bonus, nil, "the bonus is spent")
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 trade: a leaf voucher is lost, two are gained", function()
+    local game = install_pack()
+    T.assert_true(SMODS.grant_voucher("v_blank"))
+    T.assert_true(SMODS.grant_voucher("v_overstock"))
+    T.assert_true(SMODS.grant_voucher("v_overstock_plus"))
+    assert(game:add_consumable("c_cryp_trade"))
+    game.STATE = game.STATES.SHOP
+    T.assert_true(game:consumable_use_enabled(1),
+        "Trade is usable with leaf vouchers held")
+    T.assert_true(game:use_consumable(1))
+    T.assert_eq(#game.vouchers, 4, "lost 1, gained 2")
+    T.assert_true(game:has_voucher("v_overstock"),
+        "Overstock is not a leaf (Overstock Plus requires it): never lost")
+    wipe_mods()
+end)
+
+suite.test("wave6 digital hallucinations: a Negative card per pack type", function()
+    local game = install_pack_full()
+    assert(game:add_joker_by_def("j_cryp_digitalhallucinations"))
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true, 1 end
+    game:begin_booster_session({ kind = "booster", pack = "arcana",
+        size = "normal", price = 4, name = "Arcana Pack",
+        card_count = 3, picks_granted = 1 })
+    T.assert_eq(#game.consumables, 1, "Arcana: a consumable was created")
+    T.assert_eq(game.consumables[1].kind, "tarot")
+    T.assert_eq(game.consumables[1].edition, "negative",
+        "and it is Negative")
+    game:end_booster_session()
+    local nj = #game.jokers
+    game:begin_booster_session({ kind = "booster", pack = "buffoon",
+        size = "normal", price = 4, name = "Buffoon Pack",
+        card_count = 2, picks_granted = 1 })
+    T.assert_eq(#game.jokers, nj + 1, "Buffoon: a Joker was created")
+    T.assert_eq(game.jokers[#game.jokers].edition, "negative")
+    game:end_booster_session()
+    local nd = #game.deck.cards
+    game:begin_booster_session({ kind = "booster", pack = "standard",
+        size = "normal", price = 4, name = "Standard Pack",
+        card_count = 3, picks_granted = 1 })
+    T.assert_eq(#game.deck.cards, nd + 1, "Standard: a deck card was added")
+    local dc = game.deck.cards[#game.deck.cards]
+    T.assert_eq(dc.modifier and dc.modifier.edition, "negative",
+        "the deck card is Negative")
+    game:end_booster_session()
+    SMODS.pseudorandom_probability = function() return false, 1 end
+    local nc = #game.consumables
+    game:begin_booster_session({ kind = "booster", pack = "arcana",
+        size = "normal", price = 4, name = "Arcana Pack",
+        card_count = 3, picks_granted = 1 })
+    T.assert_eq(#game.consumables, nc, "a missed roll creates nothing")
+    game:end_booster_session()
+    SMODS.pseudorandom_probability = real_prob
     wipe_mods()
 end)
 

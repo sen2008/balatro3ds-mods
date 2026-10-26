@@ -1,5 +1,5 @@
-Cryptid Pack (3DS Port) v1.4.1
-175 Jokers and 28 consumables from Cryptid (PC, by the Cryptid team),
+Cryptid Pack (3DS Port) v1.5.0
+176 Jokers and 31 consumables from Cryptid (PC, by the Cryptid team),
 ported to Balatro3DS: the Epic, Exotic, Candy and Cursed rarities,
 the Bulwark and UltPair poker hands, and the Code and Unique
 consumable types. v1.2.0 adds the Tier 3 wave: the big-number
@@ -13,6 +13,11 @@ Nostalgic Googol Play Card and Old Blueprint, on the fork's
 copy/blueprint dispatch. v1.4.1 renames the "m" Joker's sprites
 to m_lower.*: on a real SD card (FAT, case-insensitive) m.png and
 M.png were the same file, so both Jokers showed the "m" art.
+v1.5.0 adds the Wave 6 wave: ://DIVIDE, ://OFFBYONE and Trade
+(on the fork's shop-price, next-booster-bonus and voucher
+grant/unredeem APIs) and Digital Hallucinations (the fork's
+open_booster context now carries the booster view its pack-type
+branches need).
 
 REQUIRES THE BALATRO3DS FORK (v1.2.0)
 The pack registers custom rarities, poker hands and consumable
@@ -61,18 +66,18 @@ WHAT'S INSIDE
 - Cryptid's gameset system (Modest / Mainline / Madness difficulty
   overrides) is not ported; every effect uses its standard rules.
 
-THE 175 JOKERS, BY RARITY
+THE 176 JOKERS, BY RARITY
 Common (50): 2D, :D, Absurd Joker, Adroit Joker, Big Cube, Blender, Blurred Joker, Bonkers Joker, Bubble M, Clicked Cookie, Crypto Coin, Cube, Cursor, Delirious Joker, Discreet Joker, Dubious Joker, Exoplanet, Fast Food M, Fidget Spinner, Foolhardy Joker, Foxy Joker, Fridge Magnet, Jolly Joker?, Kidnapping, Kooky Joker, Loopy, M Chain, Macabre Joker, Manic Joker, Megg, Meteor Shower, Monster, Morse Code, Nutty Joker, Old Blueprint, Panopticon, Pity Prize, Queen's Gambit, Red Bloon, Sacrifice, Savvy Joker, Shrewd Joker, Silly Joker, Stardust, Subtle Joker, Translucent Joker, Treacherous Joker, Triplet Rhythm, Tricksy Joker, Wacky Joker
 Uncommon (33): AP Joker, Astral in a Bottle, Bonk, Bus Driver, Candy Basket, Candy Dagger, Chili Pepper, Consume-able, Cut, Eye of Hagane, Fading Joker, Happy House, Hunting Season, Key Change, Kitty Printer, Krusty the Clown, Mondrian, Monkey Dagger, Necromancer, Neon M, Pickle, Pirate Dagger, Poor Joker, Python, Reverse Card, Sapling, Scrabble Tile, Seal the Deal, The WHIP, Trick-or-Treat, Unjust Dagger, Wheel of Hope, Zooble
-Rare (41): ...Like Antennas to Heaven, Arsonist, Broken Home, Carved Pumpkin, Celestial Globe, Chad, Compound Interest, Dropshot, Eternal Flame, Exposed, Familiar Currency, Garden of Forking Paths, High Five, Jimball, Kaleidoscope, LeBaron James, Light Up the Night, M Stack, Mask, Motebook, Nice, Night, No Sound, No Memory, Pizza, Pizza Slice, Pot of Jokes, Pumpkin, SUS, Tax Fraud, The Clash, The Duos, The Filler, The Home, The Nuts, The Quintet, The Stronghold, The Swarm, The Unity, Universe, Weebonacci, Yarn Ball
+Rare (42): ...Like Antennas to Heaven, Arsonist, Broken Home, Carved Pumpkin, Celestial Globe, Chad, Compound Interest, Digital Hallucinations, Dropshot, Eternal Flame, Exposed, Familiar Currency, Garden of Forking Paths, High Five, Jimball, Kaleidoscope, LeBaron James, Light Up the Night, M Stack, Mask, Motebook, Nice, Night, No Sound, No Memory, Pizza, Pizza Slice, Pot of Jokes, Pumpkin, SUS, Tax Fraud, The Clash, The Duos, The Filler, The Home, The Nuts, The Quintet, The Stronghold, The Swarm, The Unity, Universe, Weebonacci, Yarn Ball
 Legendary (4): Nostalgic Invisible Joker, Thalia and Melpomeme, Waluigi, Wario
 Epic (25): Boredom, Canvas, Caramel, Circus, Code Joker, Copy/Paste, Demicolon, Doodle M, ERROR, Gold Joker, Googol Play Card, Huge, Jimbo-tron 9000, M, Mult Joker, Negative Joker, Nostalgic Googol Play Card, One for All, Sob, Starfruit, Supercell, Sync Catalyst, Tiny, Virgo, m
 Exotic (14): Circulus Pistoris, Crustulum, Duplicare, Energia, Facile, Formidiulosus, Iterum, Non Verisimile, Primus, Redeo, Speculo, Stella Mortis, Tenebris, Tredecim
 Candy (6): Brittle Candy, Candy Buttons, Candy Cane, Cotton Candy, Mellowcreme, Wrapped Candy
 Cursed (2): Monopoly Money, Rotten Egg
 
-THE 28 CONSUMABLES
-://ALTTAB (Code), ://COMMIT (Code), ://CTRL+V (Code), ://REWORK (Code), Adversary (Spectral), Analog (Spectral), Asteroid Belt (Planet), Chambered (Spectral), Conduit (Spectral), Gateway (Spectral), Hertta (Planet), Kaikki (Planet), Lock (Spectral), Neutron Star (Planet), Pata (Planet), Phobos & Deimos (Planet), Planet.lua (Planet), Replica (Spectral), Risti (Planet), Ritual (Spectral), Ruutu (Planet), Source (Spectral), Summoning (Spectral), The Automaton (Tarot), The Blessing (Tarot), Typhoon (Spectral), Vacuum (Spectral), White Hole (Spectral)
+THE 31 CONSUMABLES
+://ALTTAB (Code), ://COMMIT (Code), ://CTRL+V (Code), ://DIVIDE (Code), ://OFFBYONE (Code), ://REWORK (Code), Adversary (Spectral), Analog (Spectral), Asteroid Belt (Planet), Chambered (Spectral), Conduit (Spectral), Gateway (Spectral), Hertta (Planet), Kaikki (Planet), Lock (Spectral), Neutron Star (Planet), Pata (Planet), Phobos & Deimos (Planet), Planet.lua (Planet), Replica (Spectral), Risti (Planet), Ritual (Spectral), Ruutu (Planet), Source (Spectral), Summoning (Spectral), The Automaton (Tarot), The Blessing (Tarot), Trade (Spectral), Typhoon (Spectral), Vacuum (Spectral), White Hole (Spectral)
 
 DEVIATIONS FROM PC
 - Cube costs $0 instead of -$27: PC's joke price pays you to take
@@ -89,11 +94,22 @@ DEVIATIONS FROM PC
   before the tag is held, so the port converts the newest held
   tag at skip time. A rolled tag whose effect is immediate
   keeps that effect instead of becoming a Cat Tag.
-- Adversary drops its shop-price doubling (the fork has no
-  shop-price modifier API), so the port is strictly stronger
-  than PC's version.
+- Adversary drops its shop-price doubling (dropped in the
+  Tier 3 port, before the fork had a shop-price API), so the
+  port is strictly stronger than PC's version.
 - ://CTRL+V copies playing cards only; PC's consumable and
   booster-pack target branches have no fork equivalent.
+- Trade draws its two gained Vouchers without replacement from
+  the shop candidate pool; PC draws with replacement from its
+  voucher pool. The voucher Trade removes is chosen from the
+  same "leaf" set PC uses (a redeemed Voucher no other redeemed
+  Voucher requires); PC's eternal exclusion has no fork
+  counterpart because fork vouchers cannot be eternal.
+- Digital Hallucinations branches on the fork's booster view
+  rather than the pack's display name: consumable packs of any
+  registered kind (not just Arcana / Celestial / Spectral) create
+  a Negative consumable of the pack's kind, and mixed mod packs
+  create nothing (PC has no branch for them either).
 - Conduit swaps editions between two playing cards, or between
   one playing card and one Joker; swapping two Jokers is not
   possible (a consumable gets a single Joker target).
@@ -204,24 +220,22 @@ DEVIATIONS FROM PC
   falls through to one last blueprint copy that beat, which
   is not reproduced here.
 
-NOT PORTED: OTHER MISSING SYSTEMS (98)
+NOT PORTED: OTHER MISSING SYSTEMS (94)
 - ://ASSEMBLE: Adds base Mult to the hand formed by the highlighted cards via SMODS.upgrade_poker_hands with a custom function (+1 per owned Joker). The fork has no upgrade_poker_hands, and cannot identify the poker hand of an arbitrary highlighted subset (PC uses G.FUNCS.get_poker_hand_info and G.GAME.hands, incl. the cry_None hand).
 - ://CLASS: Chosen-enhancement conversion runs through Cryptid's overlay menu plus init hooks on Card:click and CardArea:emplace, and the choice list includes custom enhancements m_cry_echo, m_cry_light and m_cry_abstract. No menu or method-hook API in the fork (mod_conv only covers one fixed vanilla enhancement).
 - ://CRASH: Effect is to crash or freeze the game: use() runs a random crashes[] function that overrides love.errorhandler/love.draw, fills the screen with Crash cards, or opens a text box whose contents are run via loadstring(G.ENTERED_ACE) (arbitrary code execution). No fork equivalent; deliberately destructive.
 - ://DECLARE: Creates a brand-new poker hand at runtime from the highlighted cards with a player-typed name (text-input UIBox, Cryptid.create_declare_hand mutating G.GAME.hands, plus localize and SMODS.is_poker_hand_visible hooks). Fork poker hands register only at load and there is no text-input UI.
 - ://DELETE: Banish system: writes G.GAME.cry_banished_keys and G.GAME.cry_banned_pcards so the selected shop item (and rank+suit, for playing cards) never appears again this run. No banish/pool-exclusion state in the fork, and its targets are highlighted shop items, which the fork cannot select.
-- ://DIVIDE: Halves current shop prices by writing misprint_cost_fac on every card in G.shop_jokers, G.shop_booster and G.shop_vouchers and calling set_cost(). The fork exposes no shop areas or price-modification API.
 - ://EXPLOIT: Opens Cryptid's exploit overlay menu (G.FUNCS.overlay_menu / G.UIDEF.exploit_menu) to make the next hand calculate as a chosen visible hand and grant temporary Ascension Power (cry_asc_num, G.GAME.sunnumber). No menu/UI API and no ascension system in the fork.
 - ://GLOBAL: Applies Cryptid's cry_global sticker to a selected playing card (the card counts as all suits/ranks via Cryptid hooks). Custom stickers do not exist in the fork.
 - ://INSTANTIATE: Draws specific existing deck cards (first matching the selected card's rank, then first matching its suit) into hand via draw_card(G.deck, G.hand, ...). The fork exposes deck contents only as raw card_data and has no move-card-from-deck-to-hand API.
-- ://KEYGEN: Creates and redeems a random Voucher (create_card('Voucher') + card:redeem(), perishable/banana/keygen stickers) and dissolves previously keygen-created vouchers, preserving G.GAME.current_round.voucher. Creating/redeeming a voucher as an effect is blocked and there is no G.GAME.
+- ://KEYGEN: Creates and redeems a random Voucher and marks it with perishable/banana/keygen stickers, then dissolves previously keygen-created vouchers on reuse, preserving the current round's voucher. The fork's Wave 6 grant/unredeem APIs cover the redeem itself, but custom stickers do not exist in the fork and nothing tracks which redeemed vouchers are keygen-made (or dissolves them later), so the card's defining bookkeeping cannot be ported.
 - ://LOG: Whole effect is a custom UIBox readout menu predicting future RNG: next Boss/Voucher via an init hook on SMODS.get_next_vouchers and saved G.GAME.pseudorandom state, the next 5 shop Jokers, or the top 10 deck cards. No UIBox or RNG-state API in the fork.
 - ://MACHINECODE: Creates a random consumable that must carry the cry_glitched edition; Glitched's effect is randomizing the card's values (X0.1 to X10) when applied, via Cryptid.manipulate — fork editions have no on-apply effect and there is no value manipulation, so a Glitched label here would be inert and fake
 - ://MALWARE: Sets the Cryptid glitched edition on every card held in hand; the edition write itself works, but Glitched's on-apply value randomization needs Cryptid.manipulate, which the fork has no equivalent for (see ://MACHINECODE)
 - ://MERGE: Merges a consumable into a playing card: CARD:set_ability(G.P_CENTERS[<consumable key>]) inside temporary CardAreas (the CCD system), turning the playing card into that consumable's centre. Playing cards cannot change centre/set in the fork, and there is no event manager.
 - ://MULTIPLY: Doubles all values of a selected Joker via Cryptid.manipulate (Cryptid's generic value-manipulation library) and restores them through an init hook on end_round. No value-manipulation API and no method hooks in the fork; also needs highlighted-Joker targeting.
 - ://NPERROR: Returns the last played hand to hand by matching Cryptid-tracked G.GAME.last_hand_played_cards sort_ids in discard/deck and moving them with draw_card(). No last-hand tracking and no move-card-to-hand API in the fork.
-- ://OFFBYONE: Effect is Cryptid booster state G.GAME.cry_oboe: the next Booster Pack gets +# extra cards and +# extra choices. The fork can register booster types but cannot modify a rolled pack's size or choices, and there is no G.GAME.
 - ://PATCH: Core lasting effect is permanent debuff immunity via the Cryptid flag cry_debuff_immune; the fork's debuff_card context is an after-the-fact notification on canonical-setter applications only (Boss debuffs are predicates and never raise it), so there is no prevention hook to hang immunity on
 - ://PAYLOAD: Effect is Cryptid library state G.GAME.cry_payload: a multiplier on the next defeated Blind's interest payout, maintained and paid out by Cryptid hooks. No G.GAME and no interest system in the fork.
 - ://QUANTIFY: Transfers a selected card or Booster into the Joker tray as a functioning Joker via init hooks overriding Card:calculate_joker and Blind:debuff_hand, using SMODS.calculate_individual_effect / SMODS.calculate_effect. None of those exist in the fork, and it targets cards in any area (G.I.CARD scan).
@@ -247,7 +261,6 @@ NOT PORTED: OTHER MISSING SYSTEMS (98)
 - Cat Owl: Requires the check_enhancement context, which the fork still does not raise, and the m_cry_echo enhancement, which cannot be ported (see The Eclipse)
 - Chocolate Die: requires SMODS.Events ev_cry_choco0..10 (Cryptid event system); those events apply the cry_flickering sticker and other global hooks - no event or sticker system in the fork
 - Clockwork Joker: requires setting a played card's enhancement to m_steel mid-hand (context.full_hand[1]:set_ability) and copy_card self-duplication when its four counters align - neither API exists in the fork
-- Digital Hallucinations: The fork's open_booster context carries no booster card or pack type (the event is emitted with an empty table), so the pack-type-dependent Negative creation cannot be implemented
 - Double Scale: whole effect is context.scaling_card plus override_scalar_value (interception of SMODS.scale_card) - that context is not raised and the fork has no scale-card system
 - Effarcire: draws the whole deck to hand via SMODS.draw_cards queued through G.E_MANAGER with G.GAME.effarcire_buffer state; fork has no draw-to-hand API, no event manager and no G.GAME
 - Emergency Chips: On-sell effect writes the current hand score (G.GAME.chips) and forces G.STATE to HAND_PLAYED; the fork exposes no current-score access or game-state control (no G.GAME)
@@ -294,7 +307,6 @@ NOT PORTED: OTHER MISSING SYSTEMS (98)
 - The Fuck!?: effect requires the cry_Clusterfuck poker hand (8+ played cards forming no pair/flush/straight); the fork evaluates hands on a normal play and Clusterfuck is not registerable
 - The Seraph: mod_conv to the custom Light enhancement (m_cry_light); Light keeps a per-card counter and reads the scoring hand's size when it scores, and fork enhancement contexts carry neither per-card persistent state nor the scoring hand
 - The Universe In Its Fucking Entirety: Levels cry_WholeDeck, which can never be formed in the fork (whole deck in one play; selection caps at 5, no play-limit API); its Observatory calculate also returns emult gated on that hand
-- Trade: Requires un-redeeming an owned voucher and redeeming two new ones; the fork has no voucher unredeem/redeem API for mods (owned vouchers are only the G.vouchers id list, redeem() runs at purchase only)
 - Tropical Smoothie: Requires Cryptid.manipulate (library value-multiplication of every other Joker's ability values); no fork equivalent
 - Undefined Joker: effect requires the cry_None poker hand (a hand containing 0 cards); a 0-card play cannot be made or scored in the fork and None is not a registerable hand
 - Universum: sole context is cry_universum, fired by Cryptid's SMODS.upgrade_poker_hands override to multiply hand level-up gains (X2 chips/mult per level); fork raises no level-up context and has no hand-level modification hook
