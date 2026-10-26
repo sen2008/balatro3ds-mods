@@ -1,11 +1,61 @@
 MoreFluffPack for Balatro3DS
 ============================
 
-108 Jokers ported from MoreFluff (PC mod by notmario), including the
-Letter Jokers, the Scrapped set and the token Jokers. The full roster
-is in the repository README; the 121 PC Jokers that could not be
+133 Jokers ported from MoreFluff (PC mod by notmario), including the
+Letter Jokers, the Scrapped set and the token Jokers, plus 14 Colour
+consumables and 6 booster packs (2 Modded, 4 Colour). The full roster
+is in the repository README; the 96 PC Jokers that could not be
 ported are listed there too, each with the exact system it is blocked
 on.
+
+v1.4.0 (Wave 6) adds 25 Jokers, the Colour consumable system and six
+booster packs, unblocked by the fork's Wave 6 shop / voucher /
+booster APIs:
+- Shop and booster Jokers: Bouncer (the card to its right returns to
+  the shop as an offer, and Bouncer gains +3 Chips per $1 of its sell
+  value; a moved Joker also creates a Fish; the fork re-offers a
+  fresh copy from the definition where PC moves the actual card, so
+  a moved Joker's scaled stats do not ride along), Junk Mail (an
+  extra shop voucher at 1.5x price), Letter B (a $7 Buffoon Pack),
+  Shopping Spree (15 rerolls make rerolls $2 cheaper; 4 skipped
+  Blinds add a shop slot), Gem Alert (X0.1 Mult per editioned or
+  Rare shop Joker seen, and while held Rare Jokers are 6.7x as
+  likely in the shop), Bonus Sheet (Buffoon Packs gain an appended
+  oldfluff or Letter Joker) and Repack (two Modded Packs shelved per
+  round; a Modded Pack deals mod Jokers and mod consumables card by
+  card).
+- 12 of the Slivers: Sinew, Muscle, Might, Megantic, Plasma, Astral,
+  Fury, Mindlash, Quantum, Gemhide, Fortunate and Sliver Jockey.
+  Each grants its listed effect to every Sliver the player holds,
+  itself included, through a pack-side runner that mirrors PC's
+  granted-abilities pass. What is NOT ported is each Sliver's own
+  second effect, PC's modify_weights pool pass (odds of other
+  effects firing), a context this engine never raises: Slivers
+  here appear at normal rarity rates instead. Three Slivers stay
+  blocked: The First Sliver (its grant is the Cascade system, a
+  shop-buying machine), Virulent Sliver (its grant pays off the
+  raw hand score, a value this engine's scoring returns do not
+  expose) and Homing Sliver (it has no granted effect at all; its
+  whole effect is the modify_weights pass).
+- The Colour system: Colour cards are investments. Each starts at
+  val 0 and gains +1 val per upgrade period held (2-5 rounds,
+  card-dependent; Paint Can can add extra rounds), then pays its
+  effect val times when used. 14 of the 17 Colour cards are ported
+  (Deep Blue, Red, Orange, Black, Seaweed, Brown, Crimson, Grey,
+  Silver, White, Blue, Lilac, Green, Pink) plus four Colour packs
+  and the six Colour Jokers: Paint Can, Rainbow Joker (X1.5 Mult
+  per Colour card held, folded into its own scoring return), Clipart
+  Joker, CSS, Monochrome Joker and Loaded Disk. Deviations: Pink's
+  random target pool cannot include the Pink being used (this
+  engine removes a consumable before its use runs; PC runs the use
+  first), and Loaded Disk creates the Pink only, because Yellow is
+  not ported. Yellow stays blocked: its only effect is sell-value
+  growth, and this engine sells every consumable for a flat $1 with
+  no per-card value. Peach stays blocked (it creates Rotarot cards,
+  a type not ported) and Gold stays blocked (a hidden card that
+  enters only through a Colour pack's rare poll, which the engine's
+  pools do not run for a custom kind). The Colour Tag and the Paint
+  Roller / Colour Theory vouchers are not part of this wave.
 
 v1.3.0 (Wave 1 top-up) adds 5 Jokers unblocked by the fork's Wave 1
 polls (SMODS.poll_enhancement / SMODS.poll_seal) and the xlog_chips
@@ -135,11 +185,12 @@ Deviations from the PC mod (all forced by missing fork systems):
   Sleeve rolls its Ace's suit itself, since the fork's add_card
   needs one named (PC's add_card picks it internally).
 
-Validation: 73 pack tests (registration and tooltips for all 108,
+Validation: 86 pack tests (registration and tooltips for all 133,
 behaviour tests for the non-trivial effects, including the Tier 3
 return readers, the level_up ports, the enhancement registrations,
-the debuff port and the Wave 1 poll / xlog_chips ports) plus the
-fork's own mod suite, all passing on the fork build.
+the debuff port, the Wave 1 poll / xlog_chips ports and the Wave 6
+shop, Sliver and Colour ports) plus the fork's own mod suite, all
+passing on the fork build (2026-10-25).
 
 Credit: MoreFluff is by notmario (github.com/notmario/MoreFluff).
 The PC repo carries no license file; this is an unofficial fan port

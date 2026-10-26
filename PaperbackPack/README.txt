@@ -1,5 +1,5 @@
-Paperback Pack (3DS Port) v1.3.0
-283 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
+Paperback Pack (3DS Port) v1.4.0
+291 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
 Spectrum-family poker hands, 45 of the 56 Minor Arcana consumables,
 Paperback's eight custom enhancements, five of its custom tags and
 its Dichrome edition, from Paperback (PC, by Nether and
@@ -17,7 +17,10 @@ SMODS.Edition), plus the Wave 1 additions the v1.2.0 Jokers ride:
 partial balance (a numeric balance return), the permanent card
 fields (SMODS.set_perma / SMODS.get_perma) and the game_over /
 saved context, plus the Wave 5 copy dispatch
-(SMODS.blueprint_effect) the v1.3.0 Jokers ride:
+(SMODS.blueprint_effect) the v1.3.0 Jokers ride, plus the
+Wave 6 shop, voucher and booster APIs (SMODS.add_booster_to_shop,
+SMODS.grant_voucher, the *_mod modifier seats, the open_booster
+payload) the v1.4.0 Jokers ride:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack will not load
 correctly; use the fork build.
@@ -84,14 +87,15 @@ sprites: the PC snapshot this port is built from contains only
 the Jokers and Minor Arcana atlases, so those registrations use
 the fork's fallback art.
 
-INCLUDED JOKERS (283 of 316)
+INCLUDED JOKERS (291 of 316)
 
 
-Common (97):
+Common (101):
 - & ($3): If scored hand contains both dark and light suits, retrigger the first of each time
 - A Balatro Movie ($4): If played hand is the same as the previous hand, earn $ (Last played: )
 - Apple ($1): When buying a Consumable, has a in chance to create a Negative copy and a in chance to self-destruct
 - B-Soda ($4): When Blind is selected, gain + Hand Consumed if Blind is cleared with 0 hands remaining
+- Backpack ($4): Shops start with an additional free Buffoon Pack
 - Bamboo Stick ($7): X Mult if you have another \ Joker (Currently X Mult)
 - Black Forest Cake ($3): This Joker gains + Mult for each Blind defeated Self-destructs if any card or Joker is destroyed (Currently + Mult)
 - Blue Marble ($3): When a Planet card is used, this Joker gains + Mult (Currently + Mult)
@@ -134,6 +138,7 @@ Common (97):
 - Meeple ($6): If played hand contains a scoring face card, in chance to gain + discard this round
 - Moneyback ($6): Every $ [] spent earns $
 - Moving Out ($4): This Joker gains + Mult if winning poker hand is not your most played hand (Currently + Mult)
+- normalJKR ($6): The first card in shop you buy is free
 - Nazar ($5): Gains +8 Chips when a Tarot or Minor Arcana card is used (Currently + Chips)
 - Nazca Lines ($6): Scored cards earn $ for each adjacent debuffed or unscored card
 - NoCopyrightJokers ($5): + Chips for every $1 of sell value your other Jokers have (Currently + Chips)
@@ -145,6 +150,7 @@ Common (97):
 - Pop-Stick ($7): X Mult if you have another \ Joker (Currently X Mult)
 - Popsicle Stick ($7): X Mult if you have another \ Joker (Currently X Mult)
 - Pride Flag ($6): Gains + Chips if played hand contains a Spectrum. Resets if played hand contains a Straight (Currently + Chips)
+- Protocol ($5): +1 Booster Pack size
 - Quick Fix ($6): + hand size. in chance this card is destroyed at end of round...
 - Red Sun in the Sky ($5): Scored light suits give + Mult for each scored light suit this round (Currently + Mult)
 - Rock Candy ($6): Scored give + Mult in chance this card is eaten at end of round
@@ -152,6 +158,7 @@ Common (97):
 - Rosary Beads ($4): If the scored hand contains 3 or more Hearts, earn $5
 - Royalty Free ($4): The first scored non-face card each round permanently gains + Chips
 - Sacrificial Lamb ($6): Gains + Mult for each card destroyed (Currently + Mult)
+- Shopping Center ($6): Shops have an additional card slot
 - Showdown ($5): and held in hand have a in chance to earn $
 - Shuttle ($6): The first played hand of round gives money equal to double the played hand's level (Max of $)
 - Shūgi Bukuro ($6): Earn $ when a Blind is skipped Increases by $ each time
@@ -187,7 +194,7 @@ Common (97):
 - Teapot ($5): This Joker gains +5 Chips for each scored Ceramic card (Currently + Chips)
 - Unholy Alliance ($6): This Joker gains +12 Chips for each card or Joker destroyed (Currently + Chips)
 
-Uncommon (104):
+Uncommon (106):
 - 56 Leaf Clover ($6): If the winning hand of a Boss Blind scores only Clubs, create a Negative Tag
 - Alert ($4): If played hand is a single face card, destroy it (/)
 - Aurora Borealis ($6): This Joker gains X0.5 Mult for each editioned Joker card held (Negatives are excluded) (Currently X Mult)
@@ -214,6 +221,7 @@ Uncommon (104):
 - Disco Joker ($7): This Joker gains + Mult when buying a card with $ or less (Currently + Mult)
 - Donor Card ($6): This Joker gains + Mult for every scored Heart card (Currently + Mult) Scored Hearts lose Chips and are destroyed upon reaching 0
 - Doppler Radar ($7): Fill consumable slots with random cards upon clearing a Blind
+- Everything Must Go! ($6): Shops have +1 additional Voucher slot
 - Evergreens ($6): Spades give X Mult when scored. Increases by X Mult for each consecutively scored Spades (Resets after each hand played)
 - Freight ($8): If cleared Blind is a Boss Blind, gain $ of sell value, otherwise earn the sell value of this Joker. When sold, gain + discard per $ of sell value instead of money
 - Full Moon ($7): Planet cards have a in chance to level up again
@@ -263,6 +271,7 @@ Uncommon (104):
 - The Batter ($4): Scored 3s are destroyed (/...)
 - The Girl From 024 ($7): Gains +X0.2 Mult for every Queen held in hand at end of round (Currently X Mult)
 - Tome ($6): + Consumable Slot for every unique Joker rarity you have (Currently + Slot)
+- Touch Tone Joker ($8): When opening an Arcana, Celestial or Spectral pack, draw the first card in it to your consumables (Must have room)
 - Triple Moon Goddess ($6): If played hand contains a Three of a Kind, in chance to create a random Tarot card and in chance to create a random Minor Arcana card (Must have room)
 - Trust Us! ($6): X3 Mult if played hand contains a Three of a Kind, X0.5 Mult otherwise
 - Unionized Labor ($7): Triples all listed probabilities while you have $25 or less Halves probabilities otherwise
@@ -294,7 +303,7 @@ Uncommon (104):
 - Watercolor Joker ($7): Scored Soaked cards give X1.5 Chips
 - Watermelon ($6): This Joker gains X0.1 Mult when a card's enhancement changes, and loses X0.1 Mult for each card destroyed. Destroyed below X1 (Currently X Mult)
 
-Rare (75):
+Rare (76):
 - 21st Century Joker ($10): When Big Blind or Boss Blind is cleared, destroy Joker to the left and create a new Joker of equal or higher rarity (Cannot upgrade to Legendary Jokers)
 - 57 Leaf Clover ($7): + to all listed probabilities (Currently +)
 - Attacking Vertical ($8): Scored 9s and 5s give X Mult Gains +X0.25 Mult when a Boss Blind is defeated
@@ -323,6 +332,7 @@ Rare (75):
 - Magic Mushroom ($8): X Mult Loses X0.5 Mult for every hand played Resets after clearing a Blind
 - Master Spark ($8): If played hand contains a Spectrum, destroy all cards held in hand and all played cards become Polychrome Self-destructs
 - Nigiri ($6): This Joker gains 1/th of the rank of discarded cards as XMult, self-destructs if a Face card scores, resets when Boss Blind is defeated (Currently X Mult)
+- Ouija Board ($8): Spectral cards may appear in the shop. Jokers are shuffled before scoring
 - Paranoia ($8): Light suits give + Mult when scored for every dark suit card destroyed this run (Currently + Mult)
 - Park Postcard ($8): Gains +X0.2 Mult at end of round Resets when a card is added to or removed from your deck (Currently X Mult)
 - Pool Table ($8): If first hand of round scores no face cards, create the card for played poker hand (Must have room)
@@ -361,7 +371,8 @@ Rare (75):
 - Master Plan ($10): Copies ability of Joker to the left
 - Photocopy ($10): Copies the ability of rightmost Joker
 
-Legendary (7):
+Legendary (8):
+- Chaplin ($20): When buying a Voucher, also redeem the upgraded version
 - L'angely ($20): Earn half the sell value of all Jokers when defeating a Big Blind Earn the full sell value when defeating a Boss Blind
 - OFF Switch ($13): Creates Eternal Alpha, Epsilon and Omega when obtained. When a playing card is destroyed, destroy the leftmost non-Eternal Joker and this Joker gains X Mult (Currently X Mult)
 - Pedrillo ($20): First scored Queen creates a Planet card for played poker hand (Must have room)
@@ -514,7 +525,45 @@ Wave 5 (v1.3.0) deviations, also marked PORT NOTE in the code:
   Blueprint, or by the copiers above, whose PC target pools
   are exactly the blueprint-compatible Jokers.
 
-NOT PORTED (33 Jokers, each on its named blocker)
+Wave 6 (v1.4.0) deviations, also marked PORT NOTE in the code:
+- The eight shop Jokers ride the fork's Wave 6 shop APIs. Backpack
+  shelves its free Buffoon Pack from starting_shop directly (PC
+  queues it through its event manager a beat later, and picks
+  between two art variants of the same pack). Protocol, Shopping
+  Center and Everything Must Go are declared modifiers
+  (booster_size_mod, shop_size_mod, voucher_limit_mod), summed by
+  the fork while held.
+- NormalJKR follows PC's code over its tooltip: the tooltip says
+  the first card you buy is free, but PC arms a counter when the
+  Joker is gained during a shop and then makes every non-Voucher,
+  non-Booster shop card cost $0 while it is held. The port carries
+  the counter on the Joker copy itself. One place the port is
+  kinder than PC: PC's patch also zeroes the cost basis of cards
+  already held, dragging their sell values to $1; the fork prices
+  shop offers through its getters and never reprices held cards.
+- Touch Tone Joker claims the open pack's first choice at the open
+  moment (PC draws it a beat later through its event queue). A
+  pack with a single choice is left alone so it always keeps a
+  card to pick; PC would draw it and close the pack.
+- Chaplin's "upgraded version" is any Voucher whose requirements
+  include the bought one (vanilla tier-2 Vouchers declare it with
+  depends_on, mod Vouchers with requires) with every other
+  requirement already redeemed; one is picked at random and
+  redeemed free through SMODS.grant_voucher, as on PC.
+- Ouija Board's shop Spectrals ride spectral_rate_mod (PC's own
+  patch sets the shop Spectral rate to 2 while held; PC's
+  allow_soul = false matches this engine's standing rule that
+  Soul and Black Hole never enter the shop queue). Its shuffle
+  permutes the Joker list and slot positions at press_play; PC
+  re-sorts its Joker area after random swaps, the same net
+  effect: a random order before scoring.
+- All eight register plainly, unlocked: their PC unlock
+  conditions have no fork equivalent, like every earlier wave.
+- Membership Card is the one shop Joker left behind: its XMult
+  reads Paperback's live Discord member count, which has no
+  offline meaning. Structural, not an API gap.
+
+NOT PORTED (25 Jokers, each on its named blocker)
 - Paperclips (4): Chip Clip, Clippy, Clothespin, Manilla Folder.
   On PC a paperclip is per-card state stored on the playing card
   itself (card.ability.paperback_<color>_clip), with eleven clip
@@ -540,10 +589,9 @@ NOT PORTED (33 Jokers, each on its named blocker)
   with its Mult), Medic (its only effect maintains the
   bandaged_inc counter feeding Bandaged repetitions, which the
   fork never queries).
-- Shop / pool manipulation (9): Backpack, Membership Card,
-  NormalJKR, Protocol, Shopping Center, Touch Tone Joker,
-  Ouija Board (no shop price/rate APIs), plus Chaplin and
-  Everything Must Go (no voucher grant/redeem API).
+- Membership Card: its XMult is Paperback's live Discord
+  member count divided by 1000; there is no offline value to
+  port. Structural.
 - Other single blockers: Burning Pact (draws cards; no
   draw-cards API), Jimbocards (writes the run's global inflation
   directly), Lager (grants a permanent per-card odds bonus with
@@ -567,10 +615,15 @@ behavior, the suits, the Spectrum hands through the game's own
 classifier, the exotic gate), arcana suite 45/45 (type
 registration, all 45 cards, the enhancement conversions, the
 tag-granting cards, the boosters, Joker targeting, Two of
-Swords), expansion suite 120/120 (registration, names, rarities,
-costs and clean tooltips for all 283 Jokers, plus behavior tests
+Swords), expansion suite 129/129 (registration, names, rarities,
+costs and clean tooltips for all 291 Jokers, plus behavior tests
 across the expansion Jokers, including all 45 Tier 3 additions,
-the 14 Wave 1 behavior tests and the 9 Wave 5 tests: Forgery
+the 14 Wave 1 behavior tests, the 9 Wave 5 tests and the 9
+Wave 6 tests (Backpack's free Buffoon Pack, Protocol's pack
+size, Shopping Center's slot, Everything Must Go's voucher
+shelf, NormalJKR arming in a shop and not outside one, Touch
+Tone's drawn first card, Chaplin's free upgrade, Ouija Board's
+shuffle): Forgery
 copying and multiplying a held mod Joker, Forgery's post-hand
 reset, Master Plan and Photocopy dispatching, the vanilla
 in-place delta, and debuffed / non-compatible targets never

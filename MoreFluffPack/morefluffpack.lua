@@ -3332,3 +3332,1213 @@ SMODS.Joker {
         end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.4.0): the shop and booster seats, the Sliver system and
+-- the Colour system, riding the fork's Wave 6 shop / voucher /
+-- booster APIs. Ported from MoreFluff's sources (see README.txt).
+-- Deviations are marked PORT NOTE.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Bouncer: when you enter the shop, the Joker (or first consumable)
+-- to its right is returned to the shop as an offer, and Bouncer
+-- permanently gains +3 Chips per $1 of that card's sell value. If
+-- the returned card was a Joker, a Fish is created.
+-- PORT NOTE: PC moves the actual card node into the shop area,
+-- keeping its ability state and edition; the fork's shelf holds
+-- offers, so the returned card is re-offered fresh from its def
+-- (same id and edition) and a returned consumable is valued at the
+-- engine's own consumable sell value.
+--------------------------------------------------------------------------------
+
+local function mf6_sell_value(g, copy, is_joker)
+    if is_joker then return tonumber(copy.sell_cost) or 0 end
+    if g and g.consumable_sell_value then
+        return g:consumable_sell_value(copy) or 0
+    end
+    return 0
+end
+
+local function mf6_remove_owned(g, copy, is_joker)
+    local list = is_joker and g.jokers or g.consumables
+    local nodes = is_joker and g.joker_nodes or g.consumable_nodes
+    for i, j in ipairs(list or {}) do
+        if j == copy then table.remove(list, i) break end
+    end
+    if nodes then
+        for i, n in ipairs(nodes) do
+            if n == copy then table.remove(nodes, i) break end
+        end
+    end
+    if is_joker then
+        -- A move, not a destruction: the removal bookkeeping
+        -- (remove_from_deck hooks) without joker_type_destroyed.
+        if SMODS.on_joker_removed then
+            SMODS.on_joker_removed(copy)
+        elseif copy.def and copy.def.smods
+                and copy.def.smods.remove_from_deck then
+            copy.def.smods.remove_from_deck(copy.def.smods, copy)
+        end
+    end
+end
+
+SMODS.Joker {
+    key = "bouncer",
+    loc_txt = { name = "Bouncer", text = {
+        "When you enter the {C:attention}Shop{},",
+        "return the {C:attention}Joker{} or {C:attention}consumable{}",
+        "to the right to the {C:attention}Shop{}.",
+        "This Joker gains {C:chips}+#1#{} Chips for every",
+        "{C:gold}$1{} of sell value that card had.",
+        "If it was a {C:attention}Joker{}, create a {C:attention}Fish{}",
+        "{C:inactive}(Currently {C:chips}#2#{} {C:inactive}Chips){}",
+    } },
+    config = { extra = { chips_per = 3, chips = 0 } },
+    rarity = 1, cost = 7, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "bouncer.png", negative_sprite = "bouncer_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.chips_per, e.chips } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.starting_shop and not context.blueprint and G then
+            local idx
+            for i, j in ipairs(G.jokers or {}) do
+                if j == card then idx = i break end
+            end
+            local other = idx and G.jokers[idx + 1] or nil
+            local was_joker = other ~= nil
+            if not other then other = (G.consumables or {})[1] end
+            if not other then return end
+            local gain = mf6_sell_value(G, other, was_joker)
+                * card.ability.extra.chips_per
+            card.ability.extra.chips = card.ability.extra.chips + gain
+            local spec
+            if was_joker then
+                spec = { set = "Joker", key = other.def.id,
+                    edition = other.edition }
+            else
+                spec = { set = other.kind, key = other.id,
+                    edition = other.edition }
+            end
+            mf6_remove_owned(G, other, was_joker)
+            SMODS.add_shop_card(spec)
+            if was_joker then
+                SMODS.add_card({ set = "Joker", key = "j_mfp_fish" })
+            end
+            return { message = "+" .. gain .. " Chips" }
+        end
+        if context.joker_main then
+            local chips = card.ability.extra.chips
+            if chips and chips ~= 0 then return { chips = chips } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Junk Mail: at the start of each shop (once per round), an extra
+-- Voucher is shelved at 1.5x price -- PC takes SMODS's voucher and
+-- multiplies its base cost; the fork's price factor is the same
+-- seat. The once-per-shop flag resets at end of round, as on PC.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "junkmail",
+    loc_txt = { name = "Junk Mail", text = {
+        "Creates a {C:attention}Voucher{} which",
+        "costs {C:money}#1#x{} as much at",
+        "the start of each Shop",
+    } },
+    config = { extra = { val_mult = 1.5 } },
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    eternal_compat = true, perishable_compat = true,
+    sprite = "junkmail.png", negative_sprite = "junkmail_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.val_mult } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round then card.ability.triggered = nil end
+        if context.starting_shop and not card.ability.triggered then
+            card.ability.triggered = true
+            if SMODS.add_voucher_to_shop({
+                    price_fac = card.ability.extra.val_mult }) then
+                return { message = "+ Voucher" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- B (Letter): shops contain an additional $7 Buffoon Pack, once
+-- per round (PC sets the created pack's base cost to extra.cost).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "lettergem_b",
+    loc_txt = { name = "B", text = {
+        "Shops contain an",
+        "additional {C:money}$#1#{}",
+        "{C:attention}Buffoon Pack{}",
+    } },
+    config = { extra = { cost = 7 } },
+    rarity = "letter", cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "lettergem_b.png", negative_sprite = "lettergem_b_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.cost } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round then card.ability.triggered = nil end
+        if context.starting_shop and not card.ability.triggered then
+            card.ability.triggered = true
+            SMODS.add_booster_to_shop("buffoon",
+                { price = card.ability.extra.cost })
+            return { message = "+ Buffoon Pack" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Shopping Spree: reroll 15 times in shops and shop rerolls are
+-- $2 cheaper (while held); skip 4 Blinds and the shop gains a slot
+-- (while held, through the shop_size_mod seat). PC applies both
+-- through game fields re-checked in add/remove_from_deck; its
+-- remove hook checks the reroll count for the shop size (a PC
+-- bug) -- the port follows the intent and keys the size to the
+-- skip count, which the ability field does by itself.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "shopping_spree",
+    loc_txt = { name = "Shopping Spree", text = {
+        "Reroll {C:attention}fifteen{} times {C:inactive}(#1#/15){} - Shop",
+        "{C:green}rerolls{} are {C:money}$#2#{} cheaper",
+        "Skip {C:attention}four{} blinds {C:inactive}(#3#/4){} - The",
+        "shop has an {C:attention}extra slot{}",
+    } },
+    config = { extra = { rerolls = 0, reroll_cost = 2, skips = 0 } },
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    eternal_compat = true, perishable_compat = false,
+    sprite = "shopping_spree.png",
+    negative_sprite = "shopping_spree_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.rerolls, e.reroll_cost, e.skips } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.reroll_shop and not context.blueprint
+                and e.rerolls < 15 then
+            e.rerolls = e.rerolls + 1
+            if e.rerolls >= 15 and G then
+                G.shop_reroll_base_cost =
+                    (tonumber(G.shop_reroll_base_cost) or 5) - e.reroll_cost
+                return { message = "Active!" }
+            end
+            return { message = e.rerolls .. "/15" }
+        end
+        if context.skip_blind and not context.blueprint and e.skips < 4 then
+            e.skips = e.skips + 1
+            if e.skips >= 4 then
+                card.ability.shop_size_mod = 1
+                return { message = "Active!" }
+            end
+            return { message = e.skips .. "/4" }
+        end
+    end,
+    add_to_deck = function(self, card, from_debuff)
+        refresh_g()
+        if G and card.ability.extra.rerolls >= 15 then
+            G.shop_reroll_base_cost =
+                (tonumber(G.shop_reroll_base_cost) or 5)
+                - card.ability.extra.reroll_cost
+        end
+        if card.ability.extra.skips >= 4 then
+            card.ability.shop_size_mod = 1
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        refresh_g()
+        if G and card.ability.extra.rerolls >= 15 then
+            G.shop_reroll_base_cost =
+                (tonumber(G.shop_reroll_base_cost) or 5)
+                + card.ability.extra.reroll_cost
+        end
+        card.ability.shop_size_mod = nil
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Gem Alert: Rare Jokers are X6.7 as common in the shop (the
+-- rare_mod seat, moved in add/remove_from_deck exactly as PC moves
+-- G.GAME.rare_mod), and this Joker gains X0.1 Mult when a Rare or
+-- editioned Joker appears in the shop. PC's condition is
+-- `edition or (is_rarity(Rare) and not blueprint)` -- the edition
+-- branch is not blueprint-guarded on PC either, and the port
+-- keeps the precedence.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "gemalert",
+    loc_txt = { name = "Gem Alert", text = {
+        "{C:rare}Rare{} Jokers are {X:spectral,C:white}X#3#{} as common",
+        "This Joker gains {X:mult,C:white}X#1#{} Mult",
+        "when a {C:rare}Rare{} or {C:dark_edition}Editioned{}",
+        "Joker appears in the Shop",
+        "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult){}",
+    } },
+    config = { extra = { xmult_per = 0.1, xmult = 1, rate_mod = 6.7 } },
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "gemalert.png", negative_sprite = "gemalert_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.xmult_per, e.xmult, e.rate_mod } }
+    end,
+    calculate = function(self, card, context)
+        if context.modify_shop_card and context.card
+                and context.card.kind == "joker" then
+            local view = context.card
+            local editioned = view.edition ~= nil and view.edition ~= "base"
+            if editioned or (view.rarity == 3 and not context.blueprint) then
+                card.ability.extra.xmult = card.ability.extra.xmult
+                    + card.ability.extra.xmult_per
+                return { message = "X" .. card.ability.extra.xmult .. " Mult" }
+            end
+        end
+        if context.joker_main then
+            return { xmult = card.ability.extra.xmult }
+        end
+    end,
+    add_to_deck = function(self, card, from_debuff)
+        refresh_g()
+        if G then
+            G.rare_mod = (tonumber(G.rare_mod) or 1)
+                * card.ability.extra.rate_mod
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        refresh_g()
+        if G then
+            G.rare_mod = (tonumber(G.rare_mod) or 1)
+                / card.ability.extra.rate_mod
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Bonus Sheet: Buffoon Packs contain an additional Hidden Joker.
+-- PC picks one of the two hidden rarities (mf_oldfluff /
+-- mf_letter) at random and creates from it; the port picks a
+-- Joker of the chosen rarity from this pack's own roster and
+-- appends it to the open pack.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "bonussheet",
+    loc_txt = { name = "Bonus Sheet", text = {
+        "{C:attention}Buffoon Packs{} contain an",
+        "additional {C:attention}Hidden{} {C:attention}Joker{}",
+    } },
+    config = {},
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "bonussheet.png", negative_sprite = "bonussheet_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.open_booster and context.booster
+                and context.booster.pack == "buffoon" and G then
+            local key = SMODS.pseudorandom("mf_bonussheet", 1, 2) == 1
+                and "mfp_oldfluff" or "mfp_letter"
+            local entry = SMODS.Rarities and SMODS.Rarities[key]
+            if not entry then return end
+            local pool = {}
+            for id, def in pairs(JOKER_DEFS or {}) do
+                if type(def) == "table" and def.mod_id == "MoreFluffPack"
+                        and tonumber(def.rarity) == entry.index then
+                    pool[#pool + 1] = id
+                end
+            end
+            if #pool == 0 then return end
+            table.sort(pool)
+            local pick = pool[G:random("mf_bonussheet_pick", 1, #pool)]
+            if SMODS.add_card_to_booster({ set = "Joker", key = pick }) then
+                return { message = "Added!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Repack: shops contain an additional two $8 Modded Packs (once
+-- per round). The Modded Pack is a registered booster whose pool
+-- mixes mod Jokers and mod consumables, card by card.
+--------------------------------------------------------------------------------
+
+SMODS.Booster {
+    key = "modded_normal_1",
+    loc_txt = { name = "Modded Pack", text = {
+        "Choose {C:attention}1{} of up to",
+        "{C:attention}3{} {C:dark_edition}Modded{} {C:attention}Joker{}",
+        "or {C:attention}Consumable{} cards",
+    } },
+    pool = { mixed_mod = true },
+    card_count = 3, picks = 1, cost = 8, weight = 0,
+}
+
+SMODS.Booster {
+    key = "modded_normal_2",
+    loc_txt = { name = "Modded Pack", text = {
+        "Choose {C:attention}1{} of up to",
+        "{C:attention}3{} {C:dark_edition}Modded{} {C:attention}Joker{}",
+        "or {C:attention}Consumable{} cards",
+    } },
+    pool = { mixed_mod = true },
+    card_count = 3, picks = 1, cost = 8, weight = 0,
+}
+
+SMODS.Joker {
+    key = "repack",
+    loc_txt = { name = "Repack", text = {
+        "Shops contain an",
+        "additional {C:attention}two {C:gold}$8{}",
+        "{C:dark_edition}Modded Packs{}",
+    } },
+    config = { extra = {} },
+    rarity = 1, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "repack.png", negative_sprite = "repack_negative.png",
+    calculate = function(self, card, context)
+        if context.end_of_round then card.ability.triggered = nil end
+        if context.starting_shop and not card.ability.triggered then
+            card.ability.triggered = true
+            SMODS.add_booster_to_shop("modded_normal_1")
+            SMODS.add_booster_to_shop("modded_normal_2")
+            return { message = "+ Modded Packs" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- The Sliver system. On PC every Sliver Joker's center declares an
+-- mf_sliver_ability, and EVERY Sliver, whenever it calculates, also
+-- runs the shared effect of every held granter, with the granter's
+-- own ability.extra. The port keeps the same shape pack-side: the
+-- twelve portable granters register their shared effect in
+-- MF6_SLIVER_EFFECTS, and every ported Sliver's calculate is the
+-- runner below.
+--
+-- PORT NOTE: each Sliver's own PC calculate is only a
+-- modify_weights pool pass ("Slivers appear 1.5x more often"),
+-- a context the fork never raises, so that half is not ported and
+-- Slivers appear at their rarities' normal rates here. PC builds
+-- its granter list from centers without a debuff check; the port
+-- does the same. The First Sliver (its grant is MoreFluff's
+-- Cascade shop-buying machine), Virulent Sliver (its grant pays
+-- out as raw score, a return the fork does not carry) and Homing
+-- Sliver (no grant at all -- its whole effect is the pool pass)
+-- stay unported; see README.txt.
+--------------------------------------------------------------------------------
+
+local MF6_SLIVER_EFFECTS = {}
+
+local function mf6_run_slivers(host, context)
+    local g = refresh_g()
+    if not g then return nil end
+    local acc = {}
+    local any = false
+    for _, j in ipairs(g.jokers or {}) do
+        local eff = j.def and MF6_SLIVER_EFFECTS[j.def.id]
+        if eff then
+            if eff(host, context, (j.ability and j.ability.extra) or {},
+                    acc, g) then
+                any = true
+            end
+        end
+    end
+    if not any then return nil end
+    local ret = {}
+    if acc.chips then ret.chips = acc.chips end
+    if acc.mult then ret.mult = acc.mult end
+    if acc.xmult then ret.xmult = acc.xmult end
+    if acc.e_mult then ret.e_mult = acc.e_mult end
+    if acc.swap_f then ret.swap = acc.swap_f end
+    if acc.level_up then ret.level_up = true end
+    if acc.dollars then ret.dollars = acc.dollars end
+    if acc.repetitions then ret.repetitions = acc.repetitions end
+    if acc.denominator then ret.denominator = acc.denominator end
+    if acc.message then ret.message = acc.message end
+    return ret
+end
+
+local function mf6_sliver(key, name, granted, config, rarity, cost, sprite)
+    SMODS.Joker {
+        key = key,
+        loc_txt = { name = name, text = {
+            "{C:spectral}Sliver{} {C:attention}Jokers{} you hold have",
+            granted,
+        } },
+        config = { extra = config },
+        rarity = rarity, cost = cost,
+        unlocked = true, discovered = true,
+        blueprint_compat = true, eternal_compat = true,
+        perishable_compat = true,
+        sprite = sprite .. ".png",
+        negative_sprite = sprite .. "_negative.png",
+        loc_vars = function(self, info_queue, card)
+            local e = card.ability.extra
+            return { vars = { e.odds or 1.5,
+                e.chips or e.mult or e.xmult or e.emult or e.dollars
+                or e.lvup_odds or e.create_odds or e.odds_reduction
+                or (e.percent_swap and e.percent_swap * 100) or "" } }
+        end,
+        calculate = function(self, card, context)
+            return mf6_run_slivers(card, context)
+        end,
+    }
+end
+
+-- Sinew Sliver: all Slivers have "+40 Chips".
+MF6_SLIVER_EFFECTS.j_mfp_sinew_sliver = function(host, context, extra, acc)
+    if context.joker_main then
+        acc.chips = (acc.chips or 0) + (extra.chips or 40)
+        return true
+    end
+end
+mf6_sliver("sinew_sliver", "Sinew Sliver", "\"+40 Chips\"",
+    { odds = 1.5, chips = 40 }, 1, 7, "sinew_sliver")
+
+-- Muscle Sliver: all Slivers have "+4 Mult".
+MF6_SLIVER_EFFECTS.j_mfp_muscle_sliver = function(host, context, extra, acc)
+    if context.joker_main then
+        acc.mult = (acc.mult or 0) + (extra.mult or 4)
+        return true
+    end
+end
+mf6_sliver("muscle_sliver", "Muscle Sliver", "\"+4 Mult\"",
+    { odds = 1.5, mult = 4 }, 1, 7, "muscle_sliver")
+
+-- Might Sliver: all Slivers have "X1.2 Mult".
+MF6_SLIVER_EFFECTS.j_mfp_might_sliver = function(host, context, extra, acc)
+    if context.joker_main then
+        acc.xmult = (acc.xmult or 1) * (extra.xmult or 1.2)
+        return true
+    end
+end
+mf6_sliver("might_sliver", "Might Sliver", "\"X1.2 Mult\"",
+    { odds = 1.5, xmult = 1.2 }, 2, 9, "might_sliver")
+
+-- Megantic Sliver: all Slivers have "^1.08 Mult".
+MF6_SLIVER_EFFECTS.j_mfp_megantic_sliver = function(host, context, extra, acc)
+    if context.joker_main then
+        acc.e_mult = (acc.e_mult or 1) * (extra.emult or 1.08)
+        return true
+    end
+end
+mf6_sliver("megantic_sliver", "Megantic Sliver", "\"^1.08 Mult\"",
+    { odds = 1.5, emult = 1.08 }, 3, 10, "megantic_sliver")
+
+-- Plasma Sliver: all Slivers have "Swaps 10% of Chips and Mult".
+-- Several copies compose the way PC's sequential swaps do: each
+-- swap multiplies the Chips/Mult difference by (1 - 2f).
+MF6_SLIVER_EFFECTS.j_mfp_plasma_sliver = function(host, context, extra, acc)
+    if context.joker_main then
+        local p = extra.percent_swap or 0.1
+        local f = acc.swap_f or 0
+        acc.swap_f = (1 - (1 - 2 * f) * (1 - 2 * p)) / 2
+        return true
+    end
+end
+mf6_sliver("plasma_sliver", "Plasma Sliver",
+    "\"Swaps 10% of Chips and Mult\"",
+    { odds = 1.5, percent_swap = 0.1 }, 2, 8, "plasma_sliver")
+
+-- Astral Sliver: all Slivers have "1 in 8 chance to upgrade the
+-- level of the played poker hand". Each granter rolls; the merged
+-- grant levels the hand once per host, as PC's merge does.
+MF6_SLIVER_EFFECTS.j_mfp_astral_sliver = function(host, context, extra, acc)
+    if context.before then
+        local hit = SMODS.pseudorandom_probability(host,
+            "mf_astral_sliver", 1, extra.lvup_odds or 8, "astral_sliver")
+        if hit then
+            acc.level_up = true
+            return true
+        end
+    end
+end
+mf6_sliver("astral_sliver", "Astral Sliver",
+    "\"1 in 8 chance to upgrade level of played poker hand\"",
+    { odds = 1.5, lvup_odds = 8 }, 2, 8, "astral_sliver")
+
+-- Fury Sliver: all Slivers have "Retrigger this Joker one time"
+-- (the retrigger check answered for the host itself).
+MF6_SLIVER_EFFECTS.j_mfp_fury_sliver = function(host, context, extra, acc)
+    if context.retrigger_joker_check and not context.retrigger_joker
+            and context.other_card == host then
+        acc.repetitions = (acc.repetitions or 0) + 1
+        return true
+    end
+end
+mf6_sliver("fury_sliver", "Fury Sliver", "\"Retrigger this Joker one time\"",
+    { odds = 1.5 }, 3, 10, "fury_sliver")
+
+-- Mindlash Sliver: all Slivers have "Sell this card to disable
+-- the current Boss Blind".
+MF6_SLIVER_EFFECTS.j_mfp_mindlash_sliver = function(host, context, extra, acc, g)
+    if context.selling_self and g and g.disable_boss_blind then
+        if g:get_active_boss_blind_id()
+                and not (g.boss_runtime
+                    and g.boss_runtime.disable_current_boss_ability) then
+            g:disable_boss_blind()
+            acc.message = "Boss Blind Disabled!"
+            return true
+        end
+    end
+end
+mf6_sliver("mindlash_sliver", "Mindlash Sliver",
+    "\"Sell this card to disable the current Boss Blind\"",
+    { odds = 1.5 }, 2, 6, "mindlash_sliver")
+
+-- Quantum Sliver: all Slivers have "1 in 7 chance to create a
+-- random consumable when a Blind is selected".
+MF6_SLIVER_EFFECTS.j_mfp_quantum_sliver = function(host, context, extra, acc, g)
+    if context.setting_blind and g
+            and g.can_add_consumable and g:can_add_consumable({}) then
+        local hit = SMODS.pseudorandom_probability(host,
+            "mf_quantum_sliver", 1, extra.create_odds or 7, "quantum_sliver")
+        if hit then
+            local kinds = { "tarot", "planet", "spectral" }
+            local offer = g:_roll_shop_queue_consumable_offer(
+                kinds[SMODS.pseudorandom("mf_quantum_kind", 1, #kinds)])
+            if offer and offer.id then
+                g:add_consumable(offer.id)
+                acc.message = "+ Consumable"
+                return true
+            end
+        end
+    end
+end
+mf6_sliver("quantum_sliver", "Quantum Sliver",
+    "\"1 in 7 chance to create a random consumable when a Blind is selected\"",
+    { odds = 1.5, create_odds = 7 }, 2, 8, "quantum_sliver")
+
+-- Gemhide Sliver: all Slivers have "Earn $2 at end of round"
+-- (paid as round-end dollars; PC adds it to the final cashout).
+MF6_SLIVER_EFFECTS.j_mfp_gemhide_sliver = function(host, context, extra, acc)
+    if context.end_of_round and not context.blueprint then
+        acc.dollars = (acc.dollars or 0) + (extra.dollars or 2)
+        return true
+    end
+end
+mf6_sliver("gemhide_sliver", "Gemhide Sliver", "\"Earn $2 at end of round\"",
+    { odds = 1.5, dollars = 2 }, 2, 8, "gemhide_sliver")
+
+-- Fortunate Sliver: all Slivers have "Reduces all listed
+-- denominators by 1" (the mod_probability pass; each granter
+-- reshapes the running denominator in turn, as on PC).
+MF6_SLIVER_EFFECTS.j_mfp_fortunate_sliver = function(host, context, extra, acc)
+    if context.mod_probability and not context.blueprint then
+        local den = acc.denominator or context.denominator
+        if den then
+            local red = extra.odds_reduction or 1
+            local new_den = den
+            if den >= 1 and den < 1 + red then
+                new_den = 1
+            elseif den >= 1 + red then
+                new_den = den - red
+            end
+            if new_den ~= den then
+                acc.denominator = new_den
+                return true
+            end
+        end
+    end
+end
+mf6_sliver("fortunate_sliver", "Fortunate Sliver",
+    "\"Reduces all listed denominators by 1\"",
+    { odds = 1.5, odds_reduction = 1 }, 2, 6, "fortunate_sliver")
+
+-- Sliver Jockey: all Slivers retrigger the played card whose
+-- position in the played hand matches the Sliver's own position
+-- in the Joker row.
+MF6_SLIVER_EFFECTS.j_mfp_sliver_jockey = function(host, context, extra, acc, g)
+    if context.repetition and context.cardarea == g.play
+            and context.other_card then
+        local my_ind
+        for i, j in ipairs(g.jokers or {}) do
+            if j == host then my_ind = i break end
+        end
+        local played = context.scoring_hand or context.full_hand or {}
+        local their_ind
+        for i, c in ipairs(played) do
+            if c == context.other_card then their_ind = i break end
+        end
+        if my_ind and their_ind and my_ind == their_ind then
+            acc.repetitions = (acc.repetitions or 0) + 1
+            return true
+        end
+    end
+end
+mf6_sliver("sliver_jockey", "Sliver Jockey",
+    "\"Retrigger the playing card with the same position as that Joker once\"",
+    { odds = 1.5 }, 2, 7, "sliver_jockey")
+
+--------------------------------------------------------------------------------
+-- The Colour system: a Colour consumable type whose cards are
+-- investments -- each starts at val 0 and gains +1 val every
+-- upgrade_rounds rounds it is held (the fork's consumable
+-- end_of_round seat runs the growth), then pays its effect out
+-- val times when used. Paint Can makes growth faster.
+--
+-- PORT NOTE: Yellow (its only effect is sell-value growth, and
+-- this engine sells every consumable at a flat $1 with no
+-- per-card value reader), Peach (creates Rotarot cards, a type
+-- not ported) and Gold (a hidden card that only enters through a
+-- Colour pack's rare poll, which the fork's pools do not run for
+-- a custom kind) stay unported. The Colour Tag and the Paint
+-- Roller / Colour Theory vouchers are not part of this wave.
+--------------------------------------------------------------------------------
+
+if SMODS.ConsumableType then
+
+SMODS.ConsumableType {
+    key = "Colour",
+    loc_txt = { name = "Colour" },
+    shop_rate = 1,
+}
+
+local function mf6_colour_grow(copy, g)
+    local ab = copy and copy.ability
+    if not ab or not ab.upgrade_rounds then return end
+    local ticks = 1
+    for _, j in ipairs(g.jokers or {}) do
+        if j.def and j.def.id == "j_mfp_paintcan" then
+            local odds = (j.ability.extra and j.ability.extra.odds) or 2
+            if SMODS.pseudorandom_probability(j, "mf_paintcan",
+                    1, odds, "paintcan") then
+                ticks = ticks + 1
+            end
+        end
+    end
+    for _ = 1, ticks do
+        ab.partial_rounds = (ab.partial_rounds or 0) + 1
+        while (ab.partial_rounds or 0) >= ab.upgrade_rounds do
+            ab.partial_rounds = ab.partial_rounds - ab.upgrade_rounds
+            ab.val = (ab.val or 0) + 1
+        end
+    end
+end
+
+local function mf6_hand_nodes(g)
+    local out = {}
+    local hand = g and g.hand
+    if hand and hand.card_nodes then
+        for _, n in ipairs(hand.card_nodes) do out[#out + 1] = n end
+    end
+    return out
+end
+
+local function mf6_random_hand_card(g, exclude)
+    local pool = {}
+    for _, n in ipairs(mf6_hand_nodes(g)) do
+        if not (exclude and exclude[n]) then pool[#pool + 1] = n end
+    end
+    if #pool == 0 then return nil end
+    return pool[g:random("mf_colour_target", 1, #pool)]
+end
+
+-- A random registered consumable key of a kind ("Colour", or a
+-- vanilla kind named the PC way: "Planet", "Tarot", "Spectral").
+-- SMODS.add_card needs an explicit key, so creations roll here.
+local function mf6_random_consumable_key(set_name, seed_key)
+    local g = refresh_g()
+    if not g then return nil end
+    local kinds = { [set_name] = true,
+        [set_name:sub(1, 1):lower() .. set_name:sub(2)] = true }
+    local pool = {}
+    for id, def in pairs(CONSUMABLE_DEFS or {}) do
+        if type(def) == "table" and kinds[def.kind] then
+            pool[#pool + 1] = id
+        end
+    end
+    if #pool == 0 then return nil end
+    table.sort(pool)
+    return pool[g:random(seed_key or "mf_random_consumable", 1, #pool)]
+end
+
+-- The shared Colour use (PC's FLUFF.Colour use): tags, creations
+-- and per-card colour_effects, each applied val times.
+local function mf6_colour_use(self, card, area, copier)
+    local g = refresh_g()
+    if not g then return end
+    local ab = card.ability or {}
+    local val = ab.val or 0
+    if val <= 0 then return end
+    if ab.tag then
+        for _ = 1, val do g:addTag(ab.tag) end
+    end
+    if ab.create_set or ab.create_key then
+        for _ = 1, val do
+            local key = ab.create_key
+                or mf6_random_consumable_key(ab.create_set, "mf_colour_create")
+            if key then
+                SMODS.add_card({ set = ab.create_set or "Consumable",
+                    key = key, edition = "negative" })
+            end
+        end
+    end
+    if self.colour_effect then
+        for _ = 1, val do self.colour_effect(self, card, area) end
+    end
+end
+
+local function mf6_colour_can_use_hand(self, card)
+    local g = refresh_g()
+    return g ~= nil and #mf6_hand_nodes(g) >= 1
+end
+
+local function mf6_colour_loc_vars(amount_field)
+    return function(self, info_queue, card)
+        local ab = (card and card.ability) or self.config or {}
+        return { vars = { ab.val or 0, ab.partial_rounds or 0,
+            ab.upgrade_rounds or 0,
+            (amount_field and ab[amount_field]) or "" } }
+    end
+end
+
+local MF6_COLOUR_END = function(self, card, game)
+    mf6_colour_grow(card, game)
+end
+
+local function mf6_colour(key, name, text, config, opts)
+    opts = opts or {}
+    SMODS.Consumable {
+        set = "Colour",
+        key = key,
+        loc_txt = { name = name, text = text },
+        config = config,
+        cost = 4,
+        unlocked = true, discovered = true,
+        sprite = key .. ".png",
+        negative_sprite = key .. "_negative.png",
+        loc_vars = mf6_colour_loc_vars(opts.amount),
+        can_use = opts.can_use or function(self, card) return true end,
+        use = opts.use or mf6_colour_use,
+        colour_effect = opts.colour_effect,
+        end_of_round = MF6_COLOUR_END,
+    }
+end
+
+mf6_colour("deepblue", "Deep Blue", {
+    "A random card in hand",
+    "gets {C:chips}+#4#{} Chips for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2, chips_per = 20 }, {
+    amount = "chips_per",
+    can_use = mf6_colour_can_use_hand,
+    colour_effect = function(self, card, area)
+        local g = refresh_g()
+        local node = g and mf6_random_hand_card(g)
+        if node then
+            SMODS.set_perma(node, "perma_bonus",
+                (SMODS.get_perma(node, "perma_bonus") or 0)
+                + card.ability.chips_per)
+        end
+    end,
+})
+
+mf6_colour("red", "Red", {
+    "A random card in hand",
+    "gets {C:mult}+#4#{} Mult for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2, mult_per = 4 }, {
+    amount = "mult_per",
+    can_use = mf6_colour_can_use_hand,
+    colour_effect = function(self, card, area)
+        local g = refresh_g()
+        local node = g and mf6_random_hand_card(g)
+        if node then
+            SMODS.set_perma(node, "perma_mult",
+                (SMODS.get_perma(node, "perma_mult") or 0)
+                + card.ability.mult_per)
+        end
+    end,
+})
+
+mf6_colour("orange", "Orange", {
+    "A random card in hand",
+    "gets {C:attention}a retrigger{} for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 4 }, {
+    can_use = mf6_colour_can_use_hand,
+    colour_effect = function(self, card, area)
+        local g = refresh_g()
+        local node = g and mf6_random_hand_card(g)
+        if node then
+            SMODS.set_perma(node, "perma_repetitions",
+                (SMODS.get_perma(node, "perma_repetitions") or 0) + 1)
+        end
+    end,
+})
+
+mf6_colour("black", "Black", {
+    "Add {C:dark_edition}Negative{} to a",
+    "random {C:attention}Joker{} for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 5 }, {
+    can_use = function(self, card)
+        local g = refresh_g()
+        if not g then return false end
+        for _, j in ipairs(g.jokers or {}) do
+            if not j.edition or j.edition ~= "negative" then return true end
+        end
+        return false
+    end,
+    colour_effect = function(self, card, area)
+        local g = refresh_g()
+        if not g then return end
+        local plain, backed = {}, {}
+        for _, j in ipairs(g.jokers or {}) do
+            if not j.edition or j.edition == "base" then
+                plain[#plain + 1] = j
+            elseif j.edition ~= "negative" then
+                backed[#backed + 1] = j
+            end
+        end
+        local pool = #plain > 0 and plain or backed
+        if #pool == 0 then return end
+        local pick = pool[g:random("mf_black", 1, #pool)]
+        pick.edition = "negative"
+    end,
+})
+
+mf6_colour("seaweed", "Seaweed", {
+    "A random card in hand gets",
+    "{C:attention}a random enhancement{} for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2 }, {
+    can_use = mf6_colour_can_use_hand,
+    use = function(self, card, area, copier)
+        local g = refresh_g()
+        if not g then return end
+        local val = (card.ability and card.ability.val) or 0
+        local picked = {}
+        for _ = 1, val do
+            local node = mf6_random_hand_card(g, picked)
+            if not node then break end
+            picked[node] = true
+            local enh = SMODS.poll_enhancement({ key_append = "mf_seaweed" })
+            if enh and node.card_data then
+                node.card_data.enhancement = enh
+                if node.sync_visual_from_card_data then
+                    node:sync_visual_from_card_data()
+                end
+            end
+        end
+    end,
+})
+
+mf6_colour("brown", "Brown", {
+    "Destroys a random card in",
+    "hand and gives {C:attention}$#4#{} for every",
+    "{C:attention}#3#{} round this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 1, cash_per = 2 }, {
+    amount = "cash_per",
+    can_use = mf6_colour_can_use_hand,
+    use = function(self, card, area, copier)
+        local g = refresh_g()
+        if not g then return end
+        local val = (card.ability and card.ability.val) or 0
+        local nodes = mf6_hand_nodes(g)
+        g:pseudoshuffle(nodes, "mf_brown")
+        local hand = g.hand
+        for i = 1, math.min(#nodes, val) do
+            if hand and hand.destroy_card_node then
+                hand:destroy_card_node(nodes[i])
+            end
+        end
+        if val > 0 then g:ease_dollars(card.ability.cash_per * val) end
+    end,
+})
+
+mf6_colour("crimson", "Crimson", {
+    "Create a {C:red}Rare Tag{} for",
+    "every {C:attention}#3#{} rounds",
+    "this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 3, tag = "rare" }, {})
+
+mf6_colour("grey", "Grey", {
+    "Create a {C:attention}Double Tag{} for",
+    "every {C:attention}#3#{} rounds",
+    "this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 3, tag = "double" }, {})
+
+mf6_colour("silver", "Silver", {
+    "Create a {C:dark_edition}Polychrome Tag{} for",
+    "every {C:attention}#3#{} rounds",
+    "this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 3, tag = "polychrome" }, {})
+
+mf6_colour("white", "White", {
+    "Create a random {C:dark_edition}Negative{}",
+    "{C:attention}Colour{} card for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 3,
+    create_set = "Colour" }, {})
+
+mf6_colour("blue", "Blue", {
+    "Create a random {C:dark_edition}Negative{}",
+    "{C:planet}Planet{} card for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2,
+    create_set = "Planet" }, {})
+
+mf6_colour("lilac", "Lilac", {
+    "Create a random {C:dark_edition}Negative{}",
+    "{C:tarot}Tarot{} card for every",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2,
+    create_set = "Tarot" }, {})
+
+mf6_colour("green", "Green", {
+    "Create a {C:dark_edition}Negative{}",
+    "{C:green}Oops! All 5s{} for every {C:attention}#3#{}",
+    "rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 3,
+    create_key = "j_mfp_oopsallfives" }, {})
+
+-- Pink: using it runs one growth trigger on random held Colour
+-- cards, val times (PC's n_random_colour_rounds). PORT NOTE: the
+-- fork removes a consumable before its use runs, so the Pink
+-- being used is not in its own target pool; on PC it can be.
+mf6_colour("pink", "Pink", {
+    "Add {C:attention}1{} round to a random",
+    "{C:attention}Colour{} card. Triggers once for",
+    "{C:attention}#3#{} rounds this has been held",
+    "{C:inactive}(Currently {C:attention}#1#{C:inactive}, #2# of #3# rounds){}",
+}, { val = 0, partial_rounds = 0, upgrade_rounds = 2 }, {
+    use = function(self, card, area, copier)
+        local g = refresh_g()
+        if not g then return end
+        local val = (card.ability and card.ability.val) or 0
+        for _ = 1, val do
+            local pool = {}
+            for _, c in ipairs(g.consumables or {}) do
+                if c.kind == "Colour" then pool[#pool + 1] = c end
+            end
+            if #pool == 0 then break end
+            mf6_colour_grow(pool[g:random("mf_pink", 1, #pool)], g)
+        end
+    end,
+})
+
+-- Colour packs (PC: normal x2, jumbo, mega).
+local function mf6_colour_pack(key, cost, count, picks, weight)
+    SMODS.Booster {
+        key = key,
+        loc_txt = { name = "Colour Pack", text = {
+            "Choose {C:attention}" .. picks .. "{} of up to",
+            "{C:attention}" .. count .. "{} {C:attention}Colour{} cards to",
+            "add to your consumables",
+        } },
+        pool = { consumable = "Colour" },
+        card_count = count, picks = picks, cost = cost, weight = weight,
+    }
+end
+mf6_colour_pack("colour_normal_1", 4, 2, 1, 96)
+mf6_colour_pack("colour_normal_2", 4, 2, 1, 96)
+mf6_colour_pack("colour_jumbo_1", 6, 4, 1, 96)
+mf6_colour_pack("colour_mega_1", 8, 4, 2, 48)
+
+--------------------------------------------------------------------------------
+-- The Colour Jokers.
+--------------------------------------------------------------------------------
+
+-- Paint Can: no calculate of its own -- its effect is read by the
+-- growth driver above (each held copy rolls 1 in 2 per growth
+-- trigger for an extra tick), exactly PC's shape.
+SMODS.Joker {
+    key = "paintcan",
+    loc_txt = { name = "Paint Can", text = {
+        "{C:green}#1# in #2#{} chance to add",
+        "a round to {C:attention}Colour Cards{}",
+        "when they gain a round",
+    } },
+    config = { extra = { odds = 2 } },
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    eternal_compat = true, perishable_compat = true,
+    sprite = "paintcan.png", negative_sprite = "paintcan_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 1, card.ability.extra.odds } }
+    end,
+}
+
+-- Rainbow Joker: X1.5 Mult per Colour card held. PC applies it
+-- once per Colour consumable through other_consumeable; the port
+-- folds the same product into joker_main (1.5 ^ count).
+SMODS.Joker {
+    key = "rainbowjoker",
+    loc_txt = { name = "Rainbow Joker", text = {
+        "{C:attention}Colour{} cards give",
+        "{X:mult,C:white} X#1#{} Mult",
+    } },
+    config = { extra = 1.5 },
+    rarity = 3, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "rainbowjoker.png",
+    negative_sprite = "rainbowjoker_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.joker_main and G then
+            local n = 0
+            for _, c in ipairs(G.consumables or {}) do
+                if c.kind == "Colour" then n = n + 1 end
+            end
+            if n > 0 then
+                return { xmult = (card.ability.extra or 1.5) ^ n }
+            end
+        end
+    end,
+}
+
+-- Clipart Joker: create a random Colour card when a Blind is
+-- selected (must have room).
+SMODS.Joker {
+    key = "clipart",
+    loc_txt = { name = "Clipart Joker", text = {
+        "Create a {C:attention}Colour{} card",
+        "when {C:attention}Blind{} is selected",
+        "{C:inactive}(Must have room){}",
+    } },
+    config = {},
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "clipart.png", negative_sprite = "clipart_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.setting_blind and G
+                and G.can_add_consumable and G:can_add_consumable({}) then
+            local key = mf6_random_consumable_key("Colour", "mf_clipart")
+            if key and SMODS.add_card({ set = "Colour", key = key }) then
+                return { message = "+ Colour" }
+            end
+        end
+    end,
+}
+
+-- CSS: create a random Colour card when the played hand contains
+-- a Flush (must have room).
+SMODS.Joker {
+    key = "css",
+    loc_txt = { name = "CSS", text = {
+        "Create a random {C:attention}Colour{}",
+        "card when played hand",
+        "contains a {C:attention}Flush{}",
+        "{C:inactive}(Must have room){}",
+    } },
+    config = {},
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "css.png", negative_sprite = "css_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.joker_main and G and context.poker_hands
+                and next(context.poker_hands["Flush"] or {})
+                and G.can_add_consumable and G:can_add_consumable({}) then
+            local key = mf6_random_consumable_key("Colour", "mf_css")
+            if key and SMODS.add_card({ set = "Colour", key = key }) then
+                return { message = "+ Colour" }
+            end
+        end
+    end,
+}
+
+-- Monochrome Joker: +2 Mult per round without a Colour Card;
+-- resets to +2 when a round starts with one held.
+SMODS.Joker {
+    key = "monochrome",
+    loc_txt = { name = "Monochrome Joker", text = {
+        "{C:mult}+#1#{} Mult per round",
+        "without a {C:attention}Colour Card{}",
+        "{C:inactive}(Currently {C:mult}+#2#{C:inactive}){}",
+    } },
+    config = { extra = { mult_per = 2, mult = 2 } },
+    rarity = "oldfluff", cost = 6, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = false,
+    sprite = "monochrome.png",
+    negative_sprite = "monochrome_negative.png",
+    loc_vars = function(self, info_queue, card)
+        local e = card.ability.extra
+        return { vars = { e.mult_per, e.mult } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.setting_blind and not context.blueprint and G then
+            local has_colour = false
+            for _, c in ipairs(G.consumables or {}) do
+                if c.kind == "Colour" then has_colour = true break end
+            end
+            local e = card.ability.extra
+            if not has_colour then
+                e.mult = e.mult + e.mult_per
+                return { message = "+" .. e.mult_per .. " Mult" }
+            elseif e.mult > e.mult_per then
+                e.mult = e.mult_per
+                return { message = "Reset!" }
+            end
+        end
+        if context.joker_main then
+            return { mult = card.ability.extra.mult }
+        end
+    end,
+}
+
+-- Loaded Disk: when sold, creates a Pink Colour card.
+-- PORT NOTE: PC also creates a Yellow. Yellow's whole effect is
+-- sell-value growth and this engine sells consumables at a flat
+-- $1 with no per-card value reader, so Yellow stays unported
+-- (see the Colour note above) and Loaded Disk creates the Pink
+-- only.
+SMODS.Joker {
+    key = "loadeddisk",
+    loc_txt = { name = "Loaded Disk", text = {
+        "Creates a {C:attention}Pink{} {C:attention}Colour{} card",
+        "when sold",
+        "{C:inactive}(Must have room){}",
+    } },
+    config = {},
+    rarity = 2, cost = 6, unlocked = true, discovered = true,
+    eternal_compat = false, perishable_compat = true,
+    sprite = "loadeddisk.png",
+    negative_sprite = "loadeddisk_negative.png",
+    calculate = function(self, card, context)
+        refresh_g()
+        if context.selling_self and G
+                and G.can_add_consumable and G:can_add_consumable({}) then
+            SMODS.add_card({ set = "Colour", key = "c_mfp_pink" })
+            return { message = "+ Pink" }
+        end
+    end,
+}
+
+end -- SMODS.ConsumableType (Colour system)

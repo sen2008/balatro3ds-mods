@@ -12,13 +12,13 @@
 -- SMODS.ConsumableType):
 --   https://github.com/sen2008/balatro3ds-fork
 --
--- Contents: 224 of Paperback's 316 Jokers, the Stars and Crowns
--- suits, the four Spectrum-family poker hands, and 33 of the 56
+-- Contents: 291 of Paperback's 316 Jokers, the Stars and Crowns
+-- suits, the four Spectrum-family poker hands, and 45 of the 56
 -- Minor Arcana consumables under a registered minor_arcana type.
--- The remaining 92 Jokers and 23 Arcana stay unported, each on a
--- named system the fork does not expose (custom enhancements, the
--- paperclip system, x_chips returns, the Apostle rank, custom tags
--- and editions, and a handful of contexts the port never raises);
+-- The remaining 25 Jokers and 11 Arcana stay unported, each on a
+-- named system the fork does not expose (the paperclip system,
+-- the E.G.O gift system, the Apostle rank, and a handful of
+-- contexts and global hooks the port never raises);
 -- README.txt lists them all with their blockers.
 --
 -- Port notes:
@@ -14042,3 +14042,301 @@ SMODS.Joker {
 }
 
 end -- Wave 5 expansion block
+
+--------------------------------------------------------------------------------
+-- Wave 6 expansion (v1.4.0): the shop seat, riding the fork's Wave 6
+-- shop / voucher / booster APIs (SMODS.add_booster_to_shop,
+-- SMODS.add_shop_card, SMODS.grant_voucher, the *_mod modifier seats,
+-- the open_booster payload). Ported from Paperback's MIT-licensed
+-- sources. Deviations are marked with PORT NOTE comments.
+--
+-- Shared PORT NOTE: PC's per-Joker unlock conditions (buy Buffoon
+-- Packs, open packs, redeem a Tier II Voucher, hold no 8s, and so on)
+-- have no fork equivalent; like every earlier wave, these register
+-- plainly, unlocked.
+--
+-- Membership Card stays NOT PORTED (structural): its XMult reads
+-- Paperback's live Discord member count, which has no offline meaning.
+--------------------------------------------------------------------------------
+do
+
+local function pb8_game() return rawget(_G, "G") end
+
+--------------------------------------------------------------------------------
+-- backpack: shops start with an additional free Buffoon Pack. PC
+-- event-queues the pack onto the fresh shop; the fork shelves it from
+-- starting_shop directly. PC picks p_buffoon_normal_1 or _2 (art
+-- variants of the same pack); the fork's Buffoon offer is one shape.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "backpack",
+    name = "Backpack",
+    rarity = 1,
+    cost = 4,
+    blueprint_compat = true,
+    sprite = "backpack.png",
+    negative_sprite = "backpack_negative.png",
+    loc_txt = { name = "Backpack", text = {
+        "{C:money}Shops{} start with an additional",
+        "free {C:attention}Buffoon Pack{}",
+    } },
+    calculate = function(self, card, context)
+        if context.starting_shop then
+            SMODS.add_booster_to_shop("buffoon", { free = true })
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- protocol: +1 Booster Pack size, the fork's booster_size_mod seat.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "protocol",
+    name = "Protocol",
+    rarity = 1,
+    cost = 5,
+    sprite = "protocol.png",
+    negative_sprite = "protocol_negative.png",
+    config = { booster_size_mod = 1 },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (card.ability and card.ability.booster_size_mod) or 1 } }
+    end,
+    loc_txt = { name = "Protocol", text = {
+        "{C:attention}+#1#{} Booster Pack size",
+    } },
+}
+
+--------------------------------------------------------------------------------
+-- shopping_center: +1 shop card slot, the fork's shop_size_mod seat.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "shopping_center",
+    name = "Shopping Center",
+    rarity = 1,
+    cost = 6,
+    sprite = "shopping_center.png",
+    negative_sprite = "shopping_center_negative.png",
+    config = { shop_size_mod = 1 },
+    loc_txt = { name = "Shopping Center", text = {
+        "{C:money}Shops{} have an additional",
+        "{C:attention}card slot{}",
+    } },
+}
+
+--------------------------------------------------------------------------------
+-- everything_must_go: +1 shop Voucher slot, the fork's
+-- voucher_limit_mod seat.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "everything_must_go",
+    name = "Everything Must Go!",
+    rarity = 2,
+    cost = 6,
+    sprite = "everything_must_go.png",
+    negative_sprite = "everything_must_go_negative.png",
+    config = { voucher_limit_mod = 1 },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (card.ability and card.ability.voucher_limit_mod) or 1 } }
+    end,
+    loc_txt = { name = "Everything Must Go!", text = {
+        "Shops have {C:attention}+#1#{} additional",
+        "{C:attention}Voucher{} slot",
+    } },
+}
+
+--------------------------------------------------------------------------------
+-- normalJKR: PC's text says the FIRST card you buy is free; PC's code
+-- is the truth ported here -- buying this Joker from a shop arms a
+-- counter (add_to_deck only counts it in the shop state) and, while
+-- the counter is positive, every non-Voucher, non-Booster shop card
+-- costs $0. The fork carries the counter as this copy's own
+-- free_shop_purchases ability field, which the shop price getters sum
+-- like any declared modifier.
+-- PORT NOTE: PC's set_cost patch also zeroes the cost basis of cards
+-- you already hold, dragging their sell values to $1. The fork prices
+-- shop offers through its getters and never reprices held cards, so
+-- sell values are untouched -- the one place this port is kinder
+-- than the original.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "normalJKR",
+    name = "normalJKR",
+    rarity = 1,
+    cost = 6,
+    sprite = "normalJKR.png",
+    negative_sprite = "normalJKR_negative.png",
+    loc_txt = { name = "normalJKR", text = {
+        "The first card in shop",
+        "you buy is {C:attention}free{}",
+    } },
+    add_to_deck = function(self, card, from_debuff)
+        local g = pb8_game()
+        if g and g.STATE == g.STATES.SHOP then
+            card.ability.free_shop_purchases = 1
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        card.ability.free_shop_purchases = nil
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- touch_tone_joker: opening an Arcana, Celestial, Spectral or Minor
+-- Arcana pack draws its FIRST card into your consumables. PC moves
+-- the card out of the pack area a beat later through its event queue;
+-- the fork claims the choice at the open moment, before any pick.
+-- PORT NOTE: a pack with a single choice is left alone, so the pack
+-- always keeps a card to pick; PC would draw it and close the pack.
+--------------------------------------------------------------------------------
+
+local PB8_TOUCH_TONE_KINDS = {
+    tarot = true, planet = true, spectral = true, minor_arcana = true,
+}
+
+SMODS.Joker {
+    key = "touch_tone_joker",
+    name = "Touch Tone Joker",
+    rarity = 2,
+    cost = 8,
+    sprite = "touch_tone_joker.png",
+    negative_sprite = "touch_tone_joker_negative.png",
+    loc_txt = { name = "Touch Tone Joker", text = {
+        "When opening an {C:tarot}Arcana{},",
+        "{C:planet}Celestial{} or {C:spectral}Spectral{} pack,",
+        "{C:attention}draw{} the {C:attention}first card{} in it",
+        "to your consumables",
+        "{C:inactive}(Must have room){}",
+    } },
+    calculate = function(self, card, context)
+        if context.open_booster and not context.blueprint then
+            local kind = context.booster and context.booster.consumable_kind
+            if kind and PB8_TOUCH_TONE_KINDS[kind] then
+                local choices = context.choices or {}
+                local first = choices[1]
+                if first and not first.taken and first.consumable_def
+                        and #choices >= 2 then
+                    local g = pb8_game()
+                    if g and g.can_add_consumable
+                            and g:can_add_consumable({}) then
+                        first.taken = true
+                        g:add_consumable(first.consumable_def.id)
+                        return { message = "Drawn!" }
+                    end
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- chaplin: buying a Voucher also redeems an upgraded version of it --
+-- a Voucher whose requirements include the bought one, with every
+-- other requirement already redeemed. Vanilla tier-2 Vouchers declare
+-- their base with `depends_on`, mod Vouchers with `requires`; both
+-- shapes count. PC picks randomly among the qualifying upgrades and
+-- redeems it free; SMODS.grant_voucher is that redeem.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "chaplin",
+    name = "Chaplin",
+    rarity = 4,
+    cost = 20,
+    sprite = "chaplin.png",
+    negative_sprite = "chaplin_negative.png",
+    soul_sprite = "chaplin_soul.png",
+    loc_txt = { name = "Chaplin", text = {
+        "When buying a {C:attention}Voucher{}, also",
+        "redeem the {C:attention}upgraded{} version",
+    } },
+    calculate = function(self, card, context)
+        if context.buying_card and context.port
+                and context.port.offer_kind == "voucher"
+                and context.port.offer_id then
+            local g = pb8_game()
+            if not g then return end
+            local bought = context.port.offer_id
+            local cands = {}
+            for id, def in pairs(VOUCHER_DEFS or {}) do
+                if type(def) == "table" and not g:has_voucher(id) then
+                    local needs_bought, others_ok = false, true
+                    if def.depends_on == bought then needs_bought = true end
+                    if type(def.requires) == "table" then
+                        for _, req in ipairs(def.requires) do
+                            if req == bought then
+                                needs_bought = true
+                            elseif not g:has_voucher(req) then
+                                others_ok = false
+                            end
+                        end
+                    end
+                    if needs_bought and others_ok then
+                        cands[#cands + 1] = id
+                    end
+                end
+            end
+            if #cands > 0 then
+                table.sort(cands)
+                local pick = cands[SMODS.pseudorandom(
+                    "paperback_chaplin", 1, #cands)]
+                if SMODS.grant_voucher(pick) then
+                    return { message = "Upgraded!" }
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- oujia_board [sic, PC's key]: Spectral cards may appear in the shop
+-- (the fork's spectral_rate_mod seat: PC's own patch sets the shop
+-- Spectral rate to 2 while held, and its allow_soul = false matches
+-- this engine's standing rule that Soul and Black Hole never enter
+-- the shop queue), and Jokers are shuffled before scoring. PC
+-- re-sorts its Joker area after three random swaps at press_play; the
+-- fork permutes the Joker list and the slot positions it derives
+-- from, so the scoring order is the shuffled one.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "oujia_board",
+    name = "Ouija Board",
+    rarity = 3,
+    cost = 8,
+    sprite = "oujia_board.png",
+    negative_sprite = "oujia_board_negative.png",
+    config = { spectral_rate_mod = 2 },
+    loc_txt = { name = "Ouija Board", text = {
+        "{C:spectral}Spectral{} cards may appear",
+        "in the shop. Jokers are",
+        "{C:attention}shuffled{} before scoring",
+    } },
+    calculate = function(self, card, context)
+        if context.press_play and not context.blueprint then
+            local g = pb8_game()
+            local list = g and g.jokers or {}
+            if #list > 1 then
+                for _ = 1, 3 do
+                    for i = #list, 2, -1 do
+                        local j = SMODS.pseudorandom(
+                            "paperback_ouija_shuffle", 1, i)
+                        if j ~= i then
+                            list[i], list[j] = list[j], list[i]
+                            if list[i].T and list[j].T then
+                                list[i].T.x, list[j].T.x =
+                                    list[j].T.x, list[i].T.x
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end,
+}
+
+end -- Wave 6 expansion block

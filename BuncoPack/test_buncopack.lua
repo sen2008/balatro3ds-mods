@@ -41,6 +41,8 @@ local NAMES = {
     -- v1.4.0
     "gameplan", "conquest", "myopia", "astigmatism",
     "sledgehammer", "dwarven", "metallurgist",
+    -- v1.5.0
+    "jmjb", "aristocrat", "doorhanger", "running_joke",
 }
 
 local NEW_JOKERS = {
@@ -57,6 +59,8 @@ local NEW_JOKERS = {
     -- v1.4.0
     "gameplan", "conquest", "myopia", "astigmatism",
     "sledgehammer", "dwarven", "metallurgist",
+    -- v1.5.0
+    "jmjb", "aristocrat", "doorhanger", "running_joke",
 }
 
 local function install_pack()
@@ -145,11 +149,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 62 Bunco Jokers", function()
+suite.test("pack loads and registers all 66 Bunco Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.BuncoPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 62)
+    T.assert_eq(#mod.registered.jokers, 66)
     local expect = {
         j_buncp_cassette = { "Cassette", 2, 5 }, j_buncp_mosaic = { "Mosaic Joker", 2, 4 },
         j_buncp_voxel = { "Voxel Joker", 2, 5 }, j_buncp_crop_circles = { "Crop Circles", 1, 4 },
@@ -213,6 +217,10 @@ suite.test("pack loads and registers all 62 Bunco Jokers", function()
         j_buncp_myopia = { "Myopia", 2, 8 }, j_buncp_astigmatism = { "Astigmatism", 2, 8 },
         j_buncp_sledgehammer = { "Sledgehammer", 2, 5 }, j_buncp_dwarven = { "Dwarven Joker", 2, 8 },
         j_buncp_metallurgist = { "Metallurgist", 1, 6 },
+        j_buncp_jmjb = { "Joker Man & Jester Boy Trading Card No. 54", 3, 5 },
+        j_buncp_aristocrat = { "Aristocrat", 2, 6 },
+        j_buncp_doorhanger = { "Doorhanger", 3, 10 },
+        j_buncp_running_joke = { "Running Joke", 3, 8 },
     }
     for id, e in pairs(expect_new) do
         local def = JOKER_DEFS[id]
@@ -1232,6 +1240,93 @@ suite.test("metallurgist gives held Gold cards +10 Mult per copy", function()
     game:sell_owned_joker(2)
     game:sell_owned_joker(1)
     T.assert_eq(SMODS.center_config("m_gold").h_mult, nil, "sold out: h_mult reverts")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.5.0)
+--------------------------------------------------------------------------------
+
+suite.test("wave6 jmjb: a Standard Pack deals only Enhanced cards", function()
+    local game = install_pack()
+    add(game, "j_buncp_jmjb")
+    game:enter_shop_after_blind()
+    game:begin_booster_session({ kind = "booster", pack = "standard",
+        size = "normal", price = 4, name = "Standard Pack",
+        card_count = 3, picks_granted = 1 })
+    local choices = game.booster_session.choices
+    T.assert_eq(#choices, 3)
+    for _, c in ipairs(choices) do
+        T.assert_eq(c.kind, "playing")
+        T.assert_true(c.playing_data.enhancement ~= nil,
+            "every dealt card is enhanced, got "
+            .. tostring(c.playing_data.enhancement))
+    end
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 jmjb: other packs are untouched", function()
+    local game = install_pack()
+    add(game, "j_buncp_jmjb")
+    game:enter_shop_after_blind()
+    game:begin_booster_session({ kind = "booster", pack = "arcana",
+        size = "normal", price = 4, name = "Arcana Pack",
+        card_count = 2, picks_granted = 1 })
+    for _, c in ipairs(game.booster_session.choices) do
+        T.assert_true(c.consumable_def ~= nil, "arcana still deals Tarots")
+    end
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 aristocrat: an extra pick from every pack", function()
+    local game = install_pack()
+    add(game, "j_buncp_aristocrat")
+    game:enter_shop_after_blind()
+    game:begin_booster_session({ kind = "booster", pack = "arcana",
+        size = "normal", price = 4, name = "Arcana Pack",
+        card_count = 2, picks_granted = 1 })
+    T.assert_eq(game.booster_session.picks_remaining, 2,
+        "1 granted + 1 from Aristocrat")
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 doorhanger: Common shop rolls become Uncommon or Rare", function()
+    local game = install_pack()
+    local dh = add(game, "j_buncp_doorhanger")
+    local function rolled_rarity()
+        local id = game:_pick_joker_id_shop_rarity_distribution(
+            function(lo, hi) return game:random("dhtest", lo, hi) end,
+            "sho", {})
+        return id and JOKER_DEFS[id] and JOKER_DEFS[id].rarity
+    end
+    for _ = 1, 60 do
+        local r = rolled_rarity()
+        T.assert_true(r == 2 or r == 3,
+            "no Common while Doorhanger is held, got " .. tostring(r))
+    end
+    SMODS.set_joker_debuff(dh, true)
+    local saw_common = false
+    for _ = 1, 60 do
+        if rolled_rarity() == 1 then saw_common = true break end
+    end
+    T.assert_true(saw_common, "debuffed, Doorhanger stands down (PC checks not debuff)")
+    wipe_mods()
+end)
+
+suite.test("wave6 running joke: a priced Negative Joker joins the shelf", function()
+    local game = install_pack()
+    add(game, "j_buncp_running_joke")
+    game:enter_shop_after_blind()
+    local found = nil
+    for _, o in ipairs(game.shop_offers) do
+        if o.id == "j_joker" and o.edition == "negative" then found = o end
+    end
+    T.assert_true(found ~= nil, "the Negative Joker offer is shelved")
+    T.assert_eq(game:get_shop_offer_price(found), 7,
+        "priced like a Joker offer ($2 + $5 Negative), not free")
     wipe_mods()
 end)
 

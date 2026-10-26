@@ -1,5 +1,5 @@
-Bunco Pack (3DS Port) v1.4.0
-Sixty-two of Bunco's eighty Jokers, both exotic suits, the four
+Bunco Pack (3DS Port) v1.5.0
+Sixty-six of Bunco's eighty Jokers, both exotic suits, the four
 Spectrum-family poker hands plus Deal, six consumables, and the
 Fluorescent edition, from Bunco (PC, by Firch) ported to
 Balatro3DS.
@@ -20,7 +20,10 @@ Hunter's tax moved onto it) use the fork's Wave 1 contexts
 (money_transform, level_up_hand). The v1.4.0 additions (Gameplan,
 Conquest, Myopia, Astigmatism, Sledgehammer, Dwarven,
 Metallurgist) use the fork's Wave 5 seats (mod Joker debuff,
-suit_aliases, center_overrides):
+suit_aliases, center_overrides). The v1.5.0 additions (JMJB,
+Aristocrat, Doorhanger, Running Joke) use the fork's Wave 6
+booster and shop seats (the open_booster payload, the add_picks
+return, the replace_common_rarity flag, SMODS.add_shop_card):
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack still loads and the
 original nineteen Jokers work (without their exotic-suit branches),
@@ -49,7 +52,7 @@ Halberds. Registration Plate picks five ranks from your deck each
 round; playing exactly those ranks scores as the Deal hand, which
 carries the Chips and Mult of every poker hand played this run.
 
-INCLUDED JOKERS (62 of 80)
+INCLUDED JOKERS (66 of 80)
 Original nineteen: Cassette, Mosaic, Voxel, Crop Circles,
 Prehistoric, Shepherd, Dogs Playing Poker, Nil Bill, Slothful,
 Hierarchy of Needs, Headshot, Protester, Disproportionality,
@@ -120,13 +123,28 @@ New in v1.4.0:
 - Metallurgist (Common, $6) [fork only]: Gold Cards give +10
   Mult while held in hand, per held copy. Only appears while
   your deck holds a Gold Card.
+New in v1.5.0:
+- JMJB (Rare, $5) [fork only]: Standard Packs contain only
+  Enhanced cards - every dealt card without an enhancement
+  gains a random one at the open.
+- Aristocrat (Uncommon, $6) [fork only]: choose an extra card
+  from Booster Packs.
+- Doorhanger (Rare, $10) [fork only]: Common Jokers do not
+  appear - a Common shop rarity roll becomes Uncommon, or Rare
+  on a seeded 1-in-50 roll (PC's Lovely patch on the rarity
+  poll). PC also draws the card at 1/1.44 width; the fork's
+  cards have one size, so the gag is not ported.
+- Running Joke (Rare, $8) [fork only]: a Negative "Joker"
+  joins the shop shelf at the start of every shop, priced like
+  any Joker offer ($2 plus the $5 Negative edition price).
 
 Validated headlessly against the Balatro3DS fork source (pack suite
-49/49, including suit/hand evaluation, the exotic gate,
+54/54, including suit/hand evaluation, the exotic gate,
 create/destroy behavior, the v1.2.0 edition grant and money tax,
-the v1.3.0 money transforms and hand-level reactions, and the
-v1.4.0 Joker debuffs, suit aliases and center overrides)
-on 2026-10-23. Not yet tested on real hardware.
+the v1.3.0 money transforms and hand-level reactions, the
+v1.4.0 Joker debuffs, suit aliases and center overrides, and
+the v1.5.0 booster and shop seats) on 2026-10-25. Not yet
+tested on real hardware.
 
 Port notes:
 - The exotic gate is derived, not stored: PC sets a flag the first
@@ -193,12 +211,7 @@ Port notes:
   add hook stacks; Sledgehammer's odds divide is once per row,
   as PC's first-copy guard has it.
 
-NOT PORTED (18 of 80 Jokers)
-- JMJB, Aristocrat: rewrite or extend Booster Pack contents (only
-  Enhanced cards in Standard Packs; one extra pack choice). The
-  open_booster context still carries no payload, and SMODS.Booster
-  registers new packs without exposing dealt cards or choice
-  counts.
+NOT PORTED (14 of 80 Jokers)
 - Kite Experiment, Robot: both score entirely on PC's
   rescore_cards context (rescored Copper cards), which the fork
   still does not have. Copper's only effect is that rescore, so
@@ -209,10 +222,6 @@ NOT PORTED (18 of 80 Jokers)
   cards (with Pica, all highlighted cards) are PLAYED instead of
   discarded, then destroyed after scoring unless Hardtack is
   held. There is no discard-to-play redirect or discard veto.
-- Doorhanger, Running Joke: Doorhanger rewrites the rarity of
-  every card as it is created (a create_card patch); Running Joke
-  inserts a free Negative Joker offer into the shop at shop
-  start. There is no shop-offer insertion API for Jokers.
 - Trigger Finger, Vandalism, Cellphone: Trigger Finger needs
   the highlight_card context plus forcing a play; Vandalism
   needs cards drawn and kept face down (the fork turns played

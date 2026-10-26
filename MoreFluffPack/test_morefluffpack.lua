@@ -52,6 +52,16 @@ local NAMES = {
     "widejoker", "yuckyrat",
     "aceupthesleeve", "balatromods", "freaky_pizza", "glitterbomb", "sealthedeal",
     "enh_brass", "enh_gemstone", "enh_marigold", "enh_teal", "enh_yucky",
+    -- v1.4.0
+    "bouncer", "junkmail", "lettergem_b", "shopping_spree", "gemalert",
+    "bonussheet", "repack", "modded_normal_1", "modded_normal_2",
+    "astral_sliver", "megantic_sliver", "plasma_sliver", "sinew_sliver",
+    "muscle_sliver", "might_sliver", "fury_sliver", "mindlash_sliver",
+    "quantum_sliver", "sliver_jockey", "gemhide_sliver", "fortunate_sliver",
+    "paintcan", "rainbowjoker", "clipart", "css", "monochrome", "loadeddisk",
+    "black", "deepblue", "crimson", "seaweed", "brown", "grey", "silver",
+    "white", "red", "orange", "green", "blue", "lilac", "pink",
+    "colour_normal_1", "colour_normal_2", "colour_jumbo_1", "colour_mega_1",
 }
 
 local function install_pack()
@@ -289,15 +299,41 @@ local EXPECT = {
     ["j_mfp_freaky_pizza"] = { "Freaky Pizza", 5, 6 },
     ["j_mfp_glitterbomb"] = { "Glitter Bomb", 5, 14 },
     ["j_mfp_sealthedeal"] = { "Seal the Deal", 5, 6 },
+    -- v1.4.0 (Wave 6)
+    ["j_mfp_bouncer"] = { "Bouncer", 1, 7 },
+    ["j_mfp_junkmail"] = { "Junk Mail", 2, 6 },
+    ["j_mfp_lettergem_b"] = { "B", 6, 6 },
+    ["j_mfp_shopping_spree"] = { "Shopping Spree", 2, 6 },
+    ["j_mfp_gemalert"] = { "Gem Alert", 2, 6 },
+    ["j_mfp_bonussheet"] = { "Bonus Sheet", 2, 6 },
+    ["j_mfp_repack"] = { "Repack", 1, 6 },
+    ["j_mfp_sinew_sliver"] = { "Sinew Sliver", 1, 7 },
+    ["j_mfp_muscle_sliver"] = { "Muscle Sliver", 1, 7 },
+    ["j_mfp_might_sliver"] = { "Might Sliver", 2, 9 },
+    ["j_mfp_megantic_sliver"] = { "Megantic Sliver", 3, 10 },
+    ["j_mfp_plasma_sliver"] = { "Plasma Sliver", 2, 8 },
+    ["j_mfp_astral_sliver"] = { "Astral Sliver", 2, 8 },
+    ["j_mfp_fury_sliver"] = { "Fury Sliver", 3, 10 },
+    ["j_mfp_mindlash_sliver"] = { "Mindlash Sliver", 2, 6 },
+    ["j_mfp_quantum_sliver"] = { "Quantum Sliver", 2, 8 },
+    ["j_mfp_gemhide_sliver"] = { "Gemhide Sliver", 2, 8 },
+    ["j_mfp_fortunate_sliver"] = { "Fortunate Sliver", 2, 6 },
+    ["j_mfp_sliver_jockey"] = { "Sliver Jockey", 2, 7 },
+    ["j_mfp_paintcan"] = { "Paint Can", 2, 6 },
+    ["j_mfp_rainbowjoker"] = { "Rainbow Joker", 3, 6 },
+    ["j_mfp_clipart"] = { "Clipart Joker", 2, 6 },
+    ["j_mfp_css"] = { "CSS", 2, 6 },
+    ["j_mfp_monochrome"] = { "Monochrome Joker", 5, 6 },
+    ["j_mfp_loadeddisk"] = { "Loaded Disk", 2, 6 },
 }
 
-suite.test("pack loads and registers all 108 Jokers", function()
+suite.test("pack loads and registers all 133 Jokers", function()
     install_pack()
     local n = 0
     for id in pairs(JOKER_DEFS) do
         if id:sub(1, 6) == "j_mfp_" then n = n + 1 end
     end
-    T.assert_eq(n, 108, "108 pack Jokers registered")
+    T.assert_eq(n, 133, "133 pack Jokers registered")
     for _, value in ipairs({ "teal", "marigold", "brass", "gemstone", "yucky" }) do
         T.assert_not_nil(SMODS.EnhancementByValue[value], value .. " enhancement registered")
         T.assert_eq(SMODS.EnhancementByValue[value].weight, 0, value .. " stays out of the polls")
@@ -1335,6 +1371,356 @@ suite.test("seal the deal seals an unsealed played card on a winning hand only",
     fire(deal, "on_hand_after", { played_cards = { c, d }, full_hand = { c, d }, cards = { c, d } })
     T.assert_eq(c.card_data.seal, "red", "an already-sealed card keeps its seal")
     T.assert_true(d.card_data.seal ~= nil, "the unsealed card is the one sealed")
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.4.0): shop, booster, Sliver and Colour behavior
+--------------------------------------------------------------------------------
+
+local function calc(joker, ctx)
+    return joker.def.smods.calculate(joker.def.smods, joker, ctx)
+end
+
+local function scored6(joker, played)
+    played = played or {}
+    local ctx = { event = "on_hand_scored", event_name = "on_hand_scored",
+        chips = 10, mult = 2, xmult = 1, e_mult = 1,
+        cards = played, played_cards = played, full_hand = played }
+    if joker:matches_trigger("on_hand_scored", ctx) then
+        joker:apply_effect(ctx)
+    end
+    return ctx
+end
+
+suite.test("wave6 bouncer: the Joker to the right returns to the shop", function()
+    local game = install_pack()
+    local b = add(game, "j_mfp_bouncer")
+    local idx = #game.jokers + 1
+    assert(game:add_joker_by_def("j_joker"))
+    local target = game.jokers[idx]
+    local sell = target.sell_cost or 0
+    game:enter_shop_after_blind()
+    local still_held = false
+    for _, j in ipairs(game.jokers) do
+        if j == target then still_held = true end
+    end
+    T.assert_false(still_held, "the neighbour left the Joker row")
+    T.assert_eq(b.ability.extra.chips, sell * 3,
+        "Bouncer gained +3 Chips per $1 of sell value")
+    local offered = false
+    for _, o in ipairs(game.shop_offers) do
+        if o.id == "j_joker" then offered = true end
+    end
+    T.assert_true(offered, "the neighbour is a shop offer now")
+    local fish = false
+    for _, j in ipairs(game.jokers) do
+        if j.def.id == "j_mfp_fish" then fish = true end
+    end
+    T.assert_true(fish, "and a Fish was created (it was a Joker)")
+    wipe_mods()
+end)
+
+suite.test("wave6 junk mail + B + repack: the shop gains their offers", function()
+    local game = install_pack()
+    add(game, "j_mfp_junkmail")
+    add(game, "j_mfp_lettergem_b")
+    add(game, "j_mfp_repack")
+    game:enter_shop_after_blind()
+    T.assert_eq(#game.shop_voucher_offers, 2,
+        "Junk Mail shelved a second voucher")
+    local junk = game.shop_voucher_offers[2]
+    T.assert_eq(junk.price_fac, 1.5, "at 1.5x price")
+    T.assert_eq(game:get_shop_voucher_price(junk),
+        math.floor(10 * 1.5 + 0.5), "the getter applies the factor")
+    local packs = {}
+    for _, o in ipairs(game.shop_booster_offers) do packs[o.pack] = o end
+    T.assert_true(packs.buffoon ~= nil
+        and game:get_shop_booster_price(packs.buffoon) == 7,
+        "B's $7 Buffoon Pack is shelved")
+    T.assert_true(packs.modded_normal_1 ~= nil
+        and packs.modded_normal_2 ~= nil,
+        "Repack's two Modded Packs are shelved")
+    game:begin_booster_session(packs.modded_normal_1)
+    local all_mod = true
+    for _, c in ipairs(game.booster_session.choices) do
+        local def = (c.joker_id and JOKER_DEFS[c.joker_id])
+            or (c.consumable_def and CONSUMABLE_DEFS[c.consumable_def.id])
+        if not (def and def.mod_id) then all_mod = false end
+    end
+    T.assert_true(all_mod, "the Modded Pack deals only mod content")
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 shopping spree: thresholds land through the seats", function()
+    local game = install_pack()
+    local j = add(game, "j_mfp_shopping_spree")
+    local base = game.shop_reroll_base_cost or 5
+    for _ = 1, 15 do fire(j, "on_shop_reroll", {}) end
+    T.assert_eq(j.ability.extra.rerolls, 15)
+    T.assert_eq(game.shop_reroll_base_cost, base - 2,
+        "rerolls are $2 cheaper at 15")
+    for _ = 1, 4 do fire(j, "on_blind_skipped", {}) end
+    T.assert_eq(j.ability.extra.skips, 4)
+    T.assert_eq(j.ability.shop_size_mod, 1, "the shop slot is declared")
+    T.assert_eq(SMODS.modifier_total(game, "shop_size_mod"), 1)
+    j.def.smods.remove_from_deck(j.def.smods, j)
+    T.assert_eq(game.shop_reroll_base_cost, base,
+        "losing the Joker restores the reroll cost")
+    wipe_mods()
+end)
+
+suite.test("wave6 gem alert: rare_mod and shop scaling", function()
+    local game = install_pack()
+    local j = add(game, "j_mfp_gemalert")
+    T.assert_eq(game.rare_mod, 6.7, "rare_mod moved on gain")
+    fire(j, "on_store_joker_modify", {
+        offer_view = { id = "j_x", kind = "joker", edition = "base",
+            rarity = 3, price = 8 },
+        offer = {},
+    })
+    T.assert_eq(j.ability.extra.xmult, 1.1,
+        "a Rare shop Joker scaled it by X0.1")
+    j.def.smods.remove_from_deck(j.def.smods, j)
+    T.assert_eq(game.rare_mod, 1, "rare_mod restored on loss")
+    wipe_mods()
+end)
+
+suite.test("wave6 bonus sheet: a hidden-rarity Joker joins the Buffoon Pack", function()
+    local game = install_pack()
+    add(game, "j_mfp_bonussheet")
+    game:enter_shop_after_blind()
+    game:begin_booster_session({ kind = "booster", pack = "buffoon",
+        size = "normal", price = 4, name = "Buffoon Pack",
+        card_count = 2, picks_granted = 1 })
+    local choices = game.booster_session.choices
+    T.assert_eq(#choices, 3, "2 dealt + 1 appended")
+    local appended = choices[3]
+    T.assert_true(appended.joker_id ~= nil, "the appended choice is a Joker")
+    local def = JOKER_DEFS[appended.joker_id]
+    T.assert_eq(def.mod_id, "MoreFluffPack")
+    T.assert_true(def.rarity == SMODS.Rarities.mfp_oldfluff.index
+        or def.rarity == SMODS.Rarities.mfp_letter.index,
+        "of a hidden rarity (oldfluff or letter)")
+    game:end_booster_session()
+    wipe_mods()
+end)
+
+suite.test("wave6 slivers: grants flow to every Sliver, self included", function()
+    local game = install_pack()
+    local sinew = add(game, "j_mfp_sinew_sliver")
+    local ctx = scored(sinew, { card(9, "Hearts") })
+    T.assert_eq(ctx.chips, 50, "a lone Sinew grants itself +40 Chips")
+    local muscle = add(game, "j_mfp_muscle_sliver")
+    local ctx2 = scored(sinew, { card(9, "Hearts") })
+    T.assert_eq(ctx2.chips, 50, "Sinew still gets its Chips")
+    T.assert_eq(ctx2.mult, 6, "and Muscle's granted +4 Mult (2 base + 4)")
+    local ctx3 = scored(muscle, { card(9, "Hearts") })
+    T.assert_eq(ctx3.chips, 50, "Muscle receives Sinew's grant too")
+    wipe_mods()
+end)
+
+suite.test("wave6 slivers: plasma blends, might and megantic multiply", function()
+    local game = install_pack()
+    add(game, "j_mfp_plasma_sliver")
+    local fury = add(game, "j_mfp_fury_sliver")
+    local ctx = scored6(fury, { card(9, "Hearts") })
+    T.assert_true(math.abs(ctx.chips - 9.2) < 0.01,
+        "10% blend moved Chips 10 -> 9.2, got " .. tostring(ctx.chips))
+    T.assert_true(math.abs(ctx.mult - 2.8) < 0.01,
+        "and Mult 2 -> 2.8, got " .. tostring(ctx.mult))
+    wipe_mods()
+
+    local game2 = install_pack()
+    add(game2, "j_mfp_might_sliver")
+    local meg = add(game2, "j_mfp_megantic_sliver")
+    local ctx2 = scored6(meg, { card(9, "Hearts") })
+    T.assert_true(math.abs(ctx2.mult - (2 * 1.2) ^ 1.08) < 0.01,
+        "Might X1.2 then Megantic ^1.08 fold into Mult, got "
+        .. tostring(ctx2.mult))
+    wipe_mods()
+end)
+
+suite.test("wave6 slivers: fury, jockey, astral, quantum, gemhide, fortunate", function()
+    local game = install_pack()
+    local fury = add(game, "j_mfp_fury_sliver")
+    local ret = calc(fury, { retrigger_joker_check = true,
+        other_card = fury })
+    T.assert_eq(ret and ret.repetitions, 1,
+        "Fury's grant retriggers the host itself")
+    local host = add(game, "j_mfp_sinew_sliver")
+    local ret2 = calc(host, { retrigger_joker_check = true,
+        other_card = host })
+    T.assert_eq(ret2 and ret2.repetitions, 1,
+        "and to any other Sliver host checking in")
+
+    local game2 = install_pack()
+    local jockey = add(game2, "j_mfp_sliver_jockey")
+    local n1, n2 = card(5, "Hearts"), card(7, "Clubs")
+    local ret3 = calc(jockey, { repetition = true, cardarea = G.play,
+        other_card = n1, scoring_hand = { n1, n2 } })
+    T.assert_eq(ret3 and ret3.repetitions, 1,
+        "position 1 card, position 1 Joker: retrigger")
+    local ret4 = calc(jockey, { repetition = true, cardarea = G.play,
+        other_card = n2, scoring_hand = { n1, n2 } })
+    T.assert_true(ret4 == nil or ret4.repetitions == nil,
+        "position 2 card: no retrigger")
+
+    local game3 = install_pack()
+    local astral = add(game3, "j_mfp_astral_sliver")
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true, 1 end
+    local ret5 = calc(astral, { before = true })
+    SMODS.pseudorandom_probability = real_prob
+    T.assert_true(ret5 ~= nil and ret5.level_up == true,
+        "Astral's grant levels the hand on a hit")
+
+    local game4 = install_pack()
+    local quantum = add(game4, "j_mfp_quantum_sliver")
+    local before_n = #game4.consumables
+    SMODS.pseudorandom_probability = function() return true, 1 end
+    calc(quantum, { setting_blind = true })
+    SMODS.pseudorandom_probability = real_prob
+    T.assert_eq(#game4.consumables, before_n + 1,
+        "Quantum's grant created a consumable")
+
+    local game5 = install_pack()
+    local gem = add(game5, "j_mfp_gemhide_sliver")
+    local money = game5.money
+    fire(gem, "on_round_end", {})
+    T.assert_eq(game5.money, money + 2,
+        "Gemhide's grant pays $2 at round end")
+
+    local game6 = install_pack()
+    add(game6, "j_mfp_fortunate_sliver")
+    local _, den = SMODS.modify_probability(nil, "mf_test", 1, 8)
+    T.assert_eq(den, 7, "Fortunate's grant cuts denominators by 1")
+    wipe_mods()
+end)
+
+suite.test("wave6 mindlash: selling a Sliver disables the Boss Blind", function()
+    local game = install_pack()
+    local m = add(game, "j_mfp_mindlash_sliver")
+    game.current_blind_index = 3
+    game.STATE = game.STATES.SELECTING_HAND
+    T.assert_true(game:get_active_boss_blind_id() ~= nil,
+        "a Boss Blind is active in this setup")
+    calc(m, { selling_self = true })
+    T.assert_true(game.boss_runtime
+        and game.boss_runtime.disable_current_boss_ability == true,
+        "the Boss Blind is disabled")
+    wipe_mods()
+end)
+
+suite.test("wave6 colour: growth, tags, creations and perma effects", function()
+    local game = install_pack()
+    assert(game:add_consumable("c_mfp_grey"))
+    local grey = game.consumables[#game.consumables]
+    T.assert_eq(grey.ability.val, 0, "Colour cards start at val 0")
+    SMODS.consumable_end_of_round(game)
+    T.assert_eq(grey.ability.partial_rounds, 1, "one round banked")
+    SMODS.consumable_end_of_round(game)
+    SMODS.consumable_end_of_round(game)
+    T.assert_eq(grey.ability.val, 1, "val 1 after 3 rounds (Grey)")
+    T.assert_eq(grey.ability.partial_rounds, 0)
+    grey.ability.val = 2
+    game.STATE = game.STATES.SHOP
+    local tags = #game.tags
+    game:use_consumable(1)
+    T.assert_eq(#game.tags, tags + 2, "Grey at val 2 makes two Double Tags")
+    T.assert_eq(game.tags[#game.tags].type, "double")
+
+    assert(game:add_consumable("c_mfp_deepblue"))
+    local deep = game.consumables[#game.consumables]
+    deep.ability.val = 2
+    local n1, n2 = card(4, "Hearts"), card(6, "Clubs")
+    game.hand.card_nodes = { n1, n2 }
+    game:use_consumable(1)
+    local total = (SMODS.get_perma(n1, "perma_bonus") or 0)
+        + (SMODS.get_perma(n2, "perma_bonus") or 0)
+    T.assert_eq(total, 40, "Deep Blue at val 2 grants +20 Chips twice")
+    wipe_mods()
+end)
+
+suite.test("wave6 colour: paint can speeds growth, pink grows others", function()
+    local game = install_pack()
+    add(game, "j_mfp_paintcan")
+    assert(game:add_consumable("c_mfp_blue"))
+    local blue = game.consumables[#game.consumables]
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true, 1 end
+    SMODS.consumable_end_of_round(game)
+    SMODS.pseudorandom_probability = real_prob
+    T.assert_eq(blue.ability.val, 1,
+        "two ticks in one round (base + Paint Can) upgrade Blue (2 rounds)")
+    assert(game:add_consumable("c_mfp_pink"))
+    local pink = game.consumables[#game.consumables]
+    pink.ability.val = 1
+    game.STATE = game.STATES.SHOP
+    game:use_consumable(2)
+    T.assert_eq(blue.ability.partial_rounds, 1,
+        "Pink ran a growth trigger on the held Blue")
+    wipe_mods()
+end)
+
+suite.test("wave6 colour jokers: rainbow, monochrome, clipart, loaded disk, css", function()
+    local game = install_pack()
+    local rainbow = add(game, "j_mfp_rainbowjoker")
+    local ctx0 = scored6(rainbow, { card(9, "Hearts") })
+    T.assert_eq(ctx0.mult, 2, "no Colour held, no XMult")
+    assert(game:add_consumable("c_mfp_red"))
+    assert(game:add_consumable("c_mfp_blue"))
+    local ctx = scored6(rainbow, { card(9, "Hearts") })
+    T.assert_true(math.abs(ctx.mult - 2 * 2.25) < 0.001,
+        "two Colour cards give X1.5^2 Mult, got " .. tostring(ctx.mult))
+
+    local game2 = install_pack()
+    local mono = add(game2, "j_mfp_monochrome")
+    fire(mono, "on_blind_selected", {})
+    T.assert_eq(mono.ability.extra.mult, 4,
+        "a round without Colour: +2 Mult (2 -> 4)")
+    assert(game2:add_consumable("c_mfp_red"))
+    fire(mono, "on_blind_selected", {})
+    T.assert_eq(mono.ability.extra.mult, 2,
+        "a round with Colour held: reset to +2")
+
+    local game3 = install_pack()
+    local clip = add(game3, "j_mfp_clipart")
+    fire(clip, "on_blind_selected", {})
+    T.assert_eq(#game3.consumables, 1, "Clipart created a Colour card")
+    T.assert_eq(game3.consumables[1].kind, "Colour")
+
+    local game4 = install_pack()
+    local disk = add(game4, "j_mfp_loadeddisk")
+    fire(disk, "on_joker_sold", { joker = disk })
+    T.assert_eq(#game4.consumables, 1, "Loaded Disk created a card on sale")
+    T.assert_eq(game4.consumables[1].id, "c_mfp_pink", "the Pink")
+
+    local game5 = install_pack()
+    local css = add(game5, "j_mfp_css")
+    fire(css, "on_hand_scored", {
+        contains_hand_types = { Flush = true },
+    })
+    T.assert_eq(#game5.consumables, 1, "CSS created a Colour card on a Flush")
+    T.assert_eq(game5.consumables[1].kind, "Colour")
+    wipe_mods()
+end)
+
+suite.test("wave6 colour packs: a Colour Pack deals Colour cards", function()
+    local game = install_pack()
+    game:enter_shop_after_blind()
+    game:begin_booster_session({ kind = "booster", pack = "colour_normal_1",
+        size = "normal", price = 4, name = "Colour Pack",
+        card_count = 2, picks_granted = 1 })
+    local s = game.booster_session
+    T.assert_eq(#s.choices, 2)
+    for _, c in ipairs(s.choices) do
+        T.assert_true(c.consumable_def ~= nil
+            and c.consumable_def.kind == "Colour",
+            "every choice is a Colour card")
+    end
+    game:end_booster_session()
     wipe_mods()
 end)
 

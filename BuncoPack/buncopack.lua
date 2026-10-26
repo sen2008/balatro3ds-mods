@@ -1,7 +1,7 @@
 --[[
     BuncoPack - Bunco content ported to Balatro3DS.
 
-    Sixty-two of Bunco's eighty Jokers, both exotic suits, the four
+    Sixty-six of Bunco's eighty Jokers, both exotic suits, the four
     Spectrum-family poker hands plus Registration Plate's Deal, and six
     consumables (the four Spectrum Planets, The Sky, The Abyss), ported
     from Bunco by Firch (PC / Steamodded + Lovely). The v1.1.0 additions
@@ -3466,5 +3466,153 @@ SMODS.Joker {
     },
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.mult } }
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wave 6 (v1.5.0): the shop and booster four, riding the fork's
+-- Wave 6 open_booster payload, add_picks return and shop insertion
+-- API. Deviations are marked PORT NOTE.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- JMJB: Standard Packs contain only Enhanced cards. At the open,
+-- every dealt playing card without an enhancement gets a random
+-- one, polled from the same pool the game's own enhancement rolls
+-- use (PC picks uniformly from its Enhanced center pool -- the
+-- same membership). PORT NOTE: PC's unlock (open 50 Booster Packs)
+-- has no fork equivalent; it registers plainly, unlocked.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "jmjb",
+    loc_txt = {
+        name = "Joker Man & Jester Boy Trading Card No. 54",
+        text = {
+            "{C:attention}Standard Packs{} contain",
+            "only {C:attention}Enhanced cards{}",
+        },
+    },
+    rarity = 3,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "jmjb.png",
+    negative_sprite = "jmjb_negative.png",
+    calculate = function(self, card, context)
+        if context.open_booster and context.booster
+                and context.booster.pack == "standard" then
+            local changed = false
+            for _, choice in ipairs(context.choices or {}) do
+                if choice.kind == "playing" and choice.playing_data
+                        and not choice.playing_data.enhancement then
+                    choice.playing_data.enhancement =
+                        SMODS.poll_enhancement({ key_append = "jmjb" })
+                    changed = true
+                end
+            end
+            if changed then return { message = "Enhanced!" } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Aristocrat: choose an extra card from Booster Packs -- the
+-- add_picks return, which the fork clamps to the deal exactly as
+-- PC caps pack_choices at the card count. PORT NOTE: PC also
+-- stands down when the pack was rerolled (Bunco's own pack reroll
+-- feature); the fork has no pack reroll, so the guard never
+-- applies. Its unlock (win a run opening no packs) registers
+-- plainly, like JMJB's.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "aristocrat",
+    loc_txt = {
+        name = "Aristocrat",
+        text = {
+            "Choose an extra card",
+            "from {C:attention}Booster Packs{}",
+        },
+    },
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "aristocrat.png",
+    negative_sprite = "aristocrat_negative.png",
+    calculate = function(self, card, context)
+        if context.open_booster then
+            return { add_picks = 1 }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Doorhanger: Common Jokers do not appear. While it is held (and
+-- not debuffed), a Common shop rarity roll becomes Uncommon, or
+-- Rare on a seeded 1-in-50 roll -- PC's Lovely patch on the rarity
+-- poll, carried here by the def's replace_common_rarity flag.
+-- PORT NOTE: PC also draws the card itself at 1/1.44 width (a
+-- set_ability / set_sprites shrink); the fork's cards have one
+-- size, so the gag stays visual-only and unported.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "doorhanger",
+    loc_txt = {
+        name = "Doorhanger",
+        text = {
+            "{C:blue}Common{} Jokers do not appear",
+            "{C:inactive}Different rarities appear instead{}",
+        },
+    },
+    rarity = 3,
+    cost = 10,
+    unlocked = true,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    replace_common_rarity = true,
+    sprite = "doorhanger.png",
+    negative_sprite = "doorhanger_negative.png",
+}
+
+--------------------------------------------------------------------------------
+-- Running Joke: at the start of every shop, a Negative "Joker"
+-- joins the shop shelf, priced like any Joker offer ($2 -- PC
+-- creates the shop card and lets the shop price it; it is not
+-- free, whatever the old blocked-list entry said).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "running_joke",
+    loc_txt = {
+        name = "Running Joke",
+        text = {
+            "Create a {C:dark_edition}Negative{}",
+            "\"{C:attention}Joker{}\" at the",
+            "start of every shop",
+        },
+    },
+    rarity = 3,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "running_joke.png",
+    negative_sprite = "running_joke_negative.png",
+    calculate = function(self, card, context)
+        if context.starting_shop then
+            SMODS.add_shop_card({
+                set = "Joker", key = "j_joker", edition = "negative",
+            })
+        end
     end,
 }

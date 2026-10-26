@@ -1,7 +1,7 @@
 --- Tests for the PaperbackPack expansion Jokers (the 188 ported after the
 --- original 36) for the Balatro3DS fork build. Registration and tooltip
---- sanity for all 283 Jokers in the pack, plus the per-slice behavior
---- suites (PB_TESTS_0 .. PB_TESTS_7). The mod's real main file is read
+--- sanity for all 291 Jokers in the pack, plus the per-slice behavior
+--- suites (PB_TESTS_0 .. PB_TESTS_8). The mod's real main file is read
 --- from the PB_PACK_LUA env var, like the other pack suites.
 local T = require("tests.testlib")
 local bootstrap = require("tests.bootstrap")
@@ -96,6 +96,8 @@ local NAMES = {
     "grenadine", "shinzaemon", "nigori", "aperol", "pink_joker",
     "sacred_heart", "determination",
     "forgery", "master_plan", "photocopy",
+    "backpack", "protocol", "shopping_center", "touch_tone_joker",
+    "chaplin", "everything_must_go", "normalJKR", "oujia_board",
 }
 
 local ARCANA = {
@@ -140,6 +142,7 @@ local function install_pack()
     for _, n in ipairs({
         "jimbo_adventure_soul", "off_alpha_soul", "off_epsilon_soul",
         "off_omega_soul", "stardrop_soul", "shinzaemon_soul",
+        "chaplin_soul",
     }) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
     end
@@ -219,11 +222,11 @@ end
 -- Registration + tooltips for the whole pack
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 283 Paperback Jokers", function()
+suite.test("pack loads and registers all 291 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 283)
+    T.assert_eq(#mod.registered.jokers, 291)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -463,6 +466,14 @@ suite.test("pack loads and registers all 283 Paperback Jokers", function()
         j_pbp_forgery = { "Forgery", 3, 2 },
         j_pbp_master_plan = { "Master Plan", 3, 10 },
         j_pbp_photocopy = { "Photocopy", 3, 10 },
+        j_pbp_backpack = { "Backpack", 1, 4 },
+        j_pbp_protocol = { "Protocol", 1, 5 },
+        j_pbp_shopping_center = { "Shopping Center", 1, 6 },
+        j_pbp_everything_must_go = { "Everything Must Go!", 2, 6 },
+        j_pbp_normalJKR = { "normalJKR", 1, 6 },
+        j_pbp_touch_tone_joker = { "Touch Tone Joker", 2, 8 },
+        j_pbp_chaplin = { "Chaplin", 4, 20 },
+        j_pbp_oujia_board = { "Ouija Board", 3, 8 },
     }
     for id, e in pairs(expect) do
         local def = JOKER_DEFS[id]
@@ -2155,6 +2166,148 @@ PB_TESTS_7 = function(H)
     end)
 end
 
+PB_TESTS_8 = function(H)
+    H.test("wave6 backpack: the shop starts with a free Buffoon Pack", function()
+        local game = H.new_game()
+        H.make_joker(game, "backpack")
+        game:enter_shop_after_blind()
+        local found = nil
+        for _, o in ipairs(game.shop_booster_offers or {}) do
+            if o.pack == "buffoon" then found = o end
+        end
+        H.assert_true(found ~= nil, "a Buffoon offer is shelved")
+        H.assert_eq(game:get_shop_booster_price(found), 0,
+            "and it is free")
+    end)
+
+    H.test("wave6 protocol: packs deal one extra card while held", function()
+        local game = H.new_game()
+        game:enter_shop_after_blind()
+        local offer = { kind = "booster", pack = "arcana", size = "normal",
+            price = 4, name = "Arcana Pack", card_count = 2,
+            picks_granted = 1 }
+        game:begin_booster_session(offer)
+        H.assert_eq(#game.booster_session.choices, 2,
+            "a vanilla Arcana pack deals 2")
+        game:end_booster_session()
+        H.make_joker(game, "protocol")
+        game:begin_booster_session(offer)
+        H.assert_eq(#game.booster_session.choices, 3, "Protocol makes it 3")
+        game:end_booster_session()
+    end)
+
+    H.test("wave6 shopping center: the shop fills one extra card slot", function()
+        local game = H.new_game()
+        game:enter_shop_after_blind()
+        H.assert_eq(#game.shop_offers, 2, "the vanilla shelf holds 2")
+        local game2 = H.new_game()
+        H.make_joker(game2, "shopping_center")
+        game2:enter_shop_after_blind()
+        H.assert_eq(#game2.shop_offers, 3, "Shopping Center makes it 3")
+    end)
+
+    H.test("wave6 everything must go: a second voucher is shelved", function()
+        local game = H.new_game()
+        H.make_joker(game, "everything_must_go")
+        game:enter_shop_after_blind()
+        H.assert_eq(#game.shop_voucher_offers, 2)
+    end)
+
+    H.test("wave6 normalJKR: bought in a shop, card offers are free", function()
+        local game = H.new_game()
+        game:enter_shop_after_blind()
+        local offer = game.shop_offers[1]
+        H.assert_true(game:get_shop_offer_price(offer) > 0,
+            "prices are real before the Joker")
+        game.STATE = game.STATES.SHOP
+        local j = H.make_joker(game, "normalJKR")
+        H.assert_eq(j.ability.free_shop_purchases, 1,
+            "gaining it in the shop arms the counter")
+        game:refresh_shop_prices()
+        H.assert_eq(game:get_shop_offer_price(offer), 0,
+            "card offers are free while it is held")
+        local v = game.shop_voucher_offers[1]
+        H.assert_true(game:get_shop_voucher_price(v) > 0,
+            "vouchers still charge")
+        j.def.smods.remove_from_deck(j.def.smods, j)
+        H.assert_eq(j.ability.free_shop_purchases, nil,
+            "losing the Joker disarms the counter")
+    end)
+
+    H.test("wave6 normalJKR: gained outside a shop, nothing is free", function()
+        local game = H.new_game()
+        local j = H.make_joker(game, "normalJKR")
+        H.assert_eq(j.ability.free_shop_purchases, nil,
+            "no arming outside the shop state")
+        game:enter_shop_after_blind()
+        local offer = game.shop_offers[1]
+        H.assert_true(game:get_shop_offer_price(offer) > 0)
+    end)
+
+    H.test("wave6 touch tone: the first card of a consumable pack is drawn", function()
+        local game = H.new_game()
+        H.make_joker(game, "touch_tone_joker")
+        game:enter_shop_after_blind()
+        local offer = { kind = "booster", pack = "arcana", size = "normal",
+            price = 4, name = "Arcana Pack", card_count = 2,
+            picks_granted = 1 }
+        game:begin_booster_session(offer)
+        local s = game.booster_session
+        local first = s.choices[1]
+        H.assert_eq(first.taken, true, "the first choice was claimed")
+        H.assert_eq(#game.consumables, 1, "and it is in the consumables")
+        H.assert_eq(game.consumables[1].id, first.consumable_def.id)
+        game:end_booster_session()
+        game:begin_booster_session(
+            { kind = "booster", pack = "buffoon", size = "normal",
+              price = 4, name = "Buffoon Pack", card_count = 2,
+              picks_granted = 1 })
+        local s2 = game.booster_session
+        H.assert_eq(#game.consumables, 1, "a Buffoon pack draws nothing")
+        for _, c in ipairs(s2.choices) do
+            H.assert_true(not c.taken, "its choices stay untouched")
+        end
+        game:end_booster_session()
+    end)
+
+    H.test("wave6 chaplin: buying a voucher redeems its upgrade free", function()
+        local game = H.new_game()
+        H.make_joker(game, "chaplin")
+        game:enter_shop_after_blind()
+        game.money = 100
+        game.shop_voucher_offers = {
+            { id = "v_overstock", name = "Overstock",
+              description = "", price = 10 },
+        }
+        local ok = game:buy_shop_voucher(1)
+        H.assert_true(ok, "the base voucher buys")
+        H.assert_true(game:has_voucher("v_overstock"))
+        H.assert_true(game:has_voucher("v_overstock_plus"),
+            "Chaplin redeemed the upgraded version")
+        H.assert_eq(game.money, 90, "only the bought voucher was paid for")
+    end)
+
+    H.test("wave6 ouija board: spectrals join the queue rate, Jokers shuffle", function()
+        local game = H.new_game()
+        local keys = { "aurora_borealis", "bicycle", "claw", "jacks" }
+        for _, k in ipairs(keys) do H.make_joker(game, k) end
+        local ouija = H.make_joker(game, "oujia_board")
+        H.assert_eq(SMODS.modifier_total(game, "spectral_rate_mod"), 2)
+        local function order()
+            local ids = {}
+            for _, j in ipairs(game:_collect_jokers_in_slot_order()) do
+                ids[#ids + 1] = j.def.id
+            end
+            return table.concat(ids, ",")
+        end
+        local before = order()
+        game:emit_joker_event("on_press_play", {})
+        H.assert_true(order() ~= before,
+            "the slot order shuffled before scoring")
+        H.assert_eq(#game.jokers, 5, "no Joker was lost in the shuffle")
+    end)
+end
+
 PB_TESTS_0(H)
 PB_TESTS_1(H)
 PB_TESTS_2(H)
@@ -2163,5 +2316,6 @@ PB_TESTS_4(H)
 PB_TESTS_5(H)
 PB_TESTS_6(H)
 PB_TESTS_7(H)
+PB_TESTS_8(H)
 
 return suite
