@@ -61,7 +61,7 @@
       "type": "deleteFile"
      }
     ],
-    "size": "60 MiB"
+    "size": "61 MiB"
    },
    "info": {
     "author": "sen2008 (base: Gazpacho/idkhan)",
@@ -92,33 +92,33 @@
    "All-Mod-Packs": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.5.0.zip",
-      "output": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.6.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "input": "^CryptidPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.1.zip",
+      "output": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "type": "deleteFile"
      },
      {
@@ -167,18 +167,18 @@
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.4.0.zip",
-      "output": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.5.0.zip",
+      "output": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "input": "^MoreFluffPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "type": "deleteFile"
      },
      {
@@ -281,21 +281,21 @@
    }
   },
   {
-   "balatro3ds-cryptid-pack-v1.5.0.zip": {
+   "balatro3ds-cryptid-pack-v1.6.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.5.0.zip",
-      "output": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-cryptid-pack-v1.6.0.zip",
+      "output": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "input": "^CryptidPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-cryptid-pack-v1.5.0.zip",
+      "file": "/balatro3ds-cryptid-pack-v1.6.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -309,7 +309,7 @@
     "console": [
      "3DS"
     ],
-    "description": "176 Jokers + 31 consumables from Cryptid, incl. big-number Jokers, custom rarities, Bulwark and UltPair hands.",
+    "description": "179 Jokers + 34 consumables from Cryptid, incl. big-number Jokers, custom rarities, Bulwark and UltPair hands, and the Echo/Light/Abstract enhancements.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/CryptidPack/CryptidPack.json"
@@ -324,26 +324,26 @@
     "stars": 0,
     "title": "CryptidPack",
     "title_ids": [],
-    "version": "1.5.0",
+    "version": "1.6.0",
     "wiki": ""
    }
   },
   {
-   "balatro3ds-paperback-pack-v1.5.0.zip": {
+   "balatro3ds-paperback-pack-v1.5.1.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.1.zip",
+      "output": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.1.zip",
       "type": "deleteFile"
      }
     ],
@@ -357,7 +357,7 @@
     "console": [
      "3DS"
     ],
-    "description": "296 Jokers + 56 consumables from Paperback, with paperclips, custom enhancements, tags and Dichrome edition.",
+    "description": "298 Jokers + 56 consumables from Paperback, with paperclips, custom enhancements, tags and Dichrome edition.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json"
@@ -372,7 +372,7 @@
     "stars": 0,
     "title": "PaperbackPack",
     "title_ids": [],
-    "version": "1.5.0",
+    "version": "1.5.1",
     "wiki": ""
    }
   },
@@ -521,21 +521,21 @@
    }
   },
   {
-   "balatro3ds-morefluff-pack-v1.4.0.zip": {
+   "balatro3ds-morefluff-pack-v1.5.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.4.0.zip",
-      "output": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-morefluff-pack-v1.5.0.zip",
+      "output": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "input": "^MoreFluffPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-morefluff-pack-v1.4.0.zip",
+      "file": "/balatro3ds-morefluff-pack-v1.5.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -549,7 +549,7 @@
     "console": [
      "3DS"
     ],
-    "description": "133 MoreFluff Jokers plus the Colour system (14 Colour consumables and packs) and 12 Slivers, across vanilla plus six custom rarities.",
+    "description": "136 MoreFluff Jokers plus the Colour system (14 Colour consumables and packs), 12 Slivers and the Power/Ransom Note enhancements, across vanilla plus six custom rarities.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/MoreFluffPack/MoreFluffPack.json"
@@ -564,7 +564,7 @@
     "stars": 0,
     "title": "MoreFluffPack",
     "title_ids": [],
-    "version": "1.4.0",
+    "version": "1.5.0",
     "wiki": ""
    }
   },
@@ -770,7 +770,7 @@
   "dsSheetURL": "",
   "file": "balatro3ds-mods.unistore",
   "infoURL": "",
-  "revision": 12,
+  "revision": 13,
   "sheet": [
    "balatro3ds-mods.t3x"
   ],
