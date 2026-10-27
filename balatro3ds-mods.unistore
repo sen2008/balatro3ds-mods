@@ -17,7 +17,7 @@
       "type": "deleteFile"
      }
     ],
-    "size": "23 MiB"
+    "size": "24 MiB"
    },
    "info": {
     "author": "sen2008 (base: Gazpacho/idkhan)",
@@ -107,18 +107,18 @@
       "type": "deleteFile"
      },
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.4.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "type": "deleteFile"
      },
      {
@@ -242,7 +242,7 @@
       "type": "deleteFile"
      }
     ],
-    "size": "55 MiB"
+    "size": "56 MiB"
    },
    "info": {
     "author": "sen2008",
@@ -329,21 +329,21 @@
    }
   },
   {
-   "balatro3ds-paperback-pack-v1.4.0.zip": {
+   "balatro3ds-paperback-pack-v1.5.0.zip": {
     "script": [
      {
-      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.4.0.zip",
-      "output": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "https://github.com/sen2008/balatro3ds-mods/raw/refs/heads/main/balatro3ds-paperback-pack-v1.5.0.zip",
+      "output": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "type": "downloadFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "input": "^PaperbackPack/",
       "output": "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/",
       "type": "extractFile"
      },
      {
-      "file": "/balatro3ds-paperback-pack-v1.4.0.zip",
+      "file": "/balatro3ds-paperback-pack-v1.5.0.zip",
       "type": "deleteFile"
      }
     ],
@@ -357,7 +357,7 @@
     "console": [
      "3DS"
     ],
-    "description": "291 Jokers + 45 Minor Arcana from Paperback, with custom enhancements, tags and Dichrome edition.",
+    "description": "296 Jokers + 56 consumables from Paperback, with paperclips, custom enhancements, tags and Dichrome edition.",
     "icon_index": 0,
     "installed_files": [
      "/3ds/save/Balatro3DS/sdmc/mods/PaperbackPack/PaperbackPack.json"
@@ -372,7 +372,7 @@
     "stars": 0,
     "title": "PaperbackPack",
     "title_ids": [],
-    "version": "1.4.0",
+    "version": "1.5.0",
     "wiki": ""
    }
   },
@@ -770,7 +770,7 @@
   "dsSheetURL": "",
   "file": "balatro3ds-mods.unistore",
   "infoURL": "",
-  "revision": 11,
+  "revision": 12,
   "sheet": [
    "balatro3ds-mods.t3x"
   ],
