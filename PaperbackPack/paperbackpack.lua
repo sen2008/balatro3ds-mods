@@ -12,12 +12,12 @@
 -- SMODS.ConsumableType):
 --   https://github.com/sen2008/balatro3ds-fork
 --
--- Contents: 291 of Paperback's 316 Jokers, the Stars and Crowns
--- suits, the four Spectrum-family poker hands, and 45 of the 56
+-- Contents: 296 of Paperback's 316 Jokers, the Stars and Crowns
+-- suits, the four Spectrum-family poker hands, and all 56
 -- Minor Arcana consumables under a registered minor_arcana type.
--- The remaining 25 Jokers and 11 Arcana stay unported, each on a
--- named system the fork does not expose (the paperclip system,
--- the E.G.O gift system, the Apostle rank, and a handful of
+-- The remaining 20 Jokers stay unported, each on a
+-- named system the fork does not expose (the E.G.O gift system,
+-- the Apostle rank, and a handful of
 -- contexts and global hooks the port never raises);
 -- README.txt lists them all with their blockers.
 --
@@ -14340,3 +14340,912 @@ SMODS.Joker {
 }
 
 end -- Wave 6 expansion block
+
+--------------------------------------------------------------------------------
+-- Wave 7 expansion (v1.5.0): the paperclip system, riding the fork's
+-- SMODS.Attachment channel (per-card calculate-bearing state beside the
+-- enhancement and seal slots) and SMODS.mod_state (per-mod run state in
+-- the run snapshots). Ported from Paperback's MIT-licensed sources
+-- (v0.9.0). Deviations are marked with PORT NOTE comments.
+--
+-- PORT NOTE (shared): on PC a paperclip is a Steamodded sticker stored
+-- at card.ability.paperback_<color>_clip; here each color is an
+-- SMODS.Attachment whose state (the PC config, verbatim) lives at
+-- card_data.attachments.pbp_<color>_clip. PC's set_paperclip removes
+-- any other clip first, so a card carries ONE clip, as there. PC's
+-- eval_card broadcast (a scored clip bumps the round counter and
+-- notifies held Pink/Purple clips) and its global Green hooks (the
+-- before-scoring gain, the discard loss) run pack-side from the clips'
+-- own calculates, which the fork dispatches at the same moments; the
+-- counters live in the mod's run-state table. Retrigger passes
+-- re-dispatch a card's calculates in this fork (Red Seal's grain), so
+-- a retriggered clip counts as scored once per pass, where PC's hook
+-- counts once per card. The clip sprites ship as each attachment's
+-- registered sprite; the card face draws no attachment badge in this
+-- build, so a clip shows in the card's tooltip name only through its
+-- effects. Ddakji stays NOT PORTED: its flipped cards are dealt by
+-- global CardArea / Blind:stay_flipped hooks and a face-down card
+-- state the fork does not have at all (the run-state table alone was
+-- never its whole blocker).
+--------------------------------------------------------------------------------
+do
+
+local function pb9_game() return rawget(_G, "G") end
+
+-- The pba_* helpers live inside the Arcana section's own block and are
+-- not visible here; these are the Wave 7 block's copies of the three it
+-- needs, with the same semantics.
+local function pb9_cfg(card)
+    return (card and (card.ability or card.config)) or {}
+end
+
+local function pb9_highlighted()
+    local g = pb9_game()
+    local h = g and g.hand
+    if h and type(h.highlighted) == "table" then return h.highlighted end
+    if h and type(h.selected) == "table" then return h.selected end
+    return {}
+end
+
+local function pb9_jokers()
+    local g = pb9_game()
+    if not g then return {} end
+    if g.jokers and g.jokers.cards then return g.jokers.cards end
+    return g.jokers or {}
+end
+
+-- Every card_data in the full deck (deck + discard + hand data), the
+-- game's own counter's set, as live tables (clip state mutates them).
+local function pb9_full_deck_data()
+    local g = pb9_game()
+    local out = {}
+    if g and g.count_cards_in_full_deck then
+        g:count_cards_in_full_deck(function(d)
+            out[#out + 1] = d
+            return false
+        end)
+    end
+    return out
+end
+
+local PB9_CLIP_KEYS = {
+    "white_clip", "black_clip", "blue_clip", "gold_clip", "green_clip",
+    "orange_clip", "pink_clip", "purple_clip", "platinum_clip",
+    "red_clip", "yellow_clip",
+}
+-- Platinum is a special clip: random polls never grant it (PC's
+-- PB_UTIL.poll_paperclip rerolls specials); its Arcana does not exist,
+-- it arrives only from... nothing grants it in this port either, so
+-- the def registers for completeness and pool rolls exclude it.
+local PB9_POLL_KEYS = {
+    "white_clip", "black_clip", "blue_clip", "gold_clip", "green_clip",
+    "orange_clip", "pink_clip", "purple_clip", "red_clip", "yellow_clip",
+}
+
+local function pb9_clip_id(bare) return "pbp_" .. bare end
+
+local function pb9_state() return SMODS.mod_state("PaperbackPack") end
+
+local function pb9_round_stamp()
+    local g = pb9_game()
+    return (tonumber(g and g.ante) or 1) * 1000 + (tonumber(g and g.round) or 1)
+end
+
+-- The round's clip counters, keyed by a round stamp in the run state
+-- (PC recreates G.GAME.paperback.round each round; the stamp does the
+-- same job lazily, and snapshot restores keep the stamp honest).
+local function pb9_round()
+    local st = pb9_state()
+    local stamp = pb9_round_stamp()
+    local r = st.clip_round
+    if type(r) ~= "table" or r.stamp ~= stamp then
+        r = { stamp = stamp, scored = 0 }
+        st.clip_round = r
+    end
+    return r
+end
+
+local function pb9_data_clip(data)
+    local atts = type(data) == "table" and data.attachments or nil
+    if type(atts) ~= "table" then return nil end
+    for _, bare in ipairs(PB9_CLIP_KEYS) do
+        local id = pb9_clip_id(bare)
+        if atts[id] ~= nil then return id end
+    end
+    return nil
+end
+
+local function pb9_clip_state(data, bare)
+    local atts = type(data) == "table" and data.attachments or nil
+    return type(atts) == "table" and atts[pb9_clip_id(bare)] or nil
+end
+
+-- Fasten a clip to a card (a node, a view, or bare card_data): any
+-- other clip comes off first (PC's set_paperclip), the new clip's
+-- state seeds from its def, and the run remembers the color (PC's
+-- unique_clips_this_run).
+local function pb9_apply_clip(target, bare)
+    local data = target and (target.card_data or target)
+    if type(data) ~= "table" then return nil end
+    local id = pb9_clip_id(bare)
+    if type(data.attachments) == "table" then
+        for _, other in ipairs(PB9_CLIP_KEYS) do
+            local oid = pb9_clip_id(other)
+            if oid ~= id then data.attachments[oid] = nil end
+        end
+    end
+    local node = target.card_data and target or { card_data = data }
+    local state = SMODS.set_attachment(node, id)
+    if state then
+        local st = pb9_state()
+        st.unique_clips = st.unique_clips or {}
+        st.unique_clips[id] = true
+    end
+    return state
+end
+
+-- PC's purple clip creates a random Tarot with a keyless add_card;
+-- the fork's add_card is key-only, so the port rolls the Tarot id
+-- through the game's own kind roller first.
+local function pb9_create_tarot()
+    local g = pb9_game()
+    if not g or not g.random_consumable_id_of_kind then return nil end
+    local id = g:random_consumable_id_of_kind("tarot", nil, "paperback_purple_clip")
+    if not id then return nil end
+    return SMODS.add_card { set = "Tarot", key = id }
+end
+
+local function pb9_poll_clip(seed)
+    return PB9_POLL_KEYS[SMODS.pseudorandom(seed, 1, #PB9_POLL_KEYS)]
+end
+
+local function pb9_hand_nodes()
+    local g = pb9_game()
+    return (g and g.hand and g.hand.card_nodes) or {}
+end
+
+local function pb9_played_nodes()
+    local g = pb9_game()
+    local seq = g and g.hand and g.hand._play_sequence
+    return (seq and type(seq.cards) == "table" and seq.cards) or {}
+end
+
+local function pb9_count_nodes(nodes, exclude_highlighted)
+    local g = pb9_game()
+    local hl = {}
+    if exclude_highlighted and g and g.hand and type(g.hand.highlighted) == "table" then
+        for _, n in ipairs(g.hand.highlighted) do hl[n] = true end
+    end
+    local n = 0
+    for _, node in ipairs(nodes or {}) do
+        if not hl[node] and not node.debuffed and not node.debuff then
+            if pb9_data_clip(node.card_data or node) then n = n + 1 end
+        end
+    end
+    return n
+end
+
+local function pb9_clothespins()
+    local n = 0
+    for _, j in ipairs(pb9_jokers()) do
+        if j.def and j.def.id == "j_pbp_clothespin" then n = n + 1 end
+    end
+    return n
+end
+
+-- PC PB_UTIL.count_paperclips over the hand: clipped cards (debuffed
+-- excluded), plus one per held Clothespin, which counts as a clip
+-- everywhere a count is taken.
+local function pb9_hand_clips(exclude_highlighted)
+    return pb9_count_nodes(pb9_hand_nodes(), exclude_highlighted) + pb9_clothespins()
+end
+
+local function pb9_full_deck_clips()
+    local n = 0
+    for _, data in ipairs(pb9_full_deck_data()) do
+        if pb9_data_clip(data) then n = n + 1 end
+    end
+    return n
+end
+
+-- PC's global `before` hook for Green Clips: for every 2 clips in the
+-- scoring hand, every Green Clip in the full deck gains mult_plus Mult
+-- (the odd remainder carries in the clip's own `odd`).
+local function pb9_green_adjust()
+    local clips = 0
+    for _, node in ipairs(pb9_played_nodes()) do
+        if node.counts_for_play_score and not node.debuffed
+            and pb9_data_clip(node.card_data) then
+            clips = clips + 1
+        end
+    end
+    if clips <= 0 then return end
+    for _, data in ipairs(pb9_full_deck_data()) do
+        local st = pb9_clip_state(data, "green_clip")
+        if st then
+            local total = (tonumber(st.odd) or 0) + clips
+            st.mult = (tonumber(st.mult) or 0)
+                + (tonumber(st.mult_plus) or 1) * math.floor(total / 2)
+            st.odd = total % 2
+        end
+    end
+end
+
+-- PC's eval_card hook, pack-side: a clipped card just scored. The
+-- round counter bumps, held Pink/Purple clips hear about it, and the
+-- hand's first scored clip runs Green's before-scoring adjustment
+-- (armed again at every after_scoring).
+local function pb9_clip_scored()
+    local st = pb9_state()
+    if st.green_pending ~= false then
+        pb9_green_adjust()
+        st.green_pending = false
+    end
+    pb9_round().scored = pb9_round().scored + 1
+    for _, node in ipairs(pb9_hand_nodes()) do
+        local data = node.card_data
+        local pink = pb9_clip_state(data, "pink_clip")
+        if pink then
+            pink.x_mult = (tonumber(pink.x_mult) or 1)
+                + (tonumber(pink.x_mult_mod) or 0.1)
+        end
+        local purple = pb9_clip_state(data, "purple_clip")
+        if purple then
+            purple.numerator = (tonumber(purple.numerator) or 0)
+                + (tonumber(purple.num_mod) or 1)
+        end
+    end
+end
+
+-- PC's global discard hook: a discarded card carrying any clip costs
+-- every Green Clip in the deck its mult_minus (floored at 0).
+local function pb9_clip_discarded(view)
+    if not pb9_data_clip(view and view.card_data) then return end
+    for _, data in ipairs(pb9_full_deck_data()) do
+        local st = pb9_clip_state(data, "green_clip")
+        if st then
+            st.mult = math.max(0, (tonumber(st.mult) or 0)
+                - (tonumber(st.mult_minus) or 5))
+        end
+    end
+end
+
+-- The preamble every clip's calculate shares: the broadcast seats.
+local function pb9_prelude(context, view)
+    if context.card_played then pb9_clip_scored() end
+    if context.on_discard then pb9_clip_discarded(view) end
+    if context.after_scoring then pb9_state().green_pending = true end
+end
+
+--------------------------------------------------------------------------------
+-- The eleven clips (config and effects verbatim from the PC defs)
+--------------------------------------------------------------------------------
+
+if SMODS.Attachment then
+
+SMODS.Attachment {
+    key = "white_clip",
+    loc_txt = { name = "White Clip", text = {
+        "If {C:attention}held in hand{} at {C:attention}end of round{},",
+        "this Clip gains {C:chips}+#1#{} Chips",
+        "for each {C:attention}Clip{} scored this round",
+        "{C:inactive}(Currently {C:chips}+#2#{C:inactive} Chips)",
+    } },
+    config = { chip_mod = 2, chips = 0 },
+    sprite = "white_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "white_clip") or self.config
+        return { vars = { st.chip_mod, st.chips } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.on_round_end then
+            local increase = (tonumber(st.chip_mod) or 2) * pb9_round().scored
+            if increase > 0 then
+                st.chips = (tonumber(st.chips) or 0) + increase
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.card_played and (tonumber(st.chips) or 0) ~= 0 then
+            return { chips = st.chips }
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "black_clip",
+    loc_txt = { name = "Black Clip", text = {
+        "Retriggers when {C:attention}scored{}",
+        "if a {C:attention}Clip{} is held in hand",
+    } },
+    config = {},
+    sprite = "black_clip.png",
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        if context.repetition and not context.platinum_trigger then
+            if pb9_hand_clips() > 0 then
+                return { repetitions = 1 }
+            end
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "blue_clip",
+    loc_txt = { name = "Blue Clip", text = {
+        "When {C:attention}scored{}, {X:chips,C:white}X#1#{} Chips",
+        "for each {C:attention}Clip{} held in hand",
+        "{C:inactive}(Currently {X:chips,C:white}X#2#{C:inactive} Chips)",
+    } },
+    config = { x_chips_base = 1, x_chips_mod = 0.1 },
+    sprite = "blue_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "blue_clip") or self.config
+        return { vars = { st.x_chips_mod,
+            st.x_chips_base + pb9_hand_clips(true) * st.x_chips_mod } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played then
+            local clips = pb9_hand_clips()
+            if clips > 0 then
+                return { x_chips = (tonumber(st.x_chips_base) or 1)
+                    + clips * (tonumber(st.x_chips_mod) or 0.1) }
+            end
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "gold_clip",
+    loc_txt = { name = "Gold Clip", text = {
+        "If {C:attention}held in hand{} at {C:attention}end of round{},",
+        "earn {C:money}$#1#{} for each",
+        "{C:attention}Clip{} scored this round",
+        "{C:inactive}(Currently {C:money}$#2#{C:inactive}/$#3# max)",
+    } },
+    config = { money = 1, max_money = 10 },
+    sprite = "gold_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "gold_clip") or self.config
+        return { vars = { st.money,
+            math.min(st.money * pb9_round().scored, st.max_money), st.max_money } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.on_round_end and pb9_round().scored > 0 then
+            return { dollars = math.min(
+                (tonumber(st.money) or 1) * pb9_round().scored,
+                tonumber(st.max_money) or 10) }
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "green_clip",
+    loc_txt = { name = "Green Clip", text = {
+        "This Clip gains {C:mult}+#2#{} Mult",
+        "for every {C:attention}2{} scoring {C:attention}Clips{} played,",
+        "{C:mult}#3#{} Mult for each discarded {C:attention}Clip{}",
+        "{C:inactive}(Currently {C:mult}+#1#{C:inactive} Mult)",
+    } },
+    config = { mult = 0, mult_plus = 1, mult_minus = 5, odd = 0 },
+    sprite = "green_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "green_clip") or self.config
+        return { vars = { st.mult, st.mult_plus, -st.mult_minus } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played and (tonumber(st.mult) or 0) > 0 then
+            return { mult = st.mult }
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "orange_clip",
+    loc_txt = { name = "Orange Clip", text = {
+        "When {C:attention}scored{}, earn {C:money}$#1#{}",
+        "for every {C:attention}2 Clips{} held in hand",
+        "{C:inactive}(Currently {C:money}$#3#{C:inactive})",
+    } },
+    config = { money = 1, every = 2 },
+    sprite = "orange_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "orange_clip") or self.config
+        return { vars = { st.money, st.every,
+            st.money * math.floor(pb9_hand_clips(true) / st.every) } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played then
+            local clips = pb9_hand_clips()
+            if clips >= (tonumber(st.every) or 2) then
+                return { dollars = (tonumber(st.money) or 1)
+                    * math.floor(clips / (tonumber(st.every) or 2)) }
+            end
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "pink_clip",
+    loc_txt = { name = "Pink Clip", text = {
+        "When {C:attention}held in hand{}, {X:mult,C:white}X#1#{} Mult",
+        "Increases by {X:mult,C:white}X#2#{}",
+        "for each scored {C:attention}Clip{}",
+        "{C:inactive}(Resets after played hand)",
+    } },
+    config = { x_mult = 1, x_mult_mod = 0.1 },
+    sprite = "pink_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "pink_clip") or self.config
+        return { vars = { st.x_mult, st.x_mult_mod } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.held_in_hand and (tonumber(st.x_mult) or 1) ~= 1 then
+            return { x_mult = st.x_mult }
+        end
+        if context.after_scoring then st.x_mult = 1 end
+    end,
+}
+
+SMODS.Attachment {
+    key = "purple_clip",
+    loc_txt = { name = "Purple Clip", text = {
+        "{C:green}#1# in #2#{} chance to create",
+        "a random {C:attention}Tarot{} card",
+        "when {C:attention}held in hand{}.",
+        "Odds increase by {C:attention}#3#{}",
+        "for each scored {C:attention}Clip{}",
+        "{C:inactive}(Resets after played hand){}",
+    } },
+    config = { num_mod = 1, numerator = 0, denominator = 10 },
+    sprite = "purple_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "purple_clip") or self.config
+        return { vars = { st.numerator, st.denominator, st.num_mod } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.held_in_hand then
+            local g = pb9_game()
+            if g and #g.consumables < g:get_effective_consumable_capacity()
+                and SMODS.pseudorandom_probability(card, "purple_clip",
+                    tonumber(st.numerator) or 0, tonumber(st.denominator) or 10,
+                    "paperback_purple_clip") then
+                -- PC defers the creation through its event queue; the
+                -- port creates at once (the seat other ports use).
+                if pb9_create_tarot() then return { message = "+Tarot" } end
+            end
+        end
+        if context.after_scoring then
+            -- PC resets only a Purple Clip still in hand; played ones
+            -- keep their odds. Membership in the hand decides.
+            for _, node in ipairs(pb9_hand_nodes()) do
+                if node.card_data == card.card_data then st.numerator = 0 end
+            end
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "red_clip",
+    loc_txt = { name = "Red Clip", text = {
+        "When {C:attention}scored{}, {C:mult}+#1#{} Mult",
+        "for each {C:attention}Clip{} held in hand",
+        "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
+    } },
+    config = { mult_mod = 5 },
+    sprite = "red_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "red_clip") or self.config
+        return { vars = { st.mult_mod, st.mult_mod * pb9_hand_clips(true) } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played then
+            local clips = pb9_hand_clips()
+            if clips > 0 then
+                return { mult = (tonumber(st.mult_mod) or 5) * clips }
+            end
+        end
+    end,
+}
+
+SMODS.Attachment {
+    key = "yellow_clip",
+    loc_txt = { name = "Yellow Clip", text = {
+        "If {C:attention}scored{} while",
+        "a {C:attention}Clip{} is held in hand,",
+        "{C:green}#1# in #2#{} chance for {C:red}+#3#{} Mult,",
+        "{C:green}#4# in #5#{} chance for {X:mult,C:white}X#6#{} Mult",
+        "and {C:green}#7# in #8#{} chance for {C:money}$#9#{}",
+    } },
+    config = { dollar_odds = 3, dollars = 3, mult_odds = 5, mult = 15,
+        xmult_odds = 5, xmult = 1.5 },
+    sprite = "yellow_clip.png",
+    loc_vars = function(self, info_queue, card)
+        local st = pb9_clip_state(card and card.card_data, "yellow_clip") or self.config
+        return { vars = { 1, st.mult_odds, st.mult, 1, st.xmult_odds,
+            st.xmult, 1, st.dollar_odds, st.dollars } }
+    end,
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played and pb9_hand_clips(true) > 0 then
+            local ret = {}
+            if SMODS.pseudorandom_probability(card, "yellow_clip_money",
+                1, tonumber(st.dollar_odds) or 3, "paperback_yellow_clip") then
+                ret.dollars = st.dollars
+            end
+            if SMODS.pseudorandom_probability(card, "yellow_clip_mult",
+                1, tonumber(st.mult_odds) or 5, "paperback_yellow_clip") then
+                ret.mult = st.mult
+            end
+            if SMODS.pseudorandom_probability(card, "yellow_clip_xmult",
+                1, tonumber(st.xmult_odds) or 5, "paperback_yellow_clip") then
+                ret.xmult = st.xmult
+            end
+            if next(ret) then return ret end
+        end
+    end,
+}
+
+-- PC's PB_UTIL.platinum_effects as return tables for the merge below.
+-- The second return says whether the effect counts as a scored clip
+-- (PC bumps the counter for the returning effects, not for White,
+-- whose effect it applies directly, nor for Black: Black's effect
+-- re-scores its card with SMODS.score_card, a cross-card rescore the
+-- fork does not expose, so Black is the one clip Platinum skips).
+local function pb9_platinum_effect(bare, node)
+    local st = pb9_clip_state(node.card_data, bare)
+    if not st then return nil, false end
+    if bare == "white_clip" then
+        if (tonumber(st.chips) or 0) ~= 0 then return { chips = st.chips }, false end
+    elseif bare == "gold_clip" then
+        local money = math.min((tonumber(st.money) or 1) * pb9_round().scored,
+            tonumber(st.max_money) or 10)
+        if money > 0 then return { dollars = money }, true end
+    elseif bare == "red_clip" then
+        local clips = pb9_hand_clips()
+        if clips > 0 then
+            return { mult = (tonumber(st.mult_mod) or 5) * clips }, true
+        end
+    elseif bare == "orange_clip" then
+        local clips = pb9_hand_clips()
+        local every = tonumber(st.every) or 2
+        if clips >= every then
+            return { dollars = (tonumber(st.money) or 1)
+                * math.floor(clips / every) }, true
+        end
+    elseif bare == "yellow_clip" then
+        local ret = {}
+        if SMODS.pseudorandom_probability(node, "yellow_clip_money",
+            1, tonumber(st.dollar_odds) or 3, "paperback_yellow_clip") then
+            ret.dollars = st.dollars
+        end
+        if SMODS.pseudorandom_probability(node, "yellow_clip_mult",
+            1, tonumber(st.mult_odds) or 5, "paperback_yellow_clip") then
+            ret.mult = st.mult
+        end
+        if SMODS.pseudorandom_probability(node, "yellow_clip_xmult",
+            1, tonumber(st.xmult_odds) or 5, "paperback_yellow_clip") then
+            ret.xmult = st.xmult
+        end
+        return ret, true
+    elseif bare == "green_clip" then
+        return { mult = tonumber(st.mult) or 0 }, true
+    elseif bare == "blue_clip" then
+        local clips = pb9_hand_clips()
+        return { x_chips = (tonumber(st.x_chips_base) or 1)
+            + clips * (tonumber(st.x_chips_mod) or 0.1) }, true
+    elseif bare == "purple_clip" then
+        local g = pb9_game()
+        if g and #g.consumables < g:get_effective_consumable_capacity()
+            and SMODS.pseudorandom_probability(node, "purple_clip",
+                tonumber(st.numerator) or 0, tonumber(st.denominator) or 10,
+                "paperback_purple_clip") then
+            if pb9_create_tarot() then return { message = "+Tarot" }, true end
+        end
+    elseif bare == "pink_clip" then
+        return { x_mult = tonumber(st.x_mult) or 1 }, true
+    end
+    return nil, false
+end
+
+local function pb9_merge_effect(dst, eff)
+    if not eff then return dst end
+    dst = dst or {}
+    if eff.chips then dst.chips = (dst.chips or 0) + eff.chips end
+    if eff.mult then dst.mult = (dst.mult or 0) + eff.mult end
+    if eff.dollars then dst.dollars = (dst.dollars or 0) + eff.dollars end
+    if eff.x_mult then dst.x_mult = (dst.x_mult or 1) * eff.x_mult end
+    if eff.xmult then dst.x_mult = (dst.x_mult or 1) * eff.xmult end
+    if eff.x_chips then dst.x_chips = (dst.x_chips or 1) * eff.x_chips end
+    if eff.message then dst.message = eff.message end
+    return dst
+end
+
+SMODS.Attachment {
+    key = "platinum_clip",
+    loc_txt = { name = "Platinum Clip", text = {
+        "When {C:attention}scored{}, force-trigger",
+        "each unique non-{C:attention}Platinum{} {C:attention}Clip{}",
+        "played or held in hand",
+    } },
+    config = { triggered_clips = {} },
+    sprite = "platinum_clip.png",
+    calculate = function(self, card, context)
+        pb9_prelude(context, card)
+        local st = context.state
+        if context.card_played then
+            st.triggered_clips = type(st.triggered_clips) == "table"
+                and st.triggered_clips or {}
+            local merged = nil
+            for _, nodes in ipairs({ pb9_played_nodes(), pb9_hand_nodes() }) do
+                for _, node in ipairs(nodes) do
+                    if not node.debuffed and not node.debuff then
+                        local id = pb9_data_clip(node.card_data)
+                        if id and id ~= pb9_clip_id("platinum_clip")
+                            and not st.triggered_clips[id] then
+                            st.triggered_clips[id] = true
+                            local eff, counts = pb9_platinum_effect(
+                                id:sub(#"pbp_" + 1), node)
+                            if eff then merged = pb9_merge_effect(merged, eff) end
+                            if counts then
+                                pb9_round().scored = pb9_round().scored + 1
+                            end
+                        end
+                    end
+                end
+            end
+            st.triggered_clips = {}
+            return merged
+        end
+    end,
+}
+
+end -- SMODS.Attachment clips
+
+--------------------------------------------------------------------------------
+-- The clip Jokers
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "chip_clip",
+    name = "Chip Clip",
+    rarity = 2,
+    cost = 6,
+    blueprint_compat = true,
+    sprite = "chip_clip.png",
+    negative_sprite = "chip_clip_negative.png",
+    config = { extra = { a_chips = 15, chips = 0 } },
+    loc_txt = { name = "Chip Clip", text = {
+        "This Joker gains {C:chips}+#1#{} Chips",
+        "for each {C:attention}Clip{} {C:attention}held in hand{}",
+        "at {C:attention}end of round{}",
+        "{C:inactive}(Currently {C:chips}+#2#{C:inactive} Chips)",
+    } },
+    loc_vars = function(self, info_queue, card)
+        local e = (card.ability and card.ability.extra) or self.config.extra
+        return { vars = { e.a_chips, e.chips } }
+    end,
+    in_pool = function(self, args) return pb9_full_deck_clips() > 0 end,
+    calculate = function(self, card, context)
+        -- PC scales per held card through the individual end-of-round
+        -- context; the port walks the hand at the round-end context,
+        -- which lands the same total once.
+        if context.end_of_round and not context.blueprint then
+            local held = 0
+            for _, node in ipairs(pb9_hand_nodes()) do
+                if not node.debuffed and pb9_data_clip(node.card_data) then
+                    held = held + 1
+                end
+            end
+            if held > 0 then
+                card.ability.extra.chips = card.ability.extra.chips
+                    + card.ability.extra.a_chips * held
+                return { message = "Upgrade!" }
+            end
+        end
+        if context.joker_main and card.ability.extra.chips ~= 0 then
+            return { chips = card.ability.extra.chips }
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = "clippy",
+    name = "Clippy",
+    rarity = 2,
+    cost = 7,
+    blueprint_compat = true,
+    sprite = "clippy.png",
+    soul_sprite = "clippy_soul.png",
+    negative_sprite = "clippy_negative.png",
+    loc_txt = { name = "Clippy", text = {
+        "Add a random {C:attention}Clip{} to a",
+        "random card in your deck",
+        "when {C:attention}Blind{} is selected",
+        "{C:inactive}(Platinum excluded)",
+    } },
+    calculate = function(self, card, context)
+        if context.setting_blind then
+            local unclipped = {}
+            for _, data in ipairs(pb9_full_deck_data()) do
+                if not pb9_data_clip(data) then
+                    unclipped[#unclipped + 1] = data
+                end
+            end
+            if #unclipped == 0 then
+                return { message = "No room!" }
+            end
+            local target = unclipped[SMODS.pseudorandom("clippy", 1, #unclipped)]
+            pb9_apply_clip(target, pb9_poll_clip("clippy"))
+            return { message = "Clipped!" }
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = "clothespin",
+    name = "Clothespin",
+    rarity = 1,
+    cost = 6,
+    blueprint_compat = true,
+    sprite = "clothespin.png",
+    negative_sprite = "clothespin_negative.png",
+    loc_txt = { name = "Clothespin", text = {
+        "This Joker simultaneously counts as a",
+        "{C:attention}played{} and {C:attention}held{} {C:attention}paperclip{}",
+    } },
+    in_pool = function(self, args) return pb9_full_deck_clips() > 0 end,
+    -- No calculate: the counting lives in pb9_hand_clips, as PC's
+    -- count_paperclips adds one per held Clothespin.
+}
+
+SMODS.Joker {
+    key = "manilla_folder",
+    name = "Manilla Folder",
+    rarity = 1,
+    cost = 4,
+    blueprint_compat = false,
+    sprite = "manilla_folder.png",
+    negative_sprite = "manilla_folder_negative.png",
+    config = { extra = { money = 2 } },
+    loc_txt = { name = "Manilla Folder", text = {
+        "Earn {C:money}$#1#{} at end of round",
+        "for each {C:attention}unique Clip{}",
+        "in your full deck",
+        "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
+    } },
+    loc_vars = function(self, info_queue, card)
+        local e = (card.ability and card.ability.extra) or self.config.extra
+        local seen, n = {}, 0
+        for _, data in ipairs(pb9_full_deck_data()) do
+            local id = pb9_data_clip(data)
+            if id and not seen[id] then seen[id] = true n = n + 1 end
+        end
+        return { vars = { e.money, e.money * n } }
+    end,
+    in_pool = function(self, args) return pb9_full_deck_clips() > 0 end,
+    calc_dollar_bonus = function(self, card)
+        local seen, n = {}, 0
+        for _, data in ipairs(pb9_full_deck_data()) do
+            local id = pb9_data_clip(data)
+            if id and not seen[id] then seen[id] = true n = n + 1 end
+        end
+        if n > 0 then return n * ((card.ability.extra or {}).money or 2) end
+    end,
+}
+
+-- Vacation Juice rode the same run-state table: it counts the first
+-- clear of each Blind type per Ante in the mod state and drinks itself
+-- after the second. PORT NOTE: PC records the last defeated Blind type
+-- globally, even before the Juice is held; the port's record starts
+-- when the held Juice first sees a round end, so a type cleared before
+-- it was bought can count once more. The trigger flag is per-round
+-- here (PC keeps one in G.GAME.paperback), keyed by the round stamp.
+SMODS.Joker {
+    key = "vacation_juice",
+    name = "Vacation Juice",
+    rarity = 3,
+    cost = 10,
+    blueprint_compat = false,
+    eternal_compat = false,
+    sprite = "vacation_juice.png",
+    negative_sprite = "vacation_juice_negative.png",
+    config = { extra = { drank_after = 2 } },
+    loc_txt = { name = "Vacation Juice", text = {
+        "When clearing a {C:attention}Blind{} of a new type",
+        "for the first time this {C:attention}Ante{},",
+        "this Joker is one drink closer to empty",
+        "{C:inactive}(Drank after {C:attention}#1#{C:inactive} triggers)",
+    } },
+    loc_vars = function(self, info_queue, card)
+        local e = (card.ability and card.ability.extra) or self.config.extra
+        return { vars = { e.drank_after } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.blueprint then
+            local g = pb9_game()
+            local st = pb9_state()
+            local ante = tonumber(g and g.ante) or 1
+            if st.vj_ante ~= ante then
+                st.vj_ante = ante
+                st.vj_last_type = nil
+            end
+            local stamp = pb9_round_stamp()
+            if st.vj_trigger_stamp ~= stamp then
+                st.vj_trigger_stamp = stamp
+                st.vj_trigger = false
+            end
+            local idx = tonumber(g and g.current_blind_index) or 1
+            local btype = idx == 3 and "Boss" or (idx == 2 and "Big" or "Small")
+            local fresh = st.vj_last_type ~= btype
+            st.vj_last_type = btype
+            if fresh and not st.vj_trigger then
+                st.vj_trigger = true
+                card.ability.extra.drank_after = card.ability.extra.drank_after - 1
+                if card.ability.extra.drank_after <= 0 then
+                    SMODS.destroy_joker(card)
+                    return { message = "Drank!" }
+                end
+                return { message = "Sip!" }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- The clip Arcana: each fastens its clip to the selected cards (PC's
+-- MinorArcana base does the same through PB_UTIL.set_paperclip)
+--------------------------------------------------------------------------------
+
+local function pb9_clip_arcana(key, name, clip_bare, max_highlighted, text_clip)
+    SMODS.Consumable {
+        set = "minor_arcana", key = key, cost = 3,
+        loc_txt = { name = name, text = {
+            "Add " .. text_clip .. " to",
+            "up to {C:attention}#1#{} selected cards",
+        } },
+        config = { max_highlighted = max_highlighted, paperclip = clip_bare },
+        sprite = key .. ".png",
+        negative_sprite = key .. "_negative.png",
+        loc_vars = function(self, info_queue, card)
+            return { vars = { pb9_cfg(card).max_highlighted } }
+        end,
+        use = function(self, card, area, copier)
+            for _, view in ipairs(pb9_highlighted()) do
+                pb9_apply_clip(view, clip_bare or pb9_poll_clip(key))
+            end
+        end,
+    }
+end
+
+pb9_clip_arcana("ace_of_cups", "Ace of Cups", "blue_clip", 2, "a {C:chips}Blue Clip{}")
+pb9_clip_arcana("ace_of_wands", "Ace of Wands", "red_clip", 3, "a {C:mult}Red Clip{}")
+pb9_clip_arcana("three_of_cups", "Three of Cups", "black_clip", 1, "a {C:attention}Black Clip{}")
+pb9_clip_arcana("four_of_wands", "Four of Wands", "pink_clip", 2, "a {C:attention}Pink Clip{}")
+pb9_clip_arcana("page_of_wands", "Page of Wands", "orange_clip", 3, "an {C:attention}Orange Clip{}")
+pb9_clip_arcana("page_of_cups", "Page of Cups", "white_clip", 3, "a {C:inactive}White Clip{}")
+pb9_clip_arcana("six_of_swords", "Six of Swords", "yellow_clip", 2, "a {C:attention}Yellow Clip{}")
+pb9_clip_arcana("seven_of_swords", "Seven of Swords", "gold_clip", 1, "a {C:attention}Gold Clip{}")
+pb9_clip_arcana("seven_of_pentacles", "Seven of Pentacles", "green_clip", 2, "a {C:green}Green Clip{}")
+pb9_clip_arcana("eight_of_swords", "Eight of Swords", nil, 3, "random {C:attention}Clips{}")
+pb9_clip_arcana("nine_of_pentacles", "Nine of Pentacles", "purple_clip", 1, "a {C:purple}Purple Clip{}")
+
+end -- Wave 7 expansion block
+
+

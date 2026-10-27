@@ -94,6 +94,20 @@ local function install_pack()
         "author": ["Nether and contributors", "3DS port"]
     }]])
     love.filesystem.write(base .. "/paperbackpack.lua", main)
+    -- Wave 7 paperclip sprites (clips, clip Jokers, clip Arcana).
+    for _, n in ipairs({
+        "white_clip", "black_clip", "blue_clip", "gold_clip", "green_clip",
+        "orange_clip", "pink_clip", "purple_clip", "platinum_clip",
+        "red_clip", "yellow_clip",
+        "chip_clip", "clippy", "clippy_soul", "clothespin",
+        "manilla_folder", "vacation_juice",
+        "ace_of_cups", "ace_of_wands", "three_of_cups", "four_of_wands",
+        "page_of_wands", "page_of_cups", "six_of_swords", "seven_of_swords",
+        "seven_of_pentacles", "eight_of_swords", "nine_of_pentacles",
+    }) do
+        love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
+        love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
+    end
     for _, n in ipairs(JOKERS) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
@@ -200,6 +214,9 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Opt-in loader (Wave 7 fixture fix): a pack loads only when its id
+    -- is in the saved selection, so write it before load_all.
+    love.filesystem.write(ModLoader.ENABLED_PATH, "PaperbackPack\n")
     ModLoader.load_all()
     local game = bootstrap.new_game(9182)
     game.hand = Hand(game)
@@ -259,7 +276,7 @@ suite.test("minor arcana type and all 45 cards register", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.consumables, 45, "45 arcana register")
+    T.assert_eq(#mod.registered.consumables, 56, "56 arcana register")
     local entry = SMODS.ConsumableTypes["pbp_minor_arcana"]
     T.assert_true(entry ~= nil, "the minor_arcana type registers")
     T.assert_eq(entry.kind, "minor_arcana", "the kind string is minor_arcana")

@@ -88,6 +88,9 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. name .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. name .. "_negative.png", "png")
     end
+    -- Opt-in loader (Wave 7 fixture fix): a pack loads only when its id
+    -- is in the saved selection, so write it before load_all.
+    love.filesystem.write(ModLoader.ENABLED_PATH, "MoreFluffPack\n")
     ModLoader.load_all()
     local rec = ModLoader.by_id and ModLoader.by_id.MoreFluffPack
     assert(rec, "pack should load")

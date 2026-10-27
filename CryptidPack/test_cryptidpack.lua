@@ -700,6 +700,9 @@ local function install_pack()
     for _, n in ipairs(SPRITE_STEMS) do
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
     end
+    -- Opt-in loader (Wave 7 fixture fix): a pack loads only when its id
+    -- is in the saved selection, so write it before load_all.
+    love.filesystem.write(ModLoader.ENABLED_PATH, "CryptidPack\n")
     ModLoader.load_all()
     local game = bootstrap.new_game(7740)
     G = game

@@ -82,6 +82,9 @@ local function install_pack()
         love.filesystem.write(base .. "/assets/1x/" .. n .. ".png", "png")
         love.filesystem.write(base .. "/assets/1x/" .. n .. "_negative.png", "png")
     end
+    -- Opt-in loader (Wave 7 fixture fix): a pack loads only when its id
+    -- is in the saved selection, so write it before load_all.
+    love.filesystem.write(ModLoader.ENABLED_PATH, "BuncoPack\n")
     ModLoader.load_all()
     local game = bootstrap.new_game(7710)
     G = game

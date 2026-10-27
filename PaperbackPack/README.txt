@@ -1,6 +1,6 @@
-Paperback Pack (3DS Port) v1.4.0
-291 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
-Spectrum-family poker hands, 45 of the 56 Minor Arcana consumables,
+Paperback Pack (3DS Port) v1.5.0
+296 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
+Spectrum-family poker hands, all 56 Minor Arcana consumables,
 Paperback's eight custom enhancements, five of its custom tags and
 its Dichrome edition, from Paperback (PC, by Nether and
 contributors, MIT License) ported to Balatro3DS.
@@ -20,13 +20,15 @@ saved context, plus the Wave 5 copy dispatch
 (SMODS.blueprint_effect) the v1.3.0 Jokers ride, plus the
 Wave 6 shop, voucher and booster APIs (SMODS.add_booster_to_shop,
 SMODS.grant_voucher, the *_mod modifier seats, the open_booster
-payload) the v1.4.0 Jokers ride:
+payload) the v1.4.0 Jokers ride, plus the Wave 7 attachment
+channel and per-mod run state (SMODS.Attachment, SMODS.mod_state)
+the v1.5.0 paperclip system rides:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack will not load
 correctly; use the fork build.
 The test files (test_paperbackpack.lua, test_paperbackpack_arcana.lua,
-test_paperbackpack_extra.lua) stay in the mod folder; the game
-ignores them.
+test_paperbackpack_extra.lua, test_paperbackpack_clips.lua) stay in
+the mod folder; the game ignores them.
 
 INSTALL
 1. Unzip this file.
@@ -563,16 +565,40 @@ Wave 6 (v1.4.0) deviations, also marked PORT NOTE in the code:
   reads Paperback's live Discord member count, which has no
   offline meaning. Structural, not an API gap.
 
-NOT PORTED (25 Jokers, each on its named blocker)
-- Paperclips (4): Chip Clip, Clippy, Clothespin, Manilla Folder.
-  On PC a paperclip is per-card state stored on the playing card
-  itself (card.ability.paperback_<color>_clip), with eleven clip
-  colors each running its own calculate at clip-specific
-  contexts, plus run/round clip counters in G.GAME.paperback.
-  The fork gives a card exactly one calculate-bearing modifier
-  slot family (its enhancement or seal center); a clip would
-  displace the card's enhancement, several clip contexts are
-  never raised, and the counters have no persistence route.
+Wave 7 (v1.5.0) deviations, also marked PORT NOTE in the code:
+- The paperclip system rides the fork's SMODS.Attachment channel:
+  each of the eleven clips is an attachment whose state (the PC
+  config, verbatim) lives on the card beside its enhancement and
+  seal, and the clip counters live in the pack's per-mod run
+  state (SMODS.mod_state), so both survive saves. PC's eval_card
+  broadcast and its global Green Clip hooks run pack-side from
+  the clips' own calculates, which the fork dispatches at the
+  same moments. All eleven clip Arcana, the four clip Jokers
+  (Chip Clip, Clippy, Clothespin, Manilla Folder) and Vacation
+  Juice are ported; every Minor Arcana is now in.
+- Retrigger passes re-dispatch a card's calculates in this fork
+  (the Red Seal's grain), so a retriggered clip counts as scored
+  once per pass, where PC's hook counts once per card.
+- Platinum Clip force-triggers every other clip type once, as on
+  PC, except Black: its PC effect re-scores the black-clipped
+  card, and the fork has no cross-card rescore seat.
+- Purple Clip creates its Tarot at once with a key rolled through
+  the game's kind roller (PC defers through its event queue and
+  creates keylessly; the fork's add_card is key-only).
+- The clip art ships as each attachment's registered sprite, but
+  the card face draws no attachment badge in this build: a clip
+  is visible through its effects and tooltip text, not as a
+  badge on the card.
+- Vacation Juice records the last defeated Blind type from its
+  own round ends; types cleared before it was held are not
+  pre-recorded (PC tracks them globally), so a type cleared
+  earlier in the Ante can count once more after it is bought.
+- Ddakji stays NOT PORTED: beyond the run-state table, its
+  flipped cards are dealt by global CardArea and
+  Blind:stay_flipped hooks and a face-down card state the fork
+  does not have at all.
+
+NOT PORTED (20 Jokers, each on its named blocker)
 - E.G.O Gifts (4): Arayashiki, Fodder, Grimoire, The Strongest.
   On PC these are not consumables: a gift is a held object with
   a passive calculation that fires while it sits in the
@@ -598,15 +624,10 @@ NOT PORTED (25 Jokers, each on its named blocker)
   no reader; the fork's probability modifier is Joker-scoped
   and cannot outlive it), Nichola (scores held cards; no
   held-card scoring pass), The Sun Rises (modify_scoring_hand
-  is still never raised), Ddakji and Vacation Juice (read and
-  write G.GAME.paperback state systems), The World (hooks
+  is still never raised), Ddakji (face-down cards dealt by
+  global CardArea / Blind:stay_flipped hooks; no face-down
+  card state exists in the fork), The World (hooks
   Card:calculate_joker and Blind:stay_flipped globally).
-NOT PORTED - MINOR ARCANA (11 of 56)
-- Paperclip Arcana (11): Ace of Cups, Ace of Wands, Three of
-  Cups, Four of Wands, Page of Wands, Page of Cups, Six of
-  Swords, Seven of Swords, Seven of Pentacles, Eight of Swords,
-  Nine of Pentacles. Each applies a paperclip to selected
-  cards; see the paperclip blocker above.
 
 VALIDATION
 Loaded through the real ModLoader and exercised in Balatro3DS's
@@ -616,14 +637,19 @@ classifier, the exotic gate), arcana suite 45/45 (type
 registration, all 45 cards, the enhancement conversions, the
 tag-granting cards, the boosters, Joker targeting, Two of
 Swords), expansion suite 129/129 (registration, names, rarities,
-costs and clean tooltips for all 291 Jokers, plus behavior tests
+costs and clean tooltips for all 296 Jokers, plus behavior tests
 across the expansion Jokers, including all 45 Tier 3 additions,
 the 14 Wave 1 behavior tests, the 9 Wave 5 tests and the 9
 Wave 6 tests (Backpack's free Buffoon Pack, Protocol's pack
 size, Shopping Center's slot, Everything Must Go's voucher
 shelf, NormalJKR arming in a shop and not outside one, Touch
 Tone's drawn first card, Chaplin's free upgrade, Ouija Board's
-shuffle): Forgery
+shuffle), clips suite 18/18 (the eleven clips' registration and
+scoring behavior, the broadcast counters, Green Clip's gain and
+loss, Platinum's force-triggers, the four clip Jokers, Vacation
+Juice's two new-type drinks, the clip Arcana and the one-clip
+rule, and clips plus run state surviving a snapshot round-trip).
+The Wave 6 record continues: Forgery
 copying and multiplying a held mod Joker, Forgery's post-hand
 reset, Master Plan and Photocopy dispatching, the vanilla
 in-place delta, and debuffed / non-compatible targets never
