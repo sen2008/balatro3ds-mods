@@ -45,6 +45,50 @@
    }
   },
   {
+   "Balatro3DS-super.cia": {
+    "script": [
+     {
+      "file": "https://archive.org/download/balatro3ds-super/Balatro-super.cia",
+      "output": "/Balatro3DS-super.cia",
+      "type": "downloadFile"
+     },
+     {
+      "file": "/Balatro3DS-super.cia",
+      "type": "installCia"
+     },
+     {
+      "file": "/Balatro3DS-super.cia",
+      "type": "deleteFile"
+     }
+    ],
+    "size": "60 MiB"
+   },
+   "info": {
+    "author": "sen2008 (base: Gazpacho/idkhan)",
+    "category": [
+     "game"
+    ],
+    "console": [
+     "3DS"
+    ],
+    "description": "One CIA with all 10 mod packs built into the game: Cryptid, Paperback, Pokermon, Jest, Bunco, MoreFluff, Mika's, Neato, KCVanilla and Swiss Cheese. No separate pack install needed. Mods are opt-in: enable them in Options > Mods. A pack folder on the SD card overrides the bundled copy.",
+    "icon_index": 0,
+    "installed_files": [],
+    "last_updated": "2026-10-26",
+    "license": "gpl-3.0",
+    "llm_generation": "yes",
+    "preinstall_message": "Installs as Balatro3DS, replacing the regular fork build. Hosted on archive.org (62.9 MB, too large for GitHub's API).",
+    "releasenotes": "",
+    "screenshots": [],
+    "sheet_index": 0,
+    "stars": 0,
+    "title": "Balatro3DS Fork — SUPER (All Mods Built In)",
+    "title_ids": [],
+    "version": "build-2026-10-27-super",
+    "wiki": ""
+   }
+  },
+  {
    "All-Mod-Packs": {
     "script": [
      {
@@ -726,7 +770,7 @@
   "dsSheetURL": "",
   "file": "balatro3ds-mods.unistore",
   "infoURL": "",
-  "revision": 10,
+  "revision": 11,
   "sheet": [
    "balatro3ds-mods.t3x"
   ],
