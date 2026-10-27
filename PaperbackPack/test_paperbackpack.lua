@@ -113,7 +113,7 @@ local function install_pack()
         "joker_duty", "joker_jacks", "journal", "keycard",
         "king_me", "legacy", "loaded_dice", "lone_digger",
         "lurid_joker", "man", "mandela_effect", "marble_soda",
-        "master_spark", "matcha", "meeple", "mezzetino",
+        "master_spark", "matcha", "medic", "blood_rain", "meeple", "mezzetino",
         "mind_electric", "moneyback", "moribund", "moving_out",
         "nazca_lines", "ncj", "nigiri", "off_switch",
         "one_shift_more", "paralyzed", "paranoia", "pear",
@@ -271,11 +271,11 @@ end
 -- Loading + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 296 Paperback Jokers", function()
+suite.test("pack loads and registers all 298 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 296)
+    T.assert_eq(#mod.registered.jokers, 298)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -294,6 +294,8 @@ suite.test("pack loads and registers all 296 Paperback Jokers", function()
         j_pbp_jacks = { "Jacks", 1, 5 },
         j_pbp_jestrica = { "Jestrica", 1, 5 },
         j_pbp_magic_mushroom = { "Magic Mushroom", 3, 8 },
+        j_pbp_medic = { "Medic", 2, 6 },
+        j_pbp_blood_rain = { "Blood Rain", 3, 8 },
         j_pbp_mismatched_sock = { "Mismatched Sock", 2, 6 },
         j_pbp_nazar = { "Nazar", 1, 5 },
         j_pbp_planchette = { "Planchette", 2, 6 },

@@ -1,7 +1,7 @@
 --- Tests for the PaperbackPack expansion Jokers (the 188 ported after the
 --- original 36) for the Balatro3DS fork build. Registration and tooltip
---- sanity for all 296 Jokers in the pack, plus the per-slice behavior
---- suites (PB_TESTS_0 .. PB_TESTS_8). The mod's real main file is read
+--- sanity for all 298 Jokers in the pack, plus the per-slice behavior
+--- suites (PB_TESTS_0 .. PB_TESTS_9). The mod's real main file is read
 --- from the PB_PACK_LUA env var, like the other pack suites.
 local T = require("tests.testlib")
 local bootstrap = require("tests.bootstrap")
@@ -57,7 +57,7 @@ local NAMES = {
     "joker_duty", "joker_jacks", "journal", "keycard",
     "king_me", "legacy", "loaded_dice", "lone_digger",
     "lurid_joker", "man", "mandela_effect", "marble_soda",
-    "master_spark", "matcha", "meeple", "mezzetino",
+    "master_spark", "matcha", "medic", "blood_rain", "meeple", "mezzetino",
     "mind_electric", "moneyback", "moribund", "moving_out",
     "nazca_lines", "ncj", "nigiri", "off_switch",
     "one_shift_more", "paralyzed", "paranoia", "pear",
@@ -239,11 +239,11 @@ end
 -- Registration + tooltips for the whole pack
 --------------------------------------------------------------------------------
 
-suite.test("pack loads and registers all 296 Paperback Jokers", function()
+suite.test("pack loads and registers all 298 Paperback Jokers", function()
     local game = install_pack()
     local mod = ModLoader.by_id.PaperbackPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 296)
+    T.assert_eq(#mod.registered.jokers, 298)
     local expect = {
         j_pbp_aurora_borealis = { "Aurora Borealis", 2, 6 },
         j_pbp_bicycle = { "Bicycle", 2, 6 },
@@ -2325,6 +2325,68 @@ PB_TESTS_8 = function(H)
     end)
 end
 
+--------------------------------------------------------------------------------
+-- Wave 7b (v1.5.1): Bandaged honest, Medic, Blood Rain
+--------------------------------------------------------------------------------
+
+PB_TESTS_9 = function(H)
+    H.test("wave7b bandaged: neighbours retrigger, more with a Medic", function()
+        local game = H.new_game()
+        local x = H.node(5, "Spades")
+        local b = H.node(7, "Hearts", { enhancement = "bandaged" })
+        local y = H.node(9, "Clubs")
+        local z = H.node(2, "Diamonds")
+        local played = { x, b, y, z }
+        H.assert_eq(SMODS.enhancement_retrigger_count(x, false, played), 1,
+            "the left neighbour is retriggered")
+        H.assert_eq(SMODS.enhancement_retrigger_count(y, false, played), 1,
+            "the right neighbour is retriggered")
+        H.assert_eq(SMODS.enhancement_retrigger_count(z, false, played), 0,
+            "a card two seats away is not")
+        H.assert_eq(SMODS.enhancement_retrigger_count(b, false, played), 0,
+            "a Bandaged card never retriggers itself")
+        H.make_joker(game, "medic")
+        H.assert_eq(SMODS.mod_state("PaperbackPack").bandaged_inc, 1,
+            "a held Medic raises the counter")
+        H.assert_eq(SMODS.enhancement_retrigger_count(x, false, played), 2,
+            "the answer is 1 + the Medic counter")
+    end)
+
+    H.test("wave7b bandaged: the break roll answers the destroy question", function()
+        local game = H.new_game()
+        local b = H.node(7, "Hearts", { enhancement = "bandaged" })
+        local played = { H.node(5, "Spades"), b, H.node(9, "Clubs") }
+        local real = SMODS.pseudorandom_probability
+        SMODS.pseudorandom_probability = function() return true end
+        H.assert_true(SMODS.enhancement_destroy_check(b, played),
+            "a won roll breaks the card")
+        H.assert_eq(SMODS.mod_state("PaperbackPack").bandages_broken, 1,
+            "the break is counted in the pack state")
+        SMODS.pseudorandom_probability = function() return false end
+        H.assert_true(not SMODS.enhancement_destroy_check(b, played),
+            "a lost roll keeps it")
+        H.assert_eq(SMODS.mod_state("PaperbackPack").bandages_broken, 1)
+        SMODS.pseudorandom_probability = real
+    end)
+
+    H.test("wave7b blood rain: Soaked pays held ranks as Mult", function()
+        local game = H.new_game()
+        local soaked = H.node(4, "Hearts", { enhancement = "soaked" })
+        game.play = game.play or {}
+        game.play.card_nodes = { soaked }
+        game.hand.card_nodes = { H.node(9, "Clubs"), H.node(14, "Spades") }
+        local ctx = { cards = { soaked }, played_cards = { soaked }, chips = 0, mult = 1 }
+        soaked:emit_hand_event("card_played", ctx)
+        H.assert_eq(ctx.chips, 20, "without Blood Rain: held Chip values (9 + 11)")
+        H.assert_eq(ctx.mult, 1)
+        H.make_joker(game, "blood_rain")
+        local ctx2 = { cards = { soaked }, played_cards = { soaked }, chips = 0, mult = 1 }
+        soaked:emit_hand_event("card_played", ctx2)
+        H.assert_eq(ctx2.mult, 21, "with Blood Rain: 1 + held nominal ranks (9 + Ace 11)")
+        H.assert_eq(ctx2.chips, 0, "and no Chips from the held cards")
+    end)
+end
+
 PB_TESTS_0(H)
 PB_TESTS_1(H)
 PB_TESTS_2(H)
@@ -2334,5 +2396,6 @@ PB_TESTS_5(H)
 PB_TESTS_6(H)
 PB_TESTS_7(H)
 PB_TESTS_8(H)
+PB_TESTS_9(H)
 
 return suite

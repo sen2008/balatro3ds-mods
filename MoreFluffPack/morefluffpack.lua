@@ -2611,9 +2611,12 @@ end
 -- out of the fork's random-enhancement polls; cards can still carry
 -- them through SMODS.add_card / mod_conv, and the Jokers below read
 -- them. Brass and Yucky have no intrinsic center effect the fork can
--- run (enhancement retriggers and destroy-after-scoring rolls are
--- never asked of a center -- only seals get a retrigger query), so
--- Brass Joker and Yucky Rat mediate those two effects while held.
+-- run (when these were ported, enhancement retriggers and
+-- destroy-after-scoring rolls were never asked of a center; the
+-- Wave 7b channels ask both now, but Brass Joker and Yucky Rat keep
+-- mediating the two effects while held, as they did on arrival --
+-- moving them onto the enhancements themselves would double the
+-- effects alongside the Jokers and change the ported balance).
 --------------------------------------------------------------------------------
 
 if SMODS.Enhancement then
@@ -4542,3 +4545,303 @@ SMODS.Joker {
 }
 
 end -- SMODS.ConsumableType (Colour system)
+
+--------------------------------------------------------------------------------
+-- Wave 7b section (v1.5.0): the Disintegration Loop transform chain
+-- (crimsonglassdecomposition -> halt -> theshatteringcircle) and Ransom
+-- Note, on the fork's Wave 7b systems: SMODS.transform_joker, the
+-- enhancement retrigger query, the identity fields (replace_base_card /
+-- no_rank / no_suit / any_suit / always_scores) and the opt-in discard
+-- moment (calculate_on_discard). Helpers keep the mf_ prefix.
+--------------------------------------------------------------------------------
+
+-- A random base card for the Power cards the Loop creates (PC's
+-- set = "Base": a random rank and suit, straight into the deck).
+local function mf7b_random_base()
+    local g = refresh_g()
+    local suits = { "Spades", "Hearts", "Clubs", "Diamonds" }
+    local rank = 2
+    if g and g.random then rank = g:random("mf_power_rank", 2, 14) end
+    local pick = SMODS.pseudorandom and SMODS.pseudorandom("mf_power_suit", 1, 4) or 1
+    return rank, suits[pick] or "Spades"
+end
+
+-- Held and played 8/3 counts for the Loop's first form. The played set
+-- is the context's scoring hand when the caller supplies one (the fork's
+-- sequencer supplies none, where the hand's selection is the play).
+local function mf7b_count_83(context)
+    local g = refresh_g()
+    local played, seen = {}, {}
+    if context.scoring_hand and #context.scoring_hand > 0 then
+        played = context.scoring_hand
+    elseif g and g.hand and g.hand.selected then
+        played = g.hand.selected
+    end
+    for _, v in ipairs(played) do seen[v] = true end
+    local p83 = 0
+    for _, v in ipairs(played) do
+        local id = v.get_id and v:get_id()
+        if id == 8 or id == 3 then p83 = p83 + 1 end
+    end
+    local h83 = 0
+    if g and g.hand and g.hand.card_nodes then
+        for _, node in ipairs(g.hand.card_nodes) do
+            if not seen[node] and node.debuffed ~= true
+                and node.debuffed_for_scoring ~= true then
+                local id = node.get_id and node:get_id()
+                if id == 8 or id == 3 then h83 = h83 + 1 end
+            end
+        end
+    end
+    return h83, p83
+end
+
+if SMODS.Enhancement then
+
+--------------------------------------------------------------------------------
+-- Power (Enhancement): X2 Mult when scored, no rank, every suit,
+-- always scores, and a discarded or played copy shuffles itself back
+-- into the deck instead of staying in the discard pile (PC's draw_card
+-- redirect; here the fork's opt-in discard moment). Creation-only, as
+-- on PC: no_collection there, weight 0 and no Rotarot here.
+-- PORT NOTE: PC's X Mult is its config Xmult; the fork applies
+-- config.x_mult at the card's own scoring beat, the same number.
+--------------------------------------------------------------------------------
+
+SMODS.Enhancement {
+    key = "power",
+    loc_txt = { name = "Power", text = {
+        "{X:mult,C:white}X#1#{} Mult when scored",
+        "no rank, every suit",
+        "Shuffle this card into",
+        "your deck when it is",
+        "discarded or played",
+        "Always scores",
+    } },
+    config = { x_mult = 2 },
+    weight = 0,
+    sprite = "enh_power.png",
+    replace_base_card = true,
+    no_rank = true,
+    any_suit = true,
+    always_scores = true,
+    calculate_on_discard = true,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { self.config.x_mult } }
+    end,
+    calculate = function(self, card, context)
+        if context.on_discard then
+            local g = refresh_g()
+            local deck = g and g.deck
+            local data = card and card.card_data
+            if deck and deck.discard_pile and data then
+                for i, d in ipairs(deck.discard_pile) do
+                    if d.enhancement == "power" and d.rank == data.rank
+                        and d.suit == data.suit then
+                        table.remove(deck.discard_pile, i)
+                        break
+                    end
+                end
+                if deck.insert_random then deck:insert_random(data) end
+                if deck.shuffle then deck:shuffle("mf_power") end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Ransom Note (Enhancement): X2 Mult when scored, retriggered 2
+-- additional times (the enhancement retrigger query), no rank or suit,
+-- always scores. PC's text is the ransom-note image itself (empty);
+-- the port describes the card plainly.
+--------------------------------------------------------------------------------
+
+SMODS.Enhancement {
+    key = "ransom_note",
+    loc_txt = { name = "Ransom Note", text = {
+        "{X:mult,C:white}X#1#{} Mult when scored",
+        "Retriggered {C:attention}#2#{} additional times",
+        "no rank or suit",
+        "Always scores",
+    } },
+    config = {},
+    weight = 0,
+    sprite = "enh_ransom_note.png",
+    replace_base_card = true,
+    no_rank = true,
+    no_suit = true,
+    always_scores = true,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 2, 2 } }
+    end,
+    calculate = function(self, card, context)
+        local g = refresh_g()
+        if context.repetition and context.cardarea == g.play then
+            return { repetitions = 2 }
+        end
+        if context.main_scoring and context.cardarea == g.play then
+            return { x_mult = 2 }
+        end
+    end,
+}
+
+end -- SMODS.Enhancement (Wave 7b)
+
+--------------------------------------------------------------------------------
+-- Disintegration Loop, first form (Crimson Glass deComposition):
+-- transforms into Halt after a Boss Blind, creating 3 Power Cards into
+-- the deck on the way.
+-- PORT NOTE: PC's other half makes held 8s and 3s SCORE (their chips
+-- and effects, via SMODS.score_card) whenever a non-8/3 card scores;
+-- the fork has no score-a-held-card pass, so only the X Mult those
+-- scorings would have produced is ported, folded into the triggering
+-- card's beat: X1.5 per held 8/3, once more per played 8/3, exactly
+-- the exponent PC's merged returns produce. The held cards' own chips
+-- are not added. PC's fakeout sprite variants (a disguise in other
+-- contexts) are a draw hook; the fork's sprites are single-image, so
+-- the disguise is dropped and the Joker always shows its own art.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "crimsonglassdecomposition",
+    loc_txt = { name = "Disintegration Loop", text = {
+        "Non-{C:attention}8{} or {C:attention}3{} cards",
+        "{C:attention}score{} held {C:attention}8s{} and {C:attention}3s{}",
+        "when played and scored",
+        "Held {C:attention}8s{} and {C:attention}3s{} give",
+        "{X:mult,C:white}X#1#{} Mult when scored for",
+        "each played {C:attention}8{} or {C:attention}3{},",
+        "and then once more",
+        "{C:attention}Transforms{} after {C:attention}#2#{}",
+        "{C:attention}Boss Blind{} is defeated",
+    } },
+    config = { extra = { bosses_left = 1, xmult = 1.5 } },
+    rarity = 3, cost = 10, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "crimsonglassdecomposition.png",
+    negative_sprite = "crimsonglassdecomposition_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.xmult, card.ability.extra.bosses_left } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.end_of_round and not context.individual and not context.repetition
+            and not context.blueprint and mf_is_boss(context) then
+            e.bosses_left = e.bosses_left - 1
+            if e.bosses_left <= 0 then
+                SMODS.transform_joker(card, "j_mfp_halt")
+                for _ = 1, 3 do
+                    local rank, suit = mf7b_random_base()
+                    SMODS.add_card { set = "Playing", rank = rank, suit = suit,
+                        enhancement = "power", area = "deck" }
+                end
+                return { message = "Transformed!" }
+            end
+            return { message = tostring(e.bosses_left) }
+        end
+        if context.individual and context.cardarea == G.play and context.other_card then
+            local oid = context.other_card:get_id()
+            if oid ~= 8 and oid ~= 3 then
+                local held, played = mf7b_count_83(context)
+                if held > 0 then
+                    return { x_mult = e.xmult ^ (held * (1 + played)) }
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Disintegration Loop, second form (Halt!): draws one Power Card from
+-- the deck to hand at each Blind select; transforms into The
+-- Shattering Circle after one more Boss Blind. Creation-only, as on
+-- PC (in_pool returns false; it exists by transforming into it).
+-- PORT NOTE: PC marks the drawn card (mf_drawn_to_hand) because its
+-- move is queued; the port moves the card immediately, so the first
+-- Power Card still in the deck is the undrawn one by construction.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "halt",
+    loc_txt = { name = "Disintegration Loop", text = {
+        "When this Joker is transformed",
+        "into, shuffle {C:attention}#1#{} {C:attention}Powers{} into your deck",
+        "Draw one to hand at the start",
+        "of each {C:attention}Blind{}",
+        "{C:attention}Transforms{} after {C:attention}#2#{}",
+        "{C:attention}Boss Blind{} is defeated",
+    } },
+    config = { extra = { power_cards = 3, bosses_left = 1 } },
+    rarity = 3, cost = 10, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "halt.png",
+    negative_sprite = "halt_negative.png",
+    in_pool = function(self, args) return false end,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.power_cards, card.ability.extra.bosses_left } }
+    end,
+    calculate = function(self, card, context)
+        refresh_g()
+        local e = card.ability.extra
+        if context.end_of_round and not context.individual and not context.repetition
+            and not context.blueprint and mf_is_boss(context) then
+            e.bosses_left = e.bosses_left - 1
+            if e.bosses_left <= 0 then
+                SMODS.transform_joker(card, "j_mfp_theshatteringcircle")
+                return { message = "Transformed!" }
+            end
+            return { message = tostring(e.bosses_left) }
+        end
+        if context.setting_blind then
+            local g = refresh_g()
+            local deck, hand = g and g.deck, g and g.hand
+            if deck and deck.cards and hand and hand.add_card then
+                for i, data in ipairs(deck.cards) do
+                    if data.enhancement == "power" then
+                        table.remove(deck.cards, i)
+                        hand:add_card(data, true)
+                        break
+                    end
+                end
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Ransom Note: the Joker becomes a playing card. PC moves the Joker
+-- card itself into the deck and re-centers it (set_ability to the
+-- enhancement, base changed to the Ace of Spades); the fork's Joker
+-- and playing-card objects are distinct, so the Joker leaves the tray
+-- (through the ordinary removal path, which other Jokers hear as a
+-- destroyed Joker -- PC raises nothing) and an equivalent Ace of
+-- Spades carrying the enhancement enters the deck, shuffled.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "ransom_note",
+    loc_txt = { name = "Ransom Note", text = {
+        "Becomes an {C:attention}Ace{} of {C:spades}Spades{}",
+        "in your deck, as a",
+        "{C:attention}Ransom Note Card{}",
+    } },
+    config = {},
+    rarity = 2, cost = 4, unlocked = true, discovered = true,
+    blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+    sprite = "ransom_note.png",
+    negative_sprite = "ransom_note_negative.png",
+    add_to_deck = function(self, card, from_debuff)
+        local g = refresh_g()
+        if not g or type(g.jokers) ~= "table" then return end
+        local idx = nil
+        for i, j in ipairs(g.jokers) do
+            if j == card then idx = i break end
+        end
+        if not idx then return end
+        g:remove_owned_joker_at(idx, true)
+        SMODS.add_card { set = "Playing", rank = "Ace", suit = "Spades",
+            enhancement = "ransom_note", area = "deck" }
+        if g.deck and g.deck.shuffle then g.deck:shuffle("mf_ransom_note") end
+    end,
+}

@@ -1,5 +1,5 @@
-Paperback Pack (3DS Port) v1.5.0
-296 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
+Paperback Pack (3DS Port) v1.5.1
+298 of Paperback's 316 Jokers, the Stars and Crowns suits, the four
 Spectrum-family poker hands, all 56 Minor Arcana consumables,
 Paperback's eight custom enhancements, five of its custom tags and
 its Dichrome edition, from Paperback (PC, by Nether and
@@ -22,7 +22,10 @@ Wave 6 shop, voucher and booster APIs (SMODS.add_booster_to_shop,
 SMODS.grant_voucher, the *_mod modifier seats, the open_booster
 payload) the v1.4.0 Jokers ride, plus the Wave 7 attachment
 channel and per-mod run state (SMODS.Attachment, SMODS.mod_state)
-the v1.5.0 paperclip system rides:
+the v1.5.0 paperclip system rides, plus the Wave 7b enhancement
+channels (the enhancement retrigger query with its opt-in neighbour
+ask, and the post-scoring destroy question) the v1.5.1 additions
+ride:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack will not load
 correctly; use the fork build.
@@ -414,10 +417,10 @@ Tier 3 (v1.1.0) deviations, also marked PORT NOTE in the code:
   PC discard-a-card-to-destroy-a-scored-card half is unported.
   Sleeved is registered with its values only: a boss debuffing
   it on PC is a Blind predicate, and the fork gives enhancements
-  no way to block destruction. Bandaged is likewise inert: the
-  fork never asks an enhancement for repetitions or destruction
-  vetoes, so its +1 repetition cannot fire (Gauze still applies
-  it, and Medic stays unported below). Wrapped's plain $2
+  no way to block destruction. Bandaged was likewise inert until
+  v1.5.1: the fork asked enhancements neither question at the
+  time; it is honest since (see the Wave 7b notes below), and
+  Gauze applies it. Wrapped's plain $2
   scores; its no-rank / no-suit / always-scores traits cannot be
   expressed. Ceramic pays its random dollars; its
   shatter-into-two-copies half is unported (no such hook).
@@ -598,7 +601,7 @@ Wave 7 (v1.5.0) deviations, also marked PORT NOTE in the code:
   Blind:stay_flipped hooks and a face-down card state the fork
   does not have at all.
 
-NOT PORTED (20 Jokers, each on its named blocker)
+NOT PORTED (18 Jokers, each on its named blocker)
 - E.G.O Gifts (4): Arayashiki, Fodder, Grimoire, The Strongest.
   On PC these are not consumables: a gift is a held object with
   a passive calculation that fires while it sits in the
@@ -609,12 +612,6 @@ NOT PORTED (20 Jokers, each on its named blocker)
 - Custom rank Apostle (6): As Above So Below, In Case I Make It,
   One Sin and Hundreds of Good Deeds, Penumbra Phantasm, Plague
   Doctor, White Night. The fork still has no rank registrar.
-- Enhancement-gated (2): Blood Rain (its PC def has no
-  calculate at all - the effect lives in global hooks absent
-  from this snapshot - and it replaces a scored card's Chips
-  with its Mult), Medic (its only effect maintains the
-  bandaged_inc counter feeding Bandaged repetitions, which the
-  fork never queries).
 - Membership Card: its XMult is Paperback's live Discord
   member count divided by 1000; there is no offline value to
   port. Structural.
@@ -629,6 +626,27 @@ NOT PORTED (20 Jokers, each on its named blocker)
   card state exists in the fork), The World (hooks
   Card:calculate_joker and Blind:stay_flipped globally).
 
+Wave 7b (v1.5.1) additions, on the fork's Wave 7b enhancement
+channels:
+- Bandaged is honest: it opts into the fork's neighbour-repetition
+  ask, so a scoring card immediately beside a scoring Bandaged
+  card is retriggered once (plus one per held Medic), and its
+  1-in-5 break roll answers the post-scoring destroy question.
+  Broken Bandaged cards are counted in the pack's mod state.
+- Medic (Uncommon, $6): its whole effect is the counter above,
+  +1 while held, exactly PC's add/remove pair. Pool-gated on a
+  Bandaged card in the full deck (PC's enhancement_gate). PC's
+  unlock (break 2 Bandaged cards in one hand) is not ported, as
+  with every Joker in this pack; the pack counts broken Bandaged
+  cards per run rather than per hand, and no unlock system reads
+  the number.
+- Blood Rain (Rare, $8): no calculate, as on PC. While held, a
+  scoring Soaked card's held-card credit pays each held card's
+  nominal rank as Mult instead of its Chip value (rankless held
+  cards still pay Chips), inside Soaked's own calculate where PC
+  keeps it in an eval_card hook. Pool-gated on a Soaked card in
+  the full deck.
+
 VALIDATION
 Loaded through the real ModLoader and exercised in Balatro3DS's
 own headless harness: main suite 41/41 (the original 36 Jokers'
@@ -636,15 +654,17 @@ behavior, the suits, the Spectrum hands through the game's own
 classifier, the exotic gate), arcana suite 45/45 (type
 registration, all 45 cards, the enhancement conversions, the
 tag-granting cards, the boosters, Joker targeting, Two of
-Swords), expansion suite 129/129 (registration, names, rarities,
-costs and clean tooltips for all 296 Jokers, plus behavior tests
+Swords), expansion suite 132/132 (registration, names, rarities,
+costs and clean tooltips for all 298 Jokers, plus behavior tests
 across the expansion Jokers, including all 45 Tier 3 additions,
-the 14 Wave 1 behavior tests, the 9 Wave 5 tests and the 9
+the 14 Wave 1 behavior tests, the 9 Wave 5 tests, the 9
 Wave 6 tests (Backpack's free Buffoon Pack, Protocol's pack
 size, Shopping Center's slot, Everything Must Go's voucher
 shelf, NormalJKR arming in a shop and not outside one, Touch
 Tone's drawn first card, Chaplin's free upgrade, Ouija Board's
-shuffle), clips suite 18/18 (the eleven clips' registration and
+shuffle) and the 3 Wave 7b tests (Bandaged's neighbour
+retriggers and break roll, Blood Rain over a scoring Soaked
+card), clips suite 18/18 (the eleven clips' registration and
 scoring behavior, the broadcast counters, Green Clip's gain and
 loss, Platinum's force-triggers, the four clip Jokers, Vacation
 Juice's two new-type drinks, the clip Arcana and the one-clip

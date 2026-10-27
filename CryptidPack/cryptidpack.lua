@@ -17,7 +17,11 @@
     and SMODS.blueprint_effect). The v1.5.0 additions need the
     fork's Wave 6 shop / voucher / booster APIs
     (SMODS.multiply_shop_prices, SMODS.queue_next_booster_bonus,
-    SMODS.unredeem_voucher / grant_voucher).
+    SMODS.unredeem_voucher / grant_voucher). The v1.6.0 additions
+    need the fork's Wave 7b enhancement channels (the enhancement
+    retrigger query, per-card enhancement state, the
+    check_enhancement alias, the destroy question and the
+    specific-rank/suit identity fields).
 
     Port notes:
       * The Talisman bignum wrapper (lenient_bignum / to_big) is
@@ -10471,14 +10475,13 @@ SMODS.Consumable {
 -- The Meme pool: every ported Joker whose PC def carries
 -- pools = { Meme = true } (items/misc_joker.lua, items/epic.lua,
 -- items/m.lua), enumerated the same way the M pool is above.
--- PC's pool also holds Cat Owl, which is not ported, so the pool
--- here is the 16 members that exist in the pack now.
+-- Cat Owl joined with the Wave 7b slice (v1.6.0).
 local CRYPT_MEME_POOL = {
     "j_cryp_happyhouse", "j_cryp_cube", "j_cryp_nice", "j_cryp_chad",
     "j_cryp_jimball", "j_cryp_sus", "j_cryp_krustytheclown",
     "j_cryp_blurred", "j_cryp_filler", "j_cryp_lebaron_james",
     "j_cryp_wario", "j_cryp_m", "j_cryp_boredom", "j_cryp_curse_sob",
-    "j_cryp_bonk", "j_cryp_reverse",
+    "j_cryp_bonk", "j_cryp_reverse", "j_cryp_cat_owl",
 }
 
 local function crypW_meme_pool_ids()
@@ -11393,6 +11396,372 @@ SMODS.Joker {
                 end
             end
             return { message = "+ Consumable" }
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Wave 7b section (v1.6.0): the enhancement channels. The fork's Wave 7b
+-- systems -- the enhancement retrigger query, per-card enhancement state
+-- (context.state), the check_enhancement alias, the destroy question and
+-- the identity fields (specific_rank / specific_suit / replace_base_card
+-- / always_scores) -- unlock Cryptid's three registered enhancements
+-- and the six items gated on them. Helpers keep the crypT_ prefix.
+--------------------------------------------------------------------------------
+
+if SMODS.Enhancement then
+
+--------------------------------------------------------------------------------
+-- Echo (Enhancement): 1 in 2 chance to retrigger twice when scored.
+-- The whole effect is the repetition answer, which is why it waited for
+-- the enhancement retrigger query: state carries PC's ability fields
+-- (retriggers / extra) verbatim.
+--------------------------------------------------------------------------------
+
+SMODS.Enhancement {
+    key = "echo",
+    loc_txt = {
+        name = "Echo Card",
+        text = {
+            "{C:green}#2# in #3#{} chance to",
+            "{C:attention}retrigger{} #1# additional",
+            "times when scored",
+        },
+    },
+    config = { retriggers = 2, extra = 2 },
+    weight = 0,
+    sprite = "echo.png",
+    loc_vars = function(self, info_queue, card)
+        local st = card and SMODS.enhancement_state and SMODS.enhancement_state(card)
+        local retriggers = (st and st.retriggers) or self.config.retriggers
+        local extra = (st and st.extra) or self.config.extra
+        local num, den = SMODS.get_probability_vars(card, 1, extra, "Echo Card")
+        return { vars = { retriggers, num, den } }
+    end,
+    calculate = function(self, card, context)
+        if context.repetition and context.state then
+            if SMODS.pseudorandom_probability(card, "cryp_echo", 1,
+                context.state.extra, "Echo Card") then
+                return {
+                    message = "Again!",
+                    repetitions = context.state.retriggers,
+                }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Light (Enhancement): a per-card counter state machine -- the state
+-- channel's customer. Every scoring pass with company counts down by
+-- the number of other scoring cards; at zero the requirement grows by
+-- 5 and the card's X Mult grows by 0.2.
+--------------------------------------------------------------------------------
+
+SMODS.Enhancement {
+    key = "light",
+    loc_txt = {
+        name = "Light Card",
+        text = {
+            "When triggered with {C:attention}#4#{} {C:inactive}(#3#){} other",
+            "scoring cards, gain {X:mult,C:white}X#1#{} Mult and",
+            "increase requirement by {C:attention}5{}",
+            "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult){}",
+        },
+    },
+    config = { extra = { a_x_mult = 0.2, current_x_mult = 1, req = 5, current = 5 } },
+    weight = 0,
+    sprite = "light.png",
+    loc_vars = function(self, info_queue, card)
+        local st = card and SMODS.enhancement_state and SMODS.enhancement_state(card)
+        local ex = (st and st.extra) or self.config.extra
+        return { vars = { ex.a_x_mult, ex.current_x_mult, ex.current, ex.req } }
+    end,
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.main_scoring and context.state then
+            local ex = context.state.extra
+            local scored = context.scoring_hand and #context.scoring_hand or 0
+            if scored > 1 then
+                ex.current = ex.current - (scored - 1)
+                while ex.current <= 0 do
+                    ex.req = ex.req + 5
+                    ex.current = ex.current + ex.req
+                    ex.current_x_mult = ex.current_x_mult + ex.a_x_mult
+                end
+            end
+            if ex.current_x_mult > 1 then
+                return { x_mult = ex.current_x_mult }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Abstract (Enhancement): counts as its own rank and suit (the fork's
+-- identity fields), ^1.15 Mult when scored, and a 1 in 4 destroy roll
+-- both when a hand is played around it (the destroy question, hand
+-- area) and when held at round end (the channel's remove return).
+-- PORT NOTE: PC also vetoes the destroy for eternal cards; the fork's
+-- playing cards carry no eternal flag, and every destroy still passes
+-- the destroying_card veto Jokers get. PC's overrides_base_rank
+-- generation exclusions (Grim / Incantation pools) have no fork pool
+-- distinction to attach to.
+--------------------------------------------------------------------------------
+
+SMODS.Enhancement {
+    key = "abstract",
+    loc_txt = {
+        name = "Abstract Card",
+        text = {
+            "{X:mult,C:white}^#1#{} Mult,",
+            "Counts as its {C:attention}own{} rank and suit",
+            "{C:green}#2# in #3#{} chance to",
+            "{C:red}destroy{} card when held at",
+            "{C:attention}round end{} or {C:attention}hand played{}",
+        },
+    },
+    config = { extra = { Emult = 1.15, odds_after_round = 4 } },
+    weight = 0,
+    sprite = "abstract.png",
+    specific_rank = "cry_abstract",
+    specific_suit = "cry_abstract",
+    replace_base_card = true,
+    force_no_face = true,
+    shatters = true,
+    loc_vars = function(self, info_queue, card)
+        local st = card and SMODS.enhancement_state and SMODS.enhancement_state(card)
+        local ex = (st and st.extra) or self.config.extra
+        local num, den = SMODS.get_probability_vars(card, 1, ex.odds_after_round, "Abstract Card")
+        return { vars = { ex.Emult, num, den } }
+    end,
+    calculate = function(self, card, context)
+        if context.destroy_card and context.cardarea == G.hand and context.state then
+            if SMODS.pseudorandom_probability(card, "cryp_abstract", 1,
+                context.state.extra.odds_after_round, "Abstract Card") then
+                return { remove = true }
+            end
+        end
+        if context.on_round_end and context.state then
+            if SMODS.pseudorandom_probability(card, "cryp_abstract", 1,
+                context.state.extra.odds_after_round, "Abstract Card") then
+                return { remove = true }
+            end
+        end
+        if context.cardarea == G.play and context.main_scoring and context.state then
+            return { e_mult = context.state.extra.Emult }
+        end
+    end,
+}
+
+end -- SMODS.Enhancement (Wave 7b)
+
+--------------------------------------------------------------------------------
+-- The three conversion Tarots. mod_conv resolves the registered
+-- enhancements by their Steamodded-style full keys, as with Paperback's
+-- Minor Arcana.
+--------------------------------------------------------------------------------
+
+SMODS.Consumable {
+    set = "Tarot",
+    key = "eclipse",
+    loc_txt = {
+        name = "The Eclipse",
+        text = {
+            "Enhances {C:attention}#1#{} selected card",
+            "into an {C:attention}Echo Card{}",
+        },
+    },
+    config = { mod_conv = "m_cryp_echo", max_highlighted = 1 },
+    unlocked = true,
+    discovered = true,
+    sprite = "eclipse.png",
+    negative_sprite = "eclipse_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (card and card.ability and card.ability.max_highlighted)
+            or (self.config and self.config.max_highlighted) or 1 } }
+    end,
+}
+
+SMODS.Consumable {
+    set = "Tarot",
+    key = "seraph",
+    loc_txt = {
+        name = "The Seraph",
+        text = {
+            "Enhances {C:attention}#1#{} selected cards",
+            "into {C:attention}Light Cards{}",
+        },
+    },
+    config = { mod_conv = "m_cryp_light", max_highlighted = 2 },
+    unlocked = true,
+    discovered = true,
+    sprite = "seraph.png",
+    negative_sprite = "seraph_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (card and card.ability and card.ability.max_highlighted)
+            or (self.config and self.config.max_highlighted) or 2 } }
+    end,
+}
+
+SMODS.Consumable {
+    set = "Tarot",
+    key = "instability",
+    loc_txt = {
+        name = "Instability",
+        text = {
+            "Enhances {C:attention}#1#{} selected card",
+            "into an {C:attention}Abstract Card{}",
+        },
+    },
+    config = { mod_conv = "m_cryp_abstract", max_highlighted = 1 },
+    unlocked = true,
+    discovered = true,
+    sprite = "instability.png",
+    negative_sprite = "instability_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (card and card.ability and card.ability.max_highlighted)
+            or (self.config and self.config.max_highlighted) or 1 } }
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Cat Owl: Lucky Cards are considered Echo Cards and vice versa. The
+-- whole Joker is one check_enhancement answer; the fork's channel does
+-- the rest (a Lucky card collects Echo's retrigger roll, an Echo card
+-- procs Lucky's rolls when it scores, and has_enhancement sees through
+-- both directions). Meme pool, like PC.
+-- PORT NOTE: PC is blueprint_compat = false; the fork's copy machinery
+-- honours that flag on retrigger asks the same way.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "cat_owl",
+    loc_txt = {
+        name = "Cat Owl",
+        text = {
+            "{C:attention}Lucky Cards{} are also",
+            "considered {C:attention}Echo Cards{}",
+            "{C:attention}Echo Cards{} are also",
+            "considered {C:attention}Lucky Cards{}",
+        },
+    },
+    rarity = 3,
+    cost = 8,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "cat_owl.png",
+    negative_sprite = "cat_owl_negative.png",
+    calculate = function(self, card, context)
+        if context.check_enhancement and context.other_card then
+            local enh = context.other_card.enhancement
+            if enh == "lucky" then return { m_cryp_echo = true } end
+            if enh == "echo" then return { m_lucky = true } end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Sock and Sock: retrigger all played Abstract cards once (capped at
+-- 40 by its immutable). PC's enhancement_gate (out of pools until an
+-- Abstract card exists in the deck) is the fork's in_pool idiom, the
+-- same translation Paperback's gated Jokers use.
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "sock_and_sock",
+    loc_txt = {
+        name = "Sock and Sock",
+        text = {
+            "Retrigger all played",
+            "{C:attention}Abstract{} cards {C:attention}#1#{} time",
+        },
+    },
+    config = { extra = { retriggers = 1 }, immutable = { max_retriggers = 40 } },
+    in_pool = function(self, game)
+        if type(game) ~= "table" or game.handlist == nil then game = G end
+        if not game or not game.count_cards_in_full_deck then return true end
+        local ok, n = pcall(function()
+            return game:count_cards_in_full_deck(function(c)
+                return c and c.enhancement == "abstract"
+            end)
+        end)
+        if not ok then return true end
+        return (tonumber(n) or 0) > 0
+    end,
+    rarity = 2,
+    cost = 7,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "sock_and_sock.png",
+    negative_sprite = "sock_and_sock_negative.png",
+    loc_vars = function(self, info_queue, card)
+        return { vars = { math.min(card.ability.immutable.max_retriggers, card.ability.extra.retriggers) } }
+    end,
+    calculate = function(self, card, context)
+        if context.repetition and context.cardarea == G.play and context.other_card then
+            if SMODS.has_enhancement(context.other_card, "m_cryp_abstract") then
+                return {
+                    message = "Again!",
+                    repetitions = math.min(card.ability.immutable.max_retriggers, card.ability.extra.retriggers),
+                }
+            end
+        end
+    end,
+}
+
+--------------------------------------------------------------------------------
+-- Spectrogram (Epic): retriggers the rightmost Joker once for every
+-- Echo Card played and scored this hand. The count is taken at the
+-- before beat from the scoring hand (carried Echo only, as PC reads
+-- center keys; a Cat Owl claim does not inflate it, also as PC).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "spectrogram",
+    loc_txt = {
+        name = "Spectrogram",
+        text = {
+            "{C:attention}Retriggers{} rightmost Joker",
+            "once for every {C:attention}Echo Card{}",
+            "that is played and scored",
+        },
+    },
+    config = { extra = {}, immutable = { echonum = 0 } },
+    rarity = "epic",
+    cost = 9,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    sprite = "spectrogram.png",
+    negative_sprite = "spectrogram_negative.png",
+    calculate = function(self, card, context)
+        if context.before and context.cardarea == G.jokers then
+            card.ability.immutable.echonum = 0
+            for _, v in ipairs(context.scoring_hand or {}) do
+                if v.enhancement == "echo" and not v.debuff then
+                    card.ability.immutable.echonum = card.ability.immutable.echonum + 1
+                end
+            end
+        end
+        if context.retrigger_joker_check and not context.retrigger_joker
+            and context.other_card then
+            local held = crypT_held_jokers()
+            if context.other_card == held[#held] and context.other_card ~= card then
+                if card.ability.immutable.echonum > 0 then
+                    return {
+                        message = "Again!",
+                        repetitions = card.ability.immutable.echonum,
+                    }
+                end
+            end
         end
     end,
 }

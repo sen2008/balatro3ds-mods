@@ -143,7 +143,7 @@ local function install_pack()
         "joker_duty", "joker_jacks", "journal", "keycard",
         "king_me", "legacy", "loaded_dice", "lone_digger",
         "lurid_joker", "man", "mandela_effect", "marble_soda",
-        "master_spark", "matcha", "meeple", "mezzetino",
+        "master_spark", "matcha", "medic", "blood_rain", "meeple", "mezzetino",
         "mind_electric", "moneyback", "moribund", "moving_out",
         "nazca_lines", "ncj", "nigiri", "off_switch",
         "one_shift_more", "paralyzed", "paranoia", "pear",

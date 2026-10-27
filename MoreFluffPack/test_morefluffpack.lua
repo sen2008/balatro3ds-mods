@@ -62,6 +62,8 @@ local NAMES = {
     "black", "deepblue", "crimson", "seaweed", "brown", "grey", "silver",
     "white", "red", "orange", "green", "blue", "lilac", "pink",
     "colour_normal_1", "colour_normal_2", "colour_jumbo_1", "colour_mega_1",
+    -- v1.5.0
+    "crimsonglassdecomposition", "halt", "ransom_note", "enh_power", "enh_ransom_note",
 }
 
 local function install_pack()
@@ -219,12 +221,14 @@ local EXPECT = {
     ["j_mfp_friendinsideme"] = { "Friend Inside Me", 2, 7 },
     ["j_mfp_globe"] = { "Globe", 2, 6 },
     ["j_mfp_goldencarrot"] = { "Golden Carrot", 2, 4 },
+    ["j_mfp_crimsonglassdecomposition"] = { "Disintegration Loop", 3, 10 },
     ["j_mfp_grep"] = { "grep", 3, 8 },
     ["j_mfp_hallofmirrors"] = { "Hall of Mirrors", 5, 6 },
     ["j_mfp_hollow"] = { "Hollow Joker", 1, 4 },
     ["j_mfp_hugejoker"] = { "Huge Joker", 3, 8 },
     ["j_mfp_hyperbeam"] = { "Hyper Beam", 2, 8 },
     ["j_mfp_icecube"] = { "Ice Cube", 2, 6 },
+    ["j_mfp_halt"] = { "Disintegration Loop", 3, 10 },
     ["j_mfp_impostor"] = { "Impostor", 5, 7 },
     ["j_mfp_jack_of_all_trades"] = { "Jack of All Trades", 1, 6 },
     ["j_mfp_jester"] = { "Jester", 1, 2 },
@@ -261,6 +265,7 @@ local EXPECT = {
     ["j_mfp_philosophical"] = { "Philosophical Joker", 1, 1 },
     ["j_mfp_pixel_joker"] = { "Pixel Joker", 3, 8 },
     ["j_mfp_recycling"] = { "Recycling", 2, 5 },
+    ["j_mfp_ransom_note"] = { "Ransom Note", 2, 4 },
     ["j_mfp_retrigger_joker"] = { "Retrigger Joker", 2, 8 },
     ["j_mfp_riding_the_dilu_horse"] = { "Riding the Dilu Horse", 3, 7 },
     ["j_mfp_simplified"] = { "Simplified Joker", 1, 5 },
@@ -330,14 +335,14 @@ local EXPECT = {
     ["j_mfp_loadeddisk"] = { "Loaded Disk", 2, 6 },
 }
 
-suite.test("pack loads and registers all 133 Jokers", function()
+suite.test("pack loads and registers all 136 Jokers", function()
     install_pack()
     local n = 0
     for id in pairs(JOKER_DEFS) do
         if id:sub(1, 6) == "j_mfp_" then n = n + 1 end
     end
-    T.assert_eq(n, 133, "133 pack Jokers registered")
-    for _, value in ipairs({ "teal", "marigold", "brass", "gemstone", "yucky" }) do
+    T.assert_eq(n, 136, "136 pack Jokers registered")
+    for _, value in ipairs({ "teal", "marigold", "brass", "gemstone", "yucky", "power", "ransom_note" }) do
         T.assert_not_nil(SMODS.EnhancementByValue[value], value .. " enhancement registered")
         T.assert_eq(SMODS.EnhancementByValue[value].weight, 0, value .. " stays out of the polls")
     end
@@ -1724,6 +1729,142 @@ suite.test("wave6 colour packs: a Colour Pack deals Colour cards", function()
             "every choice is a Colour card")
     end
     game:end_booster_session()
+    wipe_mods()
+end)
+
+
+--------------------------------------------------------------------------------
+-- Wave 7b (v1.5.0): the transform chain, Power and Ransom Note
+--------------------------------------------------------------------------------
+
+local function play7b(game, nodes)
+    local h = game.hand
+    h.card_nodes, h.selected = {}, {}
+    for _, nd in ipairs(nodes) do
+        h.card_nodes[#h.card_nodes + 1] = nd
+        h.selected[#h.selected + 1] = nd
+    end
+    h:calculate_play()
+    return G.handlist and G.handlist[G.selectedHand], h
+end
+
+local function deck_power_count(game)
+    local n = 0
+    for _, d in ipairs(game.deck.cards or {}) do
+        if d.enhancement == "power" then n = n + 1 end
+    end
+    return n
+end
+
+suite.test("wave7b power: identity, X2 when scored, always scores", function()
+    local game = install_pack()
+    T.assert_eq(SMODS.enhancement_flag("power", "always_scores"), true)
+    T.assert_eq(SMODS.enhancement_flag("power", "no_rank"), true)
+    T.assert_eq(SMODS.enhancement_flag("power", "any_suit"), true)
+    local p = card(9, "Clubs", "power")
+    local ctx = { cards = { p }, played_cards = { p }, chips = 10, mult = 10 }
+    p:emit_hand_event("card_played", ctx)
+    T.assert_eq(ctx.mult, 20, "power applies X2 Mult at its scoring beat")
+    local name, h = play7b(game, {
+        card(4, "Spades"), card(4, "Hearts"), card(7, "Diamonds", "power"),
+    })
+    T.assert_eq(name, "Pair")
+    T.assert_true(h.selected[3].counts_for_play_score == true,
+        "a Power card scores beside a pair it cannot join")
+    local name2 = play7b(game, {
+        card(2, "Spades"), card(5, "Spades"), card(9, "Spades"),
+        card(11, "Spades"), card(7, "Clubs", "power"),
+    })
+    T.assert_eq(name2, "Flush", "a Power card fills a flush of any suit")
+    wipe_mods()
+end)
+
+suite.test("wave7b power: a discarded copy shuffles back into the deck", function()
+    local game = install_pack()
+    local p = card(9, "Clubs", "power")
+    game.deck.discard_pile = game.deck.discard_pile or {}
+    table.insert(game.deck.discard_pile, p.card_data)
+    T.assert_eq(deck_power_count(game), 0)
+    SMODS.enhancement_discard_event(p, "discard")
+    T.assert_eq(#game.deck.discard_pile, 0, "the copy left the discard pile")
+    T.assert_eq(deck_power_count(game), 1, "and landed back in the draw pile")
+    local t = card(4, "Hearts", "teal")
+    table.insert(game.deck.discard_pile, t.card_data)
+    SMODS.enhancement_discard_event(t, "discard")
+    T.assert_eq(#game.deck.discard_pile, 1, "a non-opt-in enhancement is never asked")
+    wipe_mods()
+end)
+
+suite.test("wave7b ransom note enhancement: retriggers and X2", function()
+    local game = install_pack()
+    local r = card(14, "Spades", "ransom_note")
+    T.assert_eq(SMODS.enhancement_retrigger_count(r, false), 2,
+        "a Ransom Note card is retriggered twice by its own enhancement")
+    local ctx = { cards = { r }, played_cards = { r }, chips = 10, mult = 10 }
+    r:emit_hand_event("card_played", ctx)
+    T.assert_eq(ctx.mult, 20, "and doubles Mult when it scores")
+    wipe_mods()
+end)
+
+suite.test("wave7b crimson: held 8s and 3s multiply played cards", function()
+    local game = install_pack()
+    local crimson = add(game, "j_mfp_crimsonglassdecomposition")
+    local h8, h3 = card(8, "Hearts"), card(3, "Clubs")
+    local p5 = card(5, "Spades")
+    game.hand.card_nodes = { h8, h3, p5 }
+    local ret = calc(crimson, { individual = true, cardarea = G.play,
+        other_card = p5, scoring_hand = { p5 } })
+    T.assert_near(ret.x_mult, 2.25, 0.001, "two held 8/3s: X1.5 twice")
+    local p8 = card(8, "Diamonds")
+    game.hand.card_nodes = { h8, h3, p5, p8 }
+    ret = calc(crimson, { individual = true, cardarea = G.play,
+        other_card = p5, scoring_hand = { p5, p8 } })
+    T.assert_near(ret.x_mult, 5.0625, 0.001, "a played 8 doubles the beat again")
+    ret = calc(crimson, { individual = true, cardarea = G.play,
+        other_card = p8, scoring_hand = { p8 } })
+    T.assert_true(ret == nil, "a played 8 or 3 does not trigger itself")
+    wipe_mods()
+end)
+
+suite.test("wave7b chain: crimson transforms to halt, halt to the circle", function()
+    local game = install_pack()
+    local crimson = add(game, "j_mfp_crimsonglassdecomposition")
+    local boss = { end_of_round = true, port = { is_boss_blind = true } }
+    local ret = calc(crimson, boss)
+    T.assert_eq(ret.message, "Transformed!")
+    T.assert_eq(defid(crimson), "j_mfp_halt", "the same slot now holds Halt")
+    T.assert_eq(deck_power_count(game), 3, "three Power Cards entered the deck")
+    ret = calc(crimson, boss)
+    T.assert_eq(ret.message, "Transformed!")
+    T.assert_eq(defid(crimson), "j_mfp_theshatteringcircle",
+        "and one more Boss Blind completes the chain")
+    wipe_mods()
+end)
+
+suite.test("wave7b halt: draws a Power Card to hand at blind select", function()
+    local game = install_pack()
+    local halt = add(game, "j_mfp_halt")
+    T.assert_eq(deck_power_count(game), 0)
+    game.deck.cards[#game.deck.cards + 1] =
+        { rank = 6, suit = "Hearts", enhancement = "power", chips = 6 }
+    calc(halt, { setting_blind = true })
+    T.assert_eq(deck_power_count(game), 0, "the Power Card left the deck")
+    T.assert_eq(#game.hand.card_nodes, 1, "and arrived in hand")
+    T.assert_eq(game.hand.card_nodes[1].card_data.enhancement, "power")
+    wipe_mods()
+end)
+
+suite.test("wave7b ransom note: the Joker becomes a deck card", function()
+    local game = install_pack()
+    add(game, "j_mfp_ransom_note")
+    T.assert_eq(#game.jokers, 0, "the Joker left the tray on arrival")
+    local found = nil
+    for _, d in ipairs(game.deck.cards) do
+        if d.enhancement == "ransom_note" then found = d end
+    end
+    T.assert_true(found ~= nil, "an Ace of Spades Ransom Note is in the deck")
+    T.assert_eq(found.rank, 14)
+    T.assert_eq(found.suit, "Spades")
     wipe_mods()
 end)
 

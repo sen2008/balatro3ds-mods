@@ -10870,14 +10870,39 @@ end
 -- the random enhancement polls.
 --------------------------------------------------------------------------------
 
+-- Wave 7b: Blood Rain held turns a scoring Soaked card's held-card
+-- credit from Chips to Mult (PC's eval_card hook, applied per held
+-- card: a held card with a rank gives Mult equal to its nominal rank;
+-- a rankless held card still gives its Chip value).
+local function pb7b_blood_rain_held()
+    local g = pb5_game()
+    if not g or type(g.jokers) ~= "table" then return false end
+    for _, j in ipairs(g.jokers) do
+        if j.def and j.def.id == "j_pbp_blood_rain" and not j.debuffed then
+            return true
+        end
+    end
+    return false
+end
+
+local function pb7b_nominal(node)
+    local r = tonumber((node.card_data or {}).rank)
+    if not r then return nil end
+    if r == 14 then return 11 end
+    if r > 10 then return 10 end
+    return r
+end
+
 if SMODS.Enhancement then
 
 -- PORT NOTE (Soaked): PC scores every held card in full (its own
 -- enhancement, seal, edition and Joker-on-held effects) through
 -- SMODS.score_card; the fork raises no per-card scoring pass for held
--- cards, so only each held card's Chip value is credited. The 1-in-2
--- destroy-on-discard half is unported: enhancement calculate is never
--- raised on discard in the fork.
+-- cards, so only each held card's Chip value is credited (or, with
+-- Blood Rain held, its nominal rank as Mult -- the Wave 7b port
+-- below). The 1-in-2 destroy-on-discard half stays unported: the
+-- fork's opt-in discard moment exists since Wave 7b, but this port
+-- predates it and the half is outside that wave's item list.
 SMODS.Enhancement {
     key = "soaked",
     loc_txt = { name = "Soaked Card", text = {
@@ -10893,6 +10918,21 @@ SMODS.Enhancement {
     end,
     calculate = function(self, card, context)
         if context.card_played then
+            if pb7b_blood_rain_held() then
+                local mult_total, chips_total = 0, 0
+                for _, node in ipairs(pb5_held_nodes()) do
+                    local nominal = pb7b_nominal(node)
+                    if nominal then
+                        mult_total = mult_total + nominal
+                    else
+                        chips_total = chips_total + pb5_chip_value(node)
+                    end
+                end
+                local ret = {}
+                if mult_total > 0 then ret.mult = mult_total end
+                if chips_total > 0 then ret.chips = chips_total end
+                if ret.mult or ret.chips then return ret end
+            end
             local total = 0
             for _, node in ipairs(pb5_held_nodes()) do
                 total = total + pb5_chip_value(node)
@@ -10920,11 +10960,16 @@ SMODS.Enhancement {
     end,
 }
 
--- PORT NOTE (Bandaged): registered but inert. PC's effect answers a
--- repetition query from the scoring card beside it and a destroy query
--- when it is scored; the fork asks repetition and destruction questions
--- of seals and Jokers only, never of enhancements, so there is no
--- calculate moment this effect could live in.
+-- Bandaged (Wave 7b, honest since the fork's enhancement channels):
+-- PC answers Paperback's own repetition query for the scoring card
+-- beside it (1 + the Medic counter) and a destroy query when scored
+-- (1-in-5 to break). The fork's neighbour-repetition ask is the same
+-- shape: this enhancement opts in, is asked about each played card
+-- from its own seat in the played set, and answers when the card sits
+-- immediately beside it and it is itself scoring. The destroy half
+-- rides the fork's post-scoring destroy question; the broken count
+-- and the Medic counter live in the pack's mod state, where PC keeps
+-- them in G.GAME.paperback.
 SMODS.Enhancement {
     key = "bandaged",
     loc_txt = { name = "Bandaged Card", text = {
@@ -10934,14 +10979,42 @@ SMODS.Enhancement {
     } },
     config = { extra = { odds = 5 } },
     weight = 0,
+    neighbour_repetition = true,
     loc_vars = function(self, info_queue, card)
         return { vars = { 1, self.config.extra.odds } }
     end,
+    calculate = function(self, card, context)
+        G = rawget(_G, "G") or G
+        if context.neighbour_repetition and context.scoring_hand then
+            if card.counts_for_play_score then
+                local idx = nil
+                for i, v in ipairs(context.scoring_hand) do
+                    if v == card then idx = i break end
+                end
+                if idx and (context.other_card == context.scoring_hand[idx - 1]
+                    or context.other_card == context.scoring_hand[idx + 1]) then
+                    local st = SMODS.mod_state("PaperbackPack")
+                    return { repetitions = 1 + (tonumber(st.bandaged_inc) or 0) }
+                end
+            end
+        end
+        if context.destroy_card and context.cardarea == G.play
+            and context.destroy_card == card then
+            if SMODS.pseudorandom_probability(card, "bandaged_break", 1,
+                self.config.extra.odds, "paperback_bandaged") then
+                local st = SMODS.mod_state("PaperbackPack")
+                st.bandages_broken = (tonumber(st.bandages_broken) or 0) + 1
+                return { remove = true }
+            end
+        end
+    end,
 }
 
--- PORT NOTE (Wrapped): PC's no_rank / no_suit / always_scores flags have
--- no counterpart in the fork's enhancement registration; the card keeps
--- its rank and suit and scores normally. The $2 on score is exact.
+-- PORT NOTE (Wrapped): PC's no_rank / no_suit / always_scores flags
+-- had no counterpart in the fork's enhancement registration when this
+-- was ported (they exist since Wave 7b); the port keeps its arrival
+-- behavior -- the card keeps its rank and suit and scores normally.
+-- The $2 on score is exact.
 SMODS.Enhancement {
     key = "wrapped",
     loc_txt = { name = "Wrapped Card", text = {
@@ -10960,9 +11033,10 @@ SMODS.Enhancement {
     end,
 }
 
--- PORT NOTE (Ceramic): the shatter half is unported. PC decides it in a
--- destroy query answered after the final scoring step; the fork raises
--- neither moment for enhancement centers.
+-- PORT NOTE (Ceramic): the shatter half is unported. PC decides it in
+-- a destroy query answered after the final scoring step; the fork
+-- raises that question of enhancements since Wave 7b, but Ceramic's
+-- half is outside that wave's item list and stays unported here.
 SMODS.Enhancement {
     key = "ceramic",
     loc_txt = { name = "Ceramic Card", text = {
@@ -15249,3 +15323,91 @@ pb9_clip_arcana("nine_of_pentacles", "Nine of Pentacles", "purple_clip", 1, "a {
 end -- Wave 7 expansion block
 
 
+
+--------------------------------------------------------------------------------
+-- Wave 7b section (v1.5.1): Medic and Blood Rain, the two enhancement
+-- neighbours the fork's Wave 7b channels unblocked. Both are pool-gated
+-- on their enhancement being in the full deck (PC's enhancement_gate),
+-- and both register unlocked: PC's unlock conditions are not ported
+-- anywhere in this pack (Medic's is breaking 2 Bandaged cards in one
+-- hand -- the pack now counts broken Bandaged cards in its mod state,
+-- so the number exists, but no unlock system reads it).
+--------------------------------------------------------------------------------
+
+SMODS.Joker {
+    key = "medic",
+    name = "Medic",
+    rarity = 2,
+    cost = 6,
+    sprite = "medic.png",
+    negative_sprite = "medic_negative.png",
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    config = { extra = { enhancement = "bandaged" } },
+    in_pool = function(self, game)
+        if type(game) ~= "table" or game.handlist == nil then game = G end
+        if not game or not game.count_cards_in_full_deck then return true end
+        local ok, n = pcall(function()
+            return game:count_cards_in_full_deck(function(c)
+                return c and c.enhancement == "bandaged"
+            end)
+        end)
+        if not ok then return true end
+        return (tonumber(n) or 0) > 0
+    end,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Bandaged Card" } }
+    end,
+    loc_txt = { name = "Medic", text = {
+        "{C:attention}#1#s{} retrigger",
+        "cards an additional time",
+    } },
+    -- The whole effect is the counter (PC's add/remove pair): each held
+    -- Medic adds one to the repetitions a Bandaged Card grants its
+    -- neighbours. The counter lives in the pack's mod state, where PC
+    -- keeps it in G.GAME.paperback.
+    add_to_deck = function(self, card, from_debuff)
+        local st = SMODS.mod_state("PaperbackPack")
+        st.bandaged_inc = (tonumber(st.bandaged_inc) or 0) + 1
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        local st = SMODS.mod_state("PaperbackPack")
+        st.bandaged_inc = (tonumber(st.bandaged_inc) or 0) - 1
+    end,
+}
+
+SMODS.Joker {
+    key = "blood_rain",
+    name = "Blood Rain",
+    rarity = 3,
+    cost = 8,
+    sprite = "blood_rain.png",
+    negative_sprite = "blood_rain_negative.png",
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    config = {},
+    in_pool = function(self, game)
+        if type(game) ~= "table" or game.handlist == nil then game = G end
+        if not game or not game.count_cards_in_full_deck then return true end
+        local ok, n = pcall(function()
+            return game:count_cards_in_full_deck(function(c)
+                return c and c.enhancement == "soaked"
+            end)
+        end)
+        if not ok then return true end
+        return (tonumber(n) or 0) > 0
+    end,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { "Soaked Card" } }
+    end,
+    loc_txt = { name = "Blood Rain", text = {
+        "{C:attention}#1#s{} give {C:mult}Mult{} equal",
+        "to the {C:attention}rank{} of held cards",
+        "instead of giving {C:chips}Chips",
+    } },
+    -- No calculate, as on PC: the effect lives in the Soaked
+    -- enhancement's own calculate (pb7b_blood_rain_held), where PC
+    -- keeps it in its eval_card hook.
+}

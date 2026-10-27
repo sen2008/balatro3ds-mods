@@ -33,6 +33,9 @@ local JOKER_EXPECT = {
     ["nice"] = { name = "Nice", cost = 6, rarity = 3 },
     ["seal_the_deal"] = { name = "Seal the Deal", cost = 5, rarity = 2 },
     ["chad"] = { name = "Chad", cost = 10, rarity = 3 },
+    ["cat_owl"] = { name = "Cat Owl", cost = 8, rarity = 3 },
+    ["sock_and_sock"] = { name = "Sock and Sock", cost = 7, rarity = 2 },
+    ["spectrogram"] = { name = "Spectrogram", cost = 9, rarity = "epic" },
     ["jimball"] = { name = "Jimball", cost = 9, rarity = 3 },
     ["sus"] = { name = "SUS", cost = 7, rarity = 3 },
     ["fspinner"] = { name = "Fidget Spinner", cost = 5, rarity = 1 },
@@ -220,6 +223,9 @@ local CONSUMABLE_EXPECT = {
     ["white_hole"] = { name = "White Hole", set = "Spectral", cost = 4 },
     ["summoning"] = { name = "Summoning", set = "Spectral", cost = 4 },
     ["theblessing"] = { name = "The Blessing", set = "Tarot", cost = 3 },
+    ["eclipse"] = { name = "The Eclipse", set = "Tarot", cost = nil },
+    ["seraph"] = { name = "The Seraph", set = "Tarot", cost = nil },
+    ["instability"] = { name = "Instability", set = "Tarot", cost = nil },
     ["gateway"] = { name = "Gateway", set = "Spectral", cost = 4 },
     ["source"] = { name = "Source", set = "Spectral", cost = 4 },
     ["typhoon"] = { name = "Typhoon", set = "Spectral", cost = 4 },
@@ -244,6 +250,8 @@ local SPRITE_STEMS = {
     "Sydan_negative",
     "Timantii",
     "Timantii_negative",
+    "abstract",
+    "abstract_negative",
     "absurd",
     "absurd_negative",
     "adroit",
@@ -290,6 +298,8 @@ local SPRITE_STEMS = {
     "canvas_negative",
     "caramel",
     "caramel_negative",
+    "cat_owl",
+    "cat_owl_negative",
     "chad",
     "chad_negative",
     "chambered",
@@ -342,6 +352,10 @@ local SPRITE_STEMS = {
     "duplicare",
     "duplicare_negative",
     "duplicare_soul",
+    "echo",
+    "echo_negative",
+    "eclipse",
+    "eclipse_negative",
     "eternalflame",
     "eternalflame_negative",
     "exoplanet",
@@ -374,6 +388,8 @@ local SPRITE_STEMS = {
     "highfive_negative",
     "hunger",
     "hunger_negative",
+    "instability",
+    "instability_negative",
     "iterum",
     "iterum_negative",
     "iterum_soul",
@@ -393,6 +409,8 @@ local SPRITE_STEMS = {
     "kscope_negative",
     "lebaron_james",
     "lebaron_james_negative",
+    "light",
+    "light_negative",
     "lightupthenight",
     "lightupthenight_negative",
     "lock",
@@ -486,12 +504,18 @@ local SPRITE_STEMS = {
     "scrabble_negative",
     "seal_the_deal",
     "seal_the_deal_negative",
+    "seraph",
+    "seraph_negative",
     "shrewd",
     "shrewd_negative",
     "silly",
     "silly_negative",
     "soccer",
     "soccer_negative",
+    "sock_and_sock",
+    "sock_and_sock_negative",
+    "spectrogram",
+    "spectrogram_negative",
     "speculo",
     "speculo_negative",
     "speculo_soul",
@@ -776,12 +800,12 @@ end
 -- Registration: rarities, hands, consumable types, every item + tooltips
 --------------------------------------------------------------------------------
 
-suite.test("pack loads: 176 Jokers, 31 consumables, rarities, hands, types", function()
+suite.test("pack loads: 179 Jokers, 34 consumables, rarities, hands, types", function()
     local game = install_pack()
     local mod = ModLoader.by_id.CryptidPack
     T.assert_eq(mod.status, "loaded", tostring(mod.error))
-    T.assert_eq(#mod.registered.jokers, 176, "176 Jokers register")
-    T.assert_eq(#mod.registered.consumables, 31, "31 consumables register")
+    T.assert_eq(#mod.registered.jokers, 179, "179 Jokers register")
+    T.assert_eq(#mod.registered.consumables, 34, "34 consumables register")
 
     T.assert_eq(SMODS.Rarities["cryp_epic"].weight, 0.3, "epic weight")
     T.assert_eq(SMODS.Rarities["cryp_exotic"].weight, 0, "exotic weight 0 (never in shop)")
@@ -2288,6 +2312,145 @@ suite.test("wave6 digital hallucinations: a Negative card per pack type", functi
     T.assert_eq(#game.consumables, nc, "a missed roll creates nothing")
     game:end_booster_session()
     SMODS.pseudorandom_probability = real_prob
+    wipe_mods()
+end)
+
+--------------------------------------------------------------------------------
+-- Wave 7b: the enhancement channels (Echo / Light / Abstract and friends)
+--------------------------------------------------------------------------------
+
+local function calc7b(joker, ctx)
+    return joker.def.smods.calculate(joker.def.smods, joker, ctx)
+end
+
+suite.test("wave7b: enhancements register; the Tarots convert", function()
+    local game = install_pack_full()
+    T.assert_true(SMODS.EnhancementByValue.echo ~= nil, "Echo registers")
+    T.assert_true(SMODS.EnhancementByValue.light ~= nil, "Light registers")
+    local abs = SMODS.EnhancementByValue.abstract
+    T.assert_true(abs ~= nil, "Abstract registers")
+    T.assert_eq(abs.specific_rank, "cry_abstract", "Abstract has its own rank")
+    T.assert_eq(abs.specific_suit, "cry_abstract", "Abstract has its own suit")
+    T.assert_eq(abs.replace_base_card, true, "Abstract replaces the base card")
+    T.assert_eq(SMODS.EnhancementByValue.echo.config.retriggers, 2)
+
+    local seven = card(7)
+    setup_hand(game, { seven }, { seven })
+    use_slot(game, hold_consumable(game, "eclipse"))
+    T.assert_eq(seven.card_data.enhancement, "echo", "The Eclipse makes an Echo Card")
+    local nine = card(9, "Spades")
+    setup_hand(game, { nine }, { nine })
+    use_slot(game, hold_consumable(game, "instability"))
+    T.assert_eq(nine.card_data.enhancement, "abstract", "Instability makes an Abstract Card")
+    local five = card(5, "Clubs")
+    local six = card(6, "Clubs")
+    setup_hand(game, { five, six }, { five, six })
+    use_slot(game, hold_consumable(game, "seraph"))
+    T.assert_eq(five.card_data.enhancement, "light", "The Seraph makes Light Cards (1)")
+    T.assert_eq(six.card_data.enhancement, "light", "The Seraph makes Light Cards (2)")
+    wipe_mods()
+end)
+
+suite.test("wave7b: echo retriggers through the enhancement query", function()
+    local game = install_pack()
+    local node = card(9, "Hearts", "echo")
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true end
+    T.assert_eq(SMODS.enhancement_retrigger_count(node, false), 2,
+        "a passed roll grants the 2 additional passes")
+    SMODS.pseudorandom_probability = function() return false end
+    T.assert_eq(SMODS.enhancement_retrigger_count(node, false), 0,
+        "a failed roll grants none")
+    SMODS.pseudorandom_probability = real_prob
+    wipe_mods()
+end)
+
+suite.test("wave7b: light counts down in its state and pays out", function()
+    local game = install_pack()
+    local node = card(9, "Hearts", "light")
+    local company = { node, card(2), card(3), card(4), card(5) }
+    local function beat()
+        local ctx = { event_name = "card_played", chips = 0, mult = 1,
+            scoring_cards = company }
+        node:emit_hand_event("card_played", ctx)
+        return ctx
+    end
+    local st = SMODS.enhancement_state(node)
+    T.assert_eq(st.extra.current, 5, "the counter seeds at 5")
+    local ctx1 = beat()
+    T.assert_eq(st.extra.current, 1, "four other scoring cards count it down")
+    T.assert_eq(ctx1.mult, 1, "no payout before the first threshold")
+    local ctx2 = beat()
+    T.assert_eq(st.extra.req, 10, "the requirement grew by 5")
+    T.assert_eq(st.extra.current, 7, "the counter refilled by the new requirement")
+    T.assert_true(math.abs(ctx2.mult - 1.2) < 1e-9,
+        "X1.2 Mult lands, got " .. tostring(ctx2.mult))
+    wipe_mods()
+end)
+
+suite.test("wave7b: abstract pays ^1.15 and answers the destroy questions", function()
+    local game = install_pack_full()
+    local node = card(9, "Hearts", "abstract")
+    local ctx = { event_name = "card_played", chips = 0, mult = 100 }
+    node:emit_hand_event("card_played", ctx)
+    T.assert_true(math.abs(ctx.mult - 100 ^ 1.15) < 0.01,
+        "^1.15 Mult lands, got " .. tostring(ctx.mult))
+
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true end
+    T.assert_true(SMODS.enhancement_destroy_check(node, {}),
+        "a passed roll answers the destroy question")
+    SMODS.pseudorandom_probability = function() return false end
+    T.assert_eq(SMODS.enhancement_destroy_check(node, {}), false,
+        "a failed roll survives it")
+    SMODS.pseudorandom_probability = real_prob
+
+    game.hand:add_card({ rank = 8, suit = "Clubs", enhancement = "abstract" })
+    local doomed = game.hand.card_nodes[#game.hand.card_nodes]
+    SMODS.pseudorandom_probability = function() return true end
+    game:emit_hand_cards_event("on_round_end", {})
+    SMODS.pseudorandom_probability = real_prob
+    local still = false
+    for _, n in ipairs(game.hand.card_nodes) do if n == doomed then still = true end end
+    T.assert_eq(still, false, "the round-end shatter removes the held card")
+    wipe_mods()
+end)
+
+suite.test("wave7b: cat owl's claims run both ways", function()
+    local game = install_pack()
+    add(game, "j_cryp_cat_owl")
+    local lucky = card(7, "Diamonds", "lucky")
+    local echo = card(7, "Clubs", "echo")
+    T.assert_true(SMODS.has_enhancement(lucky, "m_cryp_echo"), "Lucky counts as Echo")
+    T.assert_true(SMODS.has_enhancement(echo, "m_lucky"), "Echo counts as Lucky")
+    local real_prob = SMODS.pseudorandom_probability
+    SMODS.pseudorandom_probability = function() return true end
+    T.assert_eq(SMODS.enhancement_retrigger_count(lucky, false), 2,
+        "a claimed Echo card collects Echo's retriggers")
+    SMODS.pseudorandom_probability = real_prob
+    wipe_mods()
+end)
+
+suite.test("wave7b: sock and sock and spectrogram answer their queries", function()
+    local game = install_pack()
+    local sock = add(game, "j_cryp_sock_and_sock")
+    local abs = card(9, "Hearts", "abstract")
+    local plain = card(9, "Clubs")
+    local ret = calc7b(sock, { repetition = true, cardarea = G.play, other_card = abs })
+    T.assert_eq(ret and ret.repetitions, 1, "Abstract cards retrigger once")
+    local ret2 = calc7b(sock, { repetition = true, cardarea = G.play, other_card = plain })
+    T.assert_true(ret2 == nil, "plain cards do not")
+
+    local game2 = install_pack()
+    local spec = add(game2, "j_cryp_spectrogram")
+    local rightmost = add(game2, "j_cryp_cube")
+    local e1, e2 = card(4, "Hearts", "echo"), card(5, "Spades", "echo")
+    calc7b(spec, { before = true, cardarea = G.jokers, scoring_hand = { e1, e2 } })
+    T.assert_eq(spec.ability.immutable.echonum, 2, "two scored Echo Cards counted")
+    local ret3 = calc7b(spec, { retrigger_joker_check = true, other_card = rightmost })
+    T.assert_eq(ret3 and ret3.repetitions, 2, "the rightmost Joker retriggers per Echo")
+    local ret4 = calc7b(spec, { retrigger_joker_check = true, other_card = spec })
+    T.assert_true(ret4 == nil, "Spectrogram does not retrigger for itself")
     wipe_mods()
 end)
 

@@ -1,12 +1,41 @@
 MoreFluffPack for Balatro3DS
 ============================
 
-133 Jokers ported from MoreFluff (PC mod by notmario), including the
+136 Jokers ported from MoreFluff (PC mod by notmario), including the
 Letter Jokers, the Scrapped set and the token Jokers, plus 14 Colour
 consumables and 6 booster packs (2 Modded, 4 Colour). The full roster
-is in the repository README; the 96 PC Jokers that could not be
+is in the repository README; the 93 PC Jokers that could not be
 ported are listed there too, each with the exact system it is blocked
 on.
+
+v1.5.0 (Wave 7b) adds the Disintegration Loop transform chain and
+Ransom Note, unblocked by the fork's Wave 7b enhancement channels
+(SMODS.transform_joker, the enhancement retrigger query, the
+enhancement identity fields and the opt-in discard moment):
+- The Loop's first form (Crimson Glass deComposition): after a Boss
+  Blind it transforms into its second form and creates 3 Power
+  Cards into the deck. While held, played non-8/3 cards gain X1.5
+  Mult per held 8 or 3, once more per played 8 or 3. PC also makes
+  the held 8s and 3s score (their chips and effects, via
+  SMODS.score_card); the fork has no score-a-held-card pass, so only
+  the X Mult is ported and the held cards' own chips are not added.
+  PC's fakeout sprite disguise is a draw hook; the fork's sprites
+  are single-image, so the Joker always shows its own art.
+- Halt, the second form: at each Blind select it draws one Power
+  Card from the deck to hand, and after one more Boss Blind it
+  transforms into The Shattering Circle (already ported).
+- Power (enhancement): X2 Mult when scored, no rank, every suit,
+  always scores; a discarded or played copy shuffles itself back
+  into the deck instead of staying in the discard pile.
+- Ransom Note: the Joker becomes an Ace of Spades in the deck
+  carrying the Ransom Note enhancement (X2 Mult when scored,
+  retriggered 2 additional times, no rank or suit, always scores).
+  PC moves the Joker card itself into the deck; the fork's card
+  kinds are distinct objects, so the Joker leaves through the
+  ordinary removal path (which other Jokers hear as a destroyed
+  Joker, where PC raises nothing) and an equivalent card enters.
+  PC's text is the ransom-note image itself; the port describes
+  the card plainly.
 
 v1.4.0 (Wave 6) adds 25 Jokers, the Colour consumable system and six
 booster packs, unblocked by the fork's Wave 6 shop / voucher /
@@ -185,12 +214,13 @@ Deviations from the PC mod (all forced by missing fork systems):
   Sleeve rolls its Ace's suit itself, since the fork's add_card
   needs one named (PC's add_card picks it internally).
 
-Validation: 86 pack tests (registration and tooltips for all 133,
+Validation: 93 pack tests (registration and tooltips for all 136,
 behaviour tests for the non-trivial effects, including the Tier 3
 return readers, the level_up ports, the enhancement registrations,
-the debuff port, the Wave 1 poll / xlog_chips ports and the Wave 6
-shop, Sliver and Colour ports) plus the fork's own mod suite, all
-passing on the fork build (2026-10-25).
+the debuff port, the Wave 1 poll / xlog_chips ports, the Wave 6
+shop, Sliver and Colour ports and the Wave 7b transform chain,
+Power and Ransom Note ports) plus the fork's own mod suite, all
+passing on the fork build (2026-10-27).
 
 Credit: MoreFluff is by notmario (github.com/notmario/MoreFluff).
 The PC repo carries no license file; this is an unofficial fan port

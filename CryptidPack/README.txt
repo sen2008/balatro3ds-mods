@@ -1,5 +1,5 @@
-Cryptid Pack (3DS Port) v1.5.0
-176 Jokers and 31 consumables from Cryptid (PC, by the Cryptid team),
+Cryptid Pack (3DS Port) v1.6.0
+179 Jokers and 34 consumables from Cryptid (PC, by the Cryptid team),
 ported to Balatro3DS: the Epic, Exotic, Candy and Cursed rarities,
 the Bulwark and UltPair poker hands, and the Code and Unique
 consumable types. v1.2.0 adds the Tier 3 wave: the big-number
@@ -18,6 +18,12 @@ v1.5.0 adds the Wave 6 wave: ://DIVIDE, ://OFFBYONE and Trade
 grant/unredeem APIs) and Digital Hallucinations (the fork's
 open_booster context now carries the booster view its pack-type
 branches need).
+v1.6.0 adds the Wave 7b wave, on the fork's enhancement channels
+(the enhancement retrigger query, per-card enhancement state,
+the check_enhancement alias, the destroy question and the
+specific-rank/suit identity fields): the Echo, Light and Abstract
+enhancements, their Tarots (The Eclipse, The Seraph,
+Instability), Cat Owl, Sock and Sock and Spectrogram.
 
 REQUIRES THE BALATRO3DS FORK (v1.2.0)
 The pack registers custom rarities, poker hands and consumable
@@ -29,7 +35,8 @@ SMODS.ConsumableType, SMODS.Seal / SMODS.Edition / SMODS.Tag),
 for the v1.3.0 items its Wave 1 systems (G.jokers_sold, the
 game_over context, joker_type_destroyed), and for the v1.4.0
 items its Wave 5 systems (SMODS.copy_joker,
-SMODS.blueprint_effect, SMODS.set_joker_debuff):
+SMODS.blueprint_effect, SMODS.set_joker_debuff), and for the
+v1.6.0 items its Wave 7b enhancement channels:
   https://github.com/sen2008/balatro3ds-fork
 On the stock Universal-Updater build the pack does not load.
 The test file (test_cryptidpack.lua) stays in the mod folder; the
@@ -191,8 +198,8 @@ DEVIATIONS FROM PC
   itself is a no-op once the Boss is disabled, so the second
   attempt never double-fires.
 - Familiar Currency rolls the Meme pool that exists in the
-  pack now: 16 of PC's 17 Meme-flagged Jokers (only Cat Owl is
-  unported). Its $19 is charged only when a Joker was actually
+  pack now: all 17 of PC's Meme-flagged Jokers (Cat Owl joined
+  in v1.6.0). Its $19 is charged only when a Joker was actually
   created, so a full Joker tray is never charged; PC checks
   room before charging, the same net result. PC's bankrupt_at
   challenge floor has no fork equivalent and is 0 in a normal
@@ -258,7 +265,6 @@ NOT PORTED: OTHER MISSING SYSTEMS (94)
 - Buttercup: requires a custom cry_storage CardArea with drag UI for stashing shop items plus G.GAME.next_shop_cards shop injection; neither exists in the fork
 - Caeruleum: works entirely through an init hook on SMODS.calculate_individual_effect that promotes adjacent Jokers' chip operators (+ to X to ^); the fork has no effect-application hook to promote another Joker's returns through
 - Candy Sticks: requires disabling the Boss Blind and restoring it later from a saved blind (blind:disable()/blind:save()/blind:load()); the fork can disable a Boss Blind now, but has no blind save/load API to restore it with
-- Cat Owl: Requires the check_enhancement context, which the fork still does not raise, and the m_cry_echo enhancement, which cannot be ported (see The Eclipse)
 - Chocolate Die: requires SMODS.Events ev_cry_choco0..10 (Cryptid event system); those events apply the cry_flickering sticker and other global hooks - no event or sticker system in the fork
 - Clockwork Joker: requires setting a played card's enhancement to m_steel mid-hand (context.full_hand[1]:set_ability) and copy_card self-duplication when its four counters align - neither API exists in the fork
 - Double Scale: whole effect is context.scaling_card plus override_scalar_value (interception of SMODS.scale_card) - that context is not raised and the fork has no scale-card system
@@ -273,7 +279,6 @@ NOT PORTED: OTHER MISSING SYSTEMS (94)
 - Ghost: possession is the cry_possessed sticker plus a Cryptid calculate hook that inverts the possessed Joker's effects; stickers and effect-inversion hooks do not exist in the fork
 - HOOK://: Applies Cryptid's cry_hooked sticker linking 2 selected Jokers so each force-triggers the other (force-trigger/demicolon system), installed via an init hook overriding Card:start_dissolve. No stickers, no force-trigger context and no method hooks in the fork; also needs highlighted-Joker targeting.
 - Hammerspace: Requires Cryptid's CCD system: Cryptid.random_consumable(..., true) returns a consumable-as-enhancement center that is applied to playing cards as their ability; the fork has no consumable-as-enhancement (CCD) mechanic
-- Instability: mod_conv to the custom Abstract enhancement (m_cry_abstract); Abstract's e_mult return is readable now, but the card must also read its own rank and suit, replace the base card underneath it, and roll its destroy chance, none of which the fork supports for enhancements
 - Jawbreaker: requires Cryptid.manipulate (misprintize) to double every numeric value of the adjacent Jokers; fork Jokers do not expose their values in a writable per-copy table (vanilla effects are hardcoded)
 - Labyrinth: No calculate/config: effect lives in lib/overrides.lua hooks on G.FUNCS.play_cards_from_highlighted/discard_cards_from_highlighted that zero G.GAME.current_round.hands_played/discards_used — the fork exposes no hook to reset its round counters
 - Lucky Joker: PC fires on other_card.lucky_trigger during individual scoring; the fork never exposes lucky_trigger to mod calculate (its lucky rolls surface only as probability_success, which reads repetitions and cannot pay dollars)
@@ -297,15 +302,11 @@ NOT PORTED: OTHER MISSING SYSTEMS (94)
 - RNJoker: abilities are generated and interpreted by Cryptid.rnjoker_randomize / its calculate interpreter, which uses G.GAME.joker_buffer and consumeable_buffer, G.jokers.cards, the other_joker and debuffed_hand contexts, and x_chips/payout returns - no fork equivalent
 - Rescribere: monkey-patches every other held Joker's calculate_joker function to append a sold Joker's effects; fork Jokers carry no per-instance calculate_joker to patch
 - Scalae: sole effect is in the Cryptid-specific scaling_card context, rewriting other Jokers' scaling increments as degree-N polynomials through SMODS.scale_card internals; fork never raises scaling_card and exposes no scaling hook
-- Sock and Sock: retriggers played Echo cards (m_cry_echo); no ported card can ever carry Echo (see The Eclipse), so there is never anything to retrigger
 - Sol: Requires Cryptid's Ascension system (Cryptid.asc_level_up, G.GAME.sunlevel/sunnumber, cry_asc_num ascension power, gated on G.GAME.cry_asc_played); no ascension state or ascended hands exist in the fork
-- Spectrogram: counts scored Echo cards (the m_cry_echo enhancement); Echo detection would work, but no ported card can ever carry Echo (see The Eclipse), so the count would be permanently zero
 - Spy: disguise requires update()/generate_ui hooks that swap sprite, rarity and cost to a random secret Joker and spoof its description, plus the perishable sticker; no fork equivalent
 - Test Joker: debug/test item in PC source, not player content
 - The: effect requires the cry_None poker hand (a hand containing 0 cards); a 0-card play cannot be made or scored in the fork and None is not a registerable hand
-- The Eclipse: mod_conv to the custom Echo enhancement (m_cry_echo); Echo's whole effect is retriggering its card, and fork enhancements have no retrigger channel (only seals get retrigger counts), so the enhancement cannot be registered honestly and mod_conv would hand out a dead card
 - The Fuck!?: effect requires the cry_Clusterfuck poker hand (8+ played cards forming no pair/flush/straight); the fork evaluates hands on a normal play and Clusterfuck is not registerable
-- The Seraph: mod_conv to the custom Light enhancement (m_cry_light); Light keeps a per-card counter and reads the scoring hand's size when it scores, and fork enhancement contexts carry neither per-card persistent state nor the scoring hand
 - The Universe In Its Fucking Entirety: Levels cry_WholeDeck, which can never be formed in the fork (whole deck in one play; selection caps at 5, no play-limit API); its Observatory calculate also returns emult gated on that hand
 - Tropical Smoothie: Requires Cryptid.manipulate (library value-multiplication of every other Joker's ability values); no fork equivalent
 - Undefined Joker: effect requires the cry_None poker hand (a hand containing 0 cards); a 0-card play cannot be made or scored in the fork and None is not a registerable hand
