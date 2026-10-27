@@ -40,7 +40,7 @@
     "stars": 0,
     "title": "Balatro3DS Fork (Modding Build)",
     "title_ids": [],
-    "version": "build-2026-10-26-hotload",
+    "version": "build-2026-10-26-optin",
     "wiki": ""
    }
   },
@@ -726,7 +726,7 @@
   "dsSheetURL": "",
   "file": "balatro3ds-mods.unistore",
   "infoURL": "",
-  "revision": 7,
+  "revision": 8,
   "sheet": [
    "balatro3ds-mods.t3x"
   ],
